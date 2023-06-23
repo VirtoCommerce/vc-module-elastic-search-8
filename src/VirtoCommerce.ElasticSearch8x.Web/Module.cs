@@ -27,7 +27,11 @@ public class Module : IModule, IHasConfiguration
     {
         if (IsElastic8xEnabled)
         {
+            serviceCollection.Configure<ElasticSearch8xOptions>(Configuration.GetSection("Search:ElasticSearch8x"));
+            serviceCollection.AddSingleton<ISearchProvider, ElasticSearch8xProvider>();
 
+            serviceCollection.AddSingleton<SearchRequestBuilder>();
+            serviceCollection.AddSingleton<SearchResponseBuilder>();
         }
     }
 
