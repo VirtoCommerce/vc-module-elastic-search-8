@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <id>VirtoCommerce.ElasticSearch8x</id>
+    <version>3.200.0</version>
+    <version-tag></version-tag>
+
+    <platformVersion>3.253.1</platformVersion>
+    <dependencies>
+        <!--<dependency id="VirtoCommerce.Core" version="3.200.4" />-->
+    </dependencies>
+
+    <title>VirtoCommerce ElasticSearch8x module</title>
+    <description>VirtoCommerce ElasticSearch8x module</description>
+
+    <authors>
+        <author>Konstantin Savosteev</author>
+    </authors>
+    <owners>
+        <owner>VirtoCommerce</owner>
+    </owners>
+
+    <projectUrl>https://github.com/VirtoCommerce/vc-module-elastic-search-8-x</projectUrl>
+    <iconUrl>Modules/$(VirtoCommerce.ElasticSearch8x)/Content/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
+    <assemblyFile>VirtoCommerce.ElasticSearch8x.Web.dll</assemblyFile>
+    <moduleType>VirtoCommerce.ElasticSearch8x.Web.Module, VirtoCommerce.ElasticSearch8x.Web</moduleType>
+
+    <releaseNotes>First version.</releaseNotes>
+    <copyright>Copyright © 2023 VirtoCommerce. All rights reserved</copyright>
+    <tags>extension module</tags>
+    <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
+</module>
