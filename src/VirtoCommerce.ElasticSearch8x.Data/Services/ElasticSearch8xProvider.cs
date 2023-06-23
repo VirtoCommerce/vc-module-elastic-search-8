@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Analysis;
@@ -82,7 +83,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
             var createIndexResult = await InternalCreateIndexAsync(documentType, documents);
 
-            var bulkResponse = await Client.BulkAsync(x => CreateBulkRequest(createIndexResult.IndexName, createIndexResult.ProviderDocuments, x));
+            var bulkResponse = await Client.BulkAsync(x => CreateBulkIndexRequest(createIndexResult.IndexName, createIndexResult.ProviderDocuments, x));
 
             await Client.Indices.RefreshAsync(Indices.Index(createIndexResult.IndexName));
 
@@ -106,13 +107,13 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private BulkRequestDescriptor CreateBulkRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor obj)
+        private BulkRequestDescriptor CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
         {
-            obj = obj
+            descriptor = descriptor
                 .Index(indexName)
                 .IndexMany(documents);
 
-            return obj;
+            return descriptor;
         }
 
         protected virtual async Task<CreateIndexResult> InternalCreateIndexAsync(string documentType, IList<IndexDocument> documents)
@@ -585,25 +586,70 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        /// <summary>
-        /// TODO
-        /// </summary>
-        public Task DeleteIndexAsync(string documentType)
+        public async Task DeleteIndexAsync(string documentType)
         {
-            throw new NotImplementedException();
+            try
+            {
+                //get backup index by alias and delete if present
+                var indexName = GetIndexName(documentType);
+
+                if (indexName != null)
+                {
+                    var response = await Client.Indices.DeleteAsync(indexName);
+                    if (!response.IsValidResponse && response.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                    {
+                        throw new SearchException(response.DebugInformation);
+                    }
+                }
+
+                RemoveMappingFromCache(indexName);
+            }
+            catch (Exception ex)
+            {
+                ThrowException("Failed to delete index", ex);
+            }
         }
 
-        /// <summary>
-        /// TODO
-        /// </summary>
-        public Task<IndexingResult> RemoveAsync(string documentType, IList<IndexDocument> documents)
+        public async Task<IndexingResult> RemoveAsync(string documentType, IList<IndexDocument> documents)
         {
-            throw new NotImplementedException();
+            var indexName = GetIndexName(documentType);
+
+            var providerDocuments = documents.Select(d => new SearchDocument { Id = d.Id }).ToArray();
+
+            var bulkResponse = await Client.BulkAsync(x => CreateBulkDeleteRequest(indexName, providerDocuments, x));
+
+            await Client.Indices.RefreshAsync(indexName);
+
+            var result = new IndexingResult
+            {
+                Items = bulkResponse.Items.Select(i => new IndexingResultItem
+                {
+                    Id = i.Id,
+                    Succeeded = i.IsValid,
+                    ErrorMessage = i.Error?.Reason
+                }).ToArray()
+            };
+
+            return result;
+        }
+
+        private BulkRequestDescriptor CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
+        {
+            descriptor = descriptor
+                .Index(indexName)
+                .IndexMany(documents);
+
+            return descriptor;
         }
 
         protected virtual string GetIndexName(string documentType)
         {
             return string.Join("-", _searchOptions.GetScope(documentType), documentType).ToLowerInvariant();
+        }
+
+        protected virtual void RemoveMappingFromCache(string indexName)
+        {
+            _mappings.TryRemove(indexName, out _);
         }
     }
 
