@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\VirtoCommerce.ElasticSearch8x.Core\VirtoCommerce.ElasticSearch8x.Core.csproj" />
     <ProjectReference Include="..\VirtoCommerce.ElasticSearch8x.Data\VirtoCommerce.ElasticSearch8x.Data.csproj" />
   </ItemGroup>
 

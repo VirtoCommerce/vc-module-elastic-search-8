@@ -10,8 +10,10 @@ using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Transport;
 using Microsoft.Extensions.Options;
+using VirtoCommerce.ElasticSearch8x.Core;
+using VirtoCommerce.ElasticSearch8x.Core.Models;
+using VirtoCommerce.ElasticSearch8x.Core.Services;
 using VirtoCommerce.ElasticSearch8x.Data.Extensions;
-using VirtoCommerce.ElasticSearch8x.Data.Models;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Exceptions;
@@ -25,17 +27,8 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
         private readonly SearchOptions _searchOptions;
         private readonly ElasticSearch8xOptions _elasticOptions;
         private readonly ISettingsManager _settingsManager;
-        private readonly SearchRequestBuilder _searchRequestBuilder;
-        private readonly SearchResponseBuilder _searchResponseBuilder;
-
-        protected const string ExceptionTitle = "Elasticsearch8 Server";
-        protected const string ActiveIndexAlias = "active";
-        protected const string BackupIndexAlias = "backup";
-        public string SearchableFieldAnalyzerName { get; private set; } = "searchable_field_analyzer";
-        public string NGramFilterName { get; private set; } = "custom_ngram";
-        public string EdgeNGramFilterName { get; private set; } = "custom_edge_ngram";
-        protected const string CompletionSubFieldName = "completion";
-        protected const int SuggestionFieldLength = 256;
+        private readonly IElasticSearchRequestBuilder _searchRequestBuilder;
+        private readonly IElasticSearchResponseBuilder _searchResponseBuilder;
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
 
@@ -46,8 +39,8 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             IOptions<SearchOptions> searchOptions,
             IOptions<ElasticSearch8xOptions> elasticOptions,
             ISettingsManager settingsManager,
-            SearchRequestBuilder searchRequestBuilder,
-            SearchResponseBuilder searchResponseBuilder
+            IElasticSearchRequestBuilder searchRequestBuilder,
+            IElasticSearchResponseBuilder searchResponseBuilder
             )
         {
             _searchOptions = searchOptions.Value;
@@ -91,7 +84,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             {
                 result.Items.Add(new IndexingResultItem
                 {
-                    Id = ExceptionTitle,
+                    Id = ModuleConstants.ElasticSearchExceptionTitle,
                     ErrorMessage = bulkResponse.ApiCallDetails?.OriginalException?.Message,
                     Succeeded = false
                 });
@@ -107,7 +100,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private BulkRequestDescriptor CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
+        private static BulkRequestDescriptor CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
         {
             descriptor = descriptor
                 .Index(indexName)
@@ -380,10 +373,9 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
             if (field.IsSuggestable)
             {
-                keywordProperty.Fields.Add(new PropertyName(CompletionSubFieldName), new CompletionProperty()
+                keywordProperty.Fields.Add(new PropertyName(ModuleConstants.CompletionSubFieldName), new CompletionProperty()
                 {
-                    //Name = field.Name,
-                    MaxInputLength = SuggestionFieldLength,
+                    MaxInputLength = ModuleConstants.SuggestionFieldLength,
                 });
             }
 
@@ -394,15 +386,14 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
         {
             textProperty.Store = field.IsRetrievable;
             textProperty.Index = field.IsSearchable;
-            textProperty.Analyzer = field.IsSearchable ? SearchableFieldAnalyzerName : null;
+            textProperty.Analyzer = field.IsSearchable ? ModuleConstants.SearchableFieldAnalyzerName : null;
 
             if (field.IsSuggestable)
             {
                 textProperty.Fields ??= new Properties();
-                textProperty.Fields.Add(new PropertyName(CompletionSubFieldName), new CompletionProperty()
+                textProperty.Fields.Add(new PropertyName(ModuleConstants.CompletionSubFieldName), new CompletionProperty()
                 {
-                    //Name = field.Name,
-                    MaxInputLength = SuggestionFieldLength,
+                    MaxInputLength = ModuleConstants.SuggestionFieldLength,
                 });
             }
 
@@ -447,13 +438,13 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
         protected virtual void ConfigureTokenFilters(TokenFiltersDescriptor descriptor)
         {
             descriptor
-                .NGram(NGramFilterName, ConfigureNGramFilter)
-                .EdgeNGram(EdgeNGramFilterName, ConfigureEdgeNGramFilter);
+                .NGram(ModuleConstants.NGramFilterName, ConfigureNGramFilter)
+                .EdgeNGram(ModuleConstants.EdgeNGramFilterName, ConfigureEdgeNGramFilter);
         }
 
         protected virtual void ConfigureAnalyzers(AnalyzersDescriptor descriptor)
         {
-            descriptor.Custom(SearchableFieldAnalyzerName, ConfigureSearchableFieldAnalyzer);
+            descriptor.Custom(ModuleConstants.SearchableFieldAnalyzerName, ConfigureSearchableFieldAnalyzer);
         }
 
         protected virtual void ConfigureNormalizers(NormalizersDescriptor descriptor)
@@ -633,7 +624,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private BulkRequestDescriptor CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
+        private static BulkRequestDescriptor CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
         {
             descriptor = descriptor
                 .Index(indexName)
@@ -651,12 +642,12 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
         {
             _mappings.TryRemove(indexName, out _);
         }
-    }
 
-    public class CreateIndexResult
-    {
-        public string IndexName { get; set; }
+        protected class CreateIndexResult
+        {
+            public string IndexName { get; set; }
 
-        public IList<SearchDocument> ProviderDocuments { get; set; }
+            public IList<SearchDocument> ProviderDocuments { get; set; }
+        }
     }
 }

@@ -4,13 +4,14 @@ using System.Text.Json;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.Core.Search;
+using VirtoCommerce.ElasticSearch8x.Core.Services;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerceSearchRequest = VirtoCommerce.SearchModule.Core.Model.SearchRequest;
 
 
 namespace VirtoCommerce.ElasticSearch8x.Data.Services
 {
-    public class SearchResponseBuilder
+    public class ElasticSearchResponseBuilder : IElasticSearchResponseBuilder
     {
         public virtual SearchResponse ToSearchResponse(SearchResponse<SearchDocument> response, VirtoCommerceSearchRequest request)
         {

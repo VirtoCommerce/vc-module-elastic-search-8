@@ -1,4 +1,4 @@
-namespace VirtoCommerce.ElasticSearch8x.Data.Models
+namespace VirtoCommerce.ElasticSearch8x.Core.Models
 {
     public class ElasticSearch8xOptions
     {
