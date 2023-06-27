@@ -211,31 +211,37 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                 }
                 else
                 {
-                    if (!properties.ContainsKey(fieldName))
+                    if (!properties.TryGetValue(fieldName, out var providerField))
                     {
-                        var providerField = CreateProviderFieldByType(field);
+                        providerField = CreateProviderFieldByType(field);
                         ConfigureProperty(providerField, field);
                         properties.Add(fieldName, providerField);
                     }
 
-                    var isCollection = field.IsCollection || field.Values.Count > 1;
-                    object value;
-
-                    if (field.Value is GeoPoint point)
-                    {
-                        value = isCollection
-                            ? field.Values.Select(v => ((GeoPoint)v).ToElasticValue()).ToArray()
-                            : point.ToElasticValue();
-                    }
-                    else
-                    {
-                        value = isCollection
-                            ? field.Values
-                            : field.Value;
-                    }
-
+                    var value = GetFieldValue(providerField, field);
                     result.Add(fieldName, value);
                 }
+            }
+
+            return result;
+        }
+
+        private static object GetFieldValue(IProperty property, IndexDocumentField field)
+        {
+            var isCollection = field.IsCollection || field.Values.Count > 1;
+            object result;
+
+            if (property is GeoPointProperty point)
+            {
+                result = isCollection
+                    ? field.Values.OfType<GeoPoint>().Select(x => x.ToElasticValue()).ToArray()
+                    : (field.Value as GeoPoint)?.ToElasticValue();
+            }
+            else
+            {
+                result = isCollection
+                    ? field.Values
+                    : field.Value;
             }
 
             return result;
