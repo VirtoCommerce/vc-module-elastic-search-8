@@ -29,6 +29,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
         private readonly ISettingsManager _settingsManager;
         private readonly IElasticSearchRequestBuilder _searchRequestBuilder;
         private readonly IElasticSearchResponseBuilder _searchResponseBuilder;
+        private readonly IElasticSearchPropertyService _propertyService;
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
 
@@ -40,7 +41,8 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             IOptions<ElasticSearch8xOptions> elasticOptions,
             ISettingsManager settingsManager,
             IElasticSearchRequestBuilder searchRequestBuilder,
-            IElasticSearchResponseBuilder searchResponseBuilder
+            IElasticSearchResponseBuilder searchResponseBuilder,
+            IElasticSearchPropertyService propertyService
             )
         {
             _searchOptions = searchOptions.Value;
@@ -48,6 +50,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             _settingsManager = settingsManager;
             _searchRequestBuilder = searchRequestBuilder;
             _searchResponseBuilder = searchResponseBuilder;
+            _propertyService = propertyService;
 
             ServerUrl = new Uri(_elasticOptions.Server);
             var settings = new ElasticsearchClientSettings(ServerUrl);
@@ -213,8 +216,8 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                 {
                     if (!properties.TryGetValue(fieldName, out var providerField))
                     {
-                        providerField = CreateProviderFieldByType(field);
-                        ConfigureProperty(providerField, field);
+                        providerField = _propertyService.CreateProperty(field);
+                        _propertyService.ConfigureProperty(providerField, field);
                         properties.Add(fieldName, providerField);
                     }
 
@@ -247,164 +250,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        protected virtual IProperty CreateProviderFieldByType(IndexDocumentField field)
-        {
-            return field.ValueType switch
-            {
-                IndexDocumentFieldValueType.Undefined => CreateProviderField(field),
-                IndexDocumentFieldValueType.Complex => new NestedProperty(),
-                IndexDocumentFieldValueType.String when field.IsFilterable => new KeywordProperty(),
-                IndexDocumentFieldValueType.String when !field.IsFilterable => new TextProperty(),
-                IndexDocumentFieldValueType.Char => new KeywordProperty(),
-                IndexDocumentFieldValueType.Guid => new KeywordProperty(),
-                IndexDocumentFieldValueType.Integer => new IntegerNumberProperty(),
-                IndexDocumentFieldValueType.Short => new ShortNumberProperty(),
-                IndexDocumentFieldValueType.Byte => new ByteNumberProperty(),
-                IndexDocumentFieldValueType.Long => new LongNumberProperty(),
-                IndexDocumentFieldValueType.Float => new FloatNumberProperty(),
-                IndexDocumentFieldValueType.Decimal => new DoubleNumberProperty(),
-                IndexDocumentFieldValueType.Double => new DoubleNumberProperty(),
-                IndexDocumentFieldValueType.DateTime => new DateProperty(),
-                IndexDocumentFieldValueType.Boolean => new BooleanProperty(),
-                IndexDocumentFieldValueType.GeoPoint => new GeoPointProperty(),
-                _ => throw new ArgumentException($"Field '{field.Name}' has unsupported type '{field.ValueType}'", nameof(field))
-            };
-        }
 
-        protected virtual IProperty CreateProviderField(IndexDocumentField field)
-        {
-            if (field.Value == null)
-            {
-                throw new ArgumentException($"Field '{field.Name}' has no value", nameof(field));
-            }
-
-            var fieldType = field.Value.GetType();
-
-            if (IsComplexType(fieldType))
-            {
-                return new NestedProperty();
-            }
-
-            return fieldType.Name switch
-            {
-                "String" => field.IsFilterable ? new KeywordProperty() : new TextProperty(),
-                "Int32" => new IntegerNumberProperty(),
-                "UInt16" => new IntegerNumberProperty(),
-                "Int16" => new ShortNumberProperty(),
-                "Byte" => new ByteNumberProperty(),
-                "SByte" => new ByteNumberProperty(),
-                "Int64" => new LongNumberProperty(),
-                "UInt32" => new LongNumberProperty(),
-                "TimeSpan" => new LongNumberProperty(),
-                "Single" => new FloatNumberProperty(),
-                "Decimal" => new DoubleNumberProperty(),
-                "Double" => new DoubleNumberProperty(),
-                "UInt64" => new DoubleNumberProperty(),
-                "DateTime" => new DateProperty(),
-                "DateTimeOffset" => new DateProperty(),
-                "Boolean" => new BooleanProperty(),
-                "Char" => new KeywordProperty(),
-                "Guid" => new KeywordProperty(),
-                "GeoPoint" => new GeoPointProperty(),
-                _ => throw new ArgumentException($"Field '{field.Name}' has unsupported type '{fieldType}'", nameof(field))
-            };
-        }
-
-        private static bool IsComplexType(Type type)
-        {
-            return
-                type.IsAssignableTo(typeof(IEntity)) ||
-                type.IsAssignableTo(typeof(IEnumerable<IEntity>));
-        }
-
-        protected virtual void ConfigureProperty(IProperty property, IndexDocumentField field)
-        {
-            if (property == null)
-            {
-                return;
-            }
-
-            switch (property)
-            {
-                case NestedProperty nestedProperty:
-                    var objects = field.Value.GetPropertyNames<object>(deep: 7);
-                    nestedProperty.Properties = new Properties(objects.ToDictionary(x => new PropertyName(x), _ => (IProperty)new TextProperty()));
-                    break;
-                case IntegerNumberProperty integerNumberProperty:
-                    integerNumberProperty.Store = field.IsRetrievable;
-                    break;
-                case ShortNumberProperty shortNumberProperty:
-                    shortNumberProperty.Store = field.IsRetrievable;
-                    break;
-                case ByteNumberProperty byteNumberProperty:
-                    byteNumberProperty.Store = field.IsRetrievable;
-                    break;
-                case LongNumberProperty longNumberProperty:
-                    longNumberProperty.Store = field.IsRetrievable;
-                    break;
-                case FloatNumberProperty floatNumberProperty:
-                    floatNumberProperty.Store = field.IsRetrievable;
-                    break;
-                case DoubleNumberProperty doubleNumberProperty:
-                    doubleNumberProperty.Store = field.IsRetrievable;
-                    break;
-                case DateProperty dateProperty:
-                    dateProperty.Store = field.IsRetrievable;
-                    break;
-                case BooleanProperty booleanProperty:
-                    booleanProperty.Store = field.IsRetrievable;
-                    break;
-                case GeoPointProperty geoPointProperty:
-                    geoPointProperty.Store = field.IsRetrievable;
-                    break;
-                case TextProperty textProperty:
-                    ConfigureTextProperty(textProperty, field);
-                    break;
-                case KeywordProperty keywordProperty:
-                    ConfigureKeywordProperty(keywordProperty, field);
-                    break;
-            }
-        }
-
-        protected virtual KeywordProperty ConfigureKeywordProperty(KeywordProperty keywordProperty, IndexDocumentField field)
-        {
-            keywordProperty.Store = field.IsRetrievable;
-            keywordProperty.Index = field.IsFilterable;
-            keywordProperty.Normalizer = "lowercase";
-
-            keywordProperty.Fields = new Properties
-            {
-                { "raw", new KeywordProperty() },
-            };
-
-            if (field.IsSuggestable)
-            {
-                keywordProperty.Fields.Add(new PropertyName(ModuleConstants.CompletionSubFieldName), new CompletionProperty()
-                {
-                    MaxInputLength = ModuleConstants.SuggestionFieldLength,
-                });
-            }
-
-            return keywordProperty;
-        }
-
-        protected virtual TextProperty ConfigureTextProperty(TextProperty textProperty, IndexDocumentField field)
-        {
-            textProperty.Store = field.IsRetrievable;
-            textProperty.Index = field.IsSearchable;
-            textProperty.Analyzer = field.IsSearchable ? ModuleConstants.SearchableFieldAnalyzerName : null;
-
-            if (field.IsSuggestable)
-            {
-                textProperty.Fields ??= new Properties();
-                textProperty.Fields.Add(new PropertyName(ModuleConstants.CompletionSubFieldName), new CompletionProperty()
-                {
-                    MaxInputLength = ModuleConstants.SuggestionFieldLength,
-                });
-            }
-
-            return textProperty;
-        }
 
         #region CreateIndex (move to index create service)
 
@@ -632,9 +478,9 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         private static BulkRequestDescriptor CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
         {
-            descriptor = descriptor
-                .Index(indexName)
-                .IndexMany(documents);
+            var ids = documents.Select(x => new Id(x.Id));
+
+            descriptor = descriptor.DeleteMany(indexName, ids);
 
             return descriptor;
         }

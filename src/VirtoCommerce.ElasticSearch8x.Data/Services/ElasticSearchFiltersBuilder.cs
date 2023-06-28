@@ -76,8 +76,8 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             {
                 termValues = termFilter.Values.Select(v => v switch
                 {
-                    "1" => FieldValue.True,
-                    "0" => FieldValue.False,
+                    "1" => "true",
+                    "0" => "false",
                     _ => FieldValue.String(v.ToLowerInvariant())
                 }).ToArray();
             }
@@ -155,7 +155,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return rangeQuery;
         }
 
-        public virtual DateRangeQuery CreateDateRangeQuery(string fieldName, RangeFilterValue value)
+        protected virtual DateRangeQuery CreateDateRangeQuery(string fieldName, RangeFilterValue value)
         {
             var termRangeQuery = new DateRangeQuery(fieldName);
 
@@ -198,7 +198,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             {
                 Field = geoDistanceFilter.FieldName.ToElasticFieldName(),
                 Location = geoDistanceFilter.Location.ToGeoLocation(),
-                Distance = $"{geoDistanceFilter.Distance}{DistanceUnit.Kilometers}", //example: "200km"
+                Distance = $"{geoDistanceFilter.Distance}km", //example: "200km"
             };
         }
 
