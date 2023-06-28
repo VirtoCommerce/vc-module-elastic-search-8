@@ -18,52 +18,60 @@ namespace VirtoCommerce.ElasticSearch8x.Tests
         {
             return new List<IndexDocument>
             {
-                CreateDocument(id: "Item-1",
-                               name: "Sample Product",
-                               color: "Red",
-                               date: "2017-04-28T15:24:31.180Z",
-                               size: 2,
-                               location: "0,0",
-                               name2: null,
-                               date2: null,
-                               new TestDocumentPrice("USD", "default", 123.23m)),
-                CreateDocument(id: "Item-2",
-                               name: "Red Shirt 2",
-                               color: "Red",
-                               date: "2017-04-27T15:24:31.180Z",
-                               size: 4,
-                               location: "0,10",
-                               name2: null,
-                               date2: null,
-                               new TestDocumentPrice("USD", "default", 200m), new TestDocumentPrice("USD", "sale", 99m), new TestDocumentPrice("EUR", "sale", 300m)),
-                CreateDocument(id: "Item-3",
-                               name: "Red Shirt",
-                            "Red",
-                            "2017-04-26T15:24:31.180Z",
-                            3,
-                            "0,20",
-                            null,
-                            null,
-                            new TestDocumentPrice("USD", "default", 10m)),
                 CreateDocument(
-                    "Item-4",
-                    "black Sox",
-                    "Black",
-                    "2017-04-25T15:24:31.180Z",
-                    10,
-                    "0,30",
-                    null,
-                    null,
+                    id: "Item-1",
+                    name: "Sample Product",
+                    color: "Red",
+                    date: "2017-04-28T15:24:31.180Z",
+                    size: 2,
+                    location: "0,0",
+                    name2: null,
+                    date2: null,
+                    new TestDocumentPrice("USD", "default", 123.23m)),
+
+                CreateDocument(
+                    id: "Item-2",
+                    name: "Red Shirt 2",
+                    color: "Red",
+                    date: "2017-04-27T15:24:31.180Z",
+                    size: 4,
+                    location: "0,10",
+                    name2: null,
+                    date2: null,
+                    new TestDocumentPrice("USD", "default", 200m), new TestDocumentPrice("USD", "sale", 99m), new TestDocumentPrice("EUR", "sale", 300m)),
+
+                CreateDocument(
+                    id: "Item-3",
+                    name: "Red Shirt",
+                    color: "Red",
+                    date: "2017-04-26T15:24:31.180Z",
+                    size: 3,
+                    location: "0,20",
+                    name2: null,
+                    date2: null,
+                    new TestDocumentPrice("USD", "default", 10m)),
+
+                CreateDocument(
+                    id: "Item-4",
+                    name: "black Sox",
+                    color: "Black",
+                    date: "2017-04-25T15:24:31.180Z",
+                    size: 10,
+                    location: "0,30",
+                    name2: null,
+                    date2: null,
                     new TestDocumentPrice("USD", "default", 243.12m), new TestDocumentPrice("USD", "super-sale", 89m)),
-                CreateDocument("Item-5",
-                        "Black Sox2",
-                        "Silver",
-                        "2017-04-24T15:24:31.180Z",
-                        20,
-                        "0,40",
-                        null,
-                        null,
-                        new TestDocumentPrice("USD", "default", 700m)),
+
+                CreateDocument(
+                    id: "Item-5",
+                    name: "Black Sox2",
+                    color: "Silver",
+                    date: "2017-04-24T15:24:31.180Z",
+                    size: 20,
+                    location: "0,40",
+                    name2: null,
+                    date2: null,
+                    new TestDocumentPrice("USD", "default", 700m)),
             };
         }
 
@@ -71,11 +79,39 @@ namespace VirtoCommerce.ElasticSearch8x.Tests
         {
             return new List<IndexDocument>
             {
-                CreateDocument(id: "Item-6", name: "Blue Shirt", "Blue", "2017-04-23T15:24:31.180Z", 10, "0,50", "Blue Shirt 2", date2: DateTime.UtcNow, prices: new TestDocumentPrice("USD", "default", 23.12m)),
+                CreateDocument(
+                    id: "Item-6",
+                    name: "Blue Shirt",
+                    color: "Blue",
+                    date: "2017-04-23T15:24:31.180Z",
+                    size: 10,
+                    location: "0,50",
+                    name2: "Blue Shirt 2",
+                    date2: DateTime.UtcNow,
+                    new TestDocumentPrice("USD", "default", 23.12m)),
 
-                // The following documents will be deleted by test
-                CreateDocument("Item-7", "Blue Shirt", "Blue", "2017-04-23T15:24:31.180Z", 10, "0,50", "Blue Shirt 2", DateTime.UtcNow, new TestDocumentPrice("USD", "default", 23.12m)),
-                CreateDocument("Item-8", "Blue Shirt", "Blue", "2017-04-23T15:24:31.180Z", 10, "0,50", "Blue Shirt 2", DateTime.UtcNow, new TestDocumentPrice("USD", "default", 23.12m)),
+                // The following documents will be deleted by the create and delete test
+                CreateDocument(
+                    id: "Item-7",
+                    name: "Blue Shirt",
+                    color: "Blue",
+                    date: "2017-04-23T15:24:31.180Z",
+                    size: 10,
+                    location: "0,50",
+                    name2: "Blue Shirt 2",
+                    date2: DateTime.UtcNow,
+                    new TestDocumentPrice("USD", "default", 23.12m)),
+
+                CreateDocument(
+                    id: "Item-8",
+                    name: "Blue Shirt",
+                    color: "Blue",
+                    date: "2017-04-23T15:24:31.180Z",
+                    size: 10,
+                    location: "0,50",
+                    name2: "Blue Shirt 2",
+                    date2: DateTime.UtcNow,
+                    new TestDocumentPrice("USD", "default", 23.12m)),
             };
         }
 

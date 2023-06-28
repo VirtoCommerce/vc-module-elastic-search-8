@@ -352,9 +352,14 @@ namespace VirtoCommerce.ElasticSearch8x.Tests.Integration
             response = await provider.SearchAsync(DocumentType, request);
 
             Assert.Equal(2, response.DocumentsCount);
+        }
 
-            /*
-            request = new SearchRequest
+        [Fact]
+        public virtual async Task CanFilterByTermDate()
+        {
+            var provider = GetSearchProvider();
+
+            var request = new SearchRequest
             {
                 Filter = new TermFilter
                 {
@@ -369,10 +374,9 @@ namespace VirtoCommerce.ElasticSearch8x.Tests.Integration
                 Take = 10,
             };
 
-            response = await provider.SearchAsync(DocumentType, request);
+            var response = await provider.SearchAsync(DocumentType, request);
 
             Assert.Equal(2, response.DocumentsCount);
-            */
         }
 
         [Fact]

@@ -81,13 +81,76 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
         {
             var result = new List<AggregationResponse>();
 
-            if (request?.Aggregations != null && searchResponseAggregations != null)
+            if (searchResponseAggregations == null || (request?.Aggregations) == null)
             {
-                //todo: parse aggregations
+                return result;
+            }
+
+            foreach (var aggregationRequest in request.Aggregations)
+            {
+                var aggregationResponse = new AggregationResponse
+                {
+                    Id = aggregationRequest.Id ?? aggregationRequest.FieldName,
+                    Values = new List<AggregationResponseValue>()
+                };
+
+                if (aggregationRequest is TermAggregationRequest termAggregationRequest)
+                {
+                    AddAggregationValues(aggregationResponse, aggregationResponse.Id, aggregationResponse.Id, searchResponseAggregations);
+                }
+                else if (aggregationRequest is RangeAggregationRequest rangeAggregationRequest && rangeAggregationRequest?.Values != null)
+                {
+                    foreach (var value in rangeAggregationRequest.Values)
+                    {
+                        var queryValueId = value.Id;
+                        var responseValueId = $"{aggregationResponse.Id}-{queryValueId}";
+                        AddAggregationValues(aggregationResponse, responseValueId, queryValueId, searchResponseAggregations);
+                    }
+                }
+
+                if (aggregationResponse.Values.Any())
+                {
+                    result.Add(aggregationResponse);
+                }
+
             }
 
             return result;
         }
 
+        private void AddAggregationValues(AggregationResponse aggregation, string responseKey, string valueId, AggregateDictionary searchResponseAggregations)
+        {
+            if (searchResponseAggregations.TryGetValue(responseKey, out var aggregate))
+            {
+                switch (aggregate)
+                {
+                    case StringTermsAggregate stringTermsAggregate:
+                        foreach (var bucket in stringTermsAggregate.Buckets.Where(x => x.DocCount > 0))
+                        {
+                            var aggregationValue = new AggregationResponseValue
+                            {
+                                Id = bucket.Key.Value?.ToString(),
+                                Count = bucket.DocCount
+                            };
+                            aggregation.Values.Add(aggregationValue);
+                        }
+                        break;
+                    case LongTermsAggregate longTermsAggregate:
+                        foreach (var bucket in longTermsAggregate.Buckets.Where(x => x.DocCount > 0))
+                        {
+                            var aggregationValue = new AggregationResponseValue
+                            {
+                                Id = bucket.Key.ToString(),
+                                Count = bucket.DocCount
+                            };
+                            aggregation.Values.Add(aggregationValue);
+                        }
+                        break;
+
+                    default:
+                        return;
+                }
+            }
+        }
     }
 }

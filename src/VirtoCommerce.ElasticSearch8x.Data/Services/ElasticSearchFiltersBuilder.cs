@@ -81,6 +81,10 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                     _ => FieldValue.String(v.ToLowerInvariant())
                 }).ToArray();
             }
+            else if (property?.Type?.EqualsInvariant(FieldType.Date.ToString()) == true)
+            {
+                termValues = termFilter.Values.Select(x => FieldValue.String(x)).ToArray();
+            }
             else
             {
                 termValues = termFilter.Values.Select(x => FieldValue.String(x.ToLowerInvariant())).ToArray();
@@ -127,7 +131,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             }
 
             var upper = default(double?);
-            if (!string.IsNullOrEmpty(value.Upper) && double.TryParse(value.Lower, out var upperParsed))
+            if (!string.IsNullOrEmpty(value.Upper) && double.TryParse(value.Upper, out var upperParsed))
             {
                 upper = upperParsed;
             }
@@ -166,7 +170,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             }
 
             var upper = default(DateTime?);
-            if (!string.IsNullOrEmpty(value.Upper) && DateTime.TryParse(value.Lower, out var upperParsed))
+            if (!string.IsNullOrEmpty(value.Upper) && DateTime.TryParse(value.Upper, out var upperParsed))
             {
                 upper = upperParsed;
             }
