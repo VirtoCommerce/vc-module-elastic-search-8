@@ -44,11 +44,11 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
             switch (property)
             {
-                case NestedProperty nestedProperty:
-                    //todo: fix object serialization
-                    //var objects = field.Value.GetPropertyNames<object>(deep: 7);
-                    //nestedProperty.Properties = new Properties(objects.ToDictionary(x => new PropertyName(x), _ => (IProperty)new TextProperty()));
-                    break;
+                //todo: fix object serialization
+                //case NestedProperty nestedProperty:
+                //var objects = field.Value.GetPropertyNames<object>(deep: 7);
+                //nestedProperty.Properties = new Properties(objects.ToDictionary(x => new PropertyName(x), _ => (IProperty)new TextProperty()));
+                //break;
                 case IntegerNumberProperty integerNumberProperty:
                     integerNumberProperty.Store = field.IsRetrievable;
                     break;

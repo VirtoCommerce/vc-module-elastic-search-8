@@ -94,18 +94,13 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                     Values = new List<AggregationResponseValue>()
                 };
 
-                if (aggregationRequest is TermAggregationRequest termAggregationRequest)
+                if (aggregationRequest is TermAggregationRequest)
                 {
-                    AddAggregationValues(aggregationResponse, aggregationResponse.Id, aggregationResponse.Id, searchResponseAggregations);
+                    AddAggregationValues(aggregationResponse, aggregationResponse.Id, searchResponseAggregations);
                 }
-                else if (aggregationRequest is RangeAggregationRequest rangeAggregationRequest && rangeAggregationRequest?.Values != null)
+                else if (aggregationRequest is RangeAggregationRequest rangeAggregationRequest && rangeAggregationRequest.Values != null)
                 {
-                    foreach (var value in rangeAggregationRequest.Values)
-                    {
-                        var queryValueId = value.Id;
-                        var responseValueId = $"{aggregationResponse.Id}-{queryValueId}";
-                        AddAggregationValues(aggregationResponse, responseValueId, queryValueId, searchResponseAggregations);
-                    }
+                    AddRangeAggregationValues(searchResponseAggregations, aggregationResponse, rangeAggregationRequest);
                 }
 
                 if (aggregationResponse.Values.Any())
@@ -118,7 +113,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private void AddAggregationValues(AggregationResponse aggregation, string responseKey, string valueId, AggregateDictionary searchResponseAggregations)
+        private static void AddAggregationValues(AggregationResponse aggregation, string responseKey, AggregateDictionary searchResponseAggregations)
         {
             if (searchResponseAggregations.TryGetValue(responseKey, out var aggregate))
             {
@@ -150,6 +145,16 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                     default:
                         return;
                 }
+            }
+        }
+
+        private static void AddRangeAggregationValues(AggregateDictionary searchResponseAggregations, AggregationResponse aggregationResponse, RangeAggregationRequest rangeAggregationRequest)
+        {
+            foreach (var value in rangeAggregationRequest.Values)
+            {
+                var queryValueId = value.Id;
+                var responseValueId = $"{aggregationResponse.Id}-{queryValueId}";
+                AddAggregationValues(aggregationResponse, responseValueId, searchResponseAggregations);
             }
         }
     }

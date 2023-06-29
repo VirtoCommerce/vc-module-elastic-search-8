@@ -69,7 +69,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         protected virtual TermsQuery CreateTermFilter(TermFilter termFilter, IDictionary<PropertyName, IProperty> availableFields)
         {
-            var termValues = Array.Empty<FieldValue>();
+            var termValues = default(FieldValue[]);
 
             var property = availableFields.Where(x => x.Key.Name.EqualsInvariant(termFilter.FieldName)).Select(x => x.Value).FirstOrDefault();
             if (property?.Type?.EqualsInvariant(FieldType.Boolean.ToString()) == true)

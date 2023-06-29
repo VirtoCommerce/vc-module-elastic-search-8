@@ -22,12 +22,12 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         public virtual AggregationDictionary GetAggregations(IList<AggregationRequest> aggregations, IDictionary<PropertyName, IProperty> availableFields)
         {
+            var result = new Dictionary<string, Aggregation>();
+
             if (aggregations.IsNullOrEmpty())
             {
-                return null;
+                return result;
             }
-
-            var result = new Dictionary<string, Aggregation>();
 
             foreach (var aggregation in aggregations)
             {

@@ -26,7 +26,6 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
     public class ElasticSearch8xProvider : ISearchProvider
     {
         private readonly SearchOptions _searchOptions;
-        private readonly ElasticSearch8xOptions _elasticOptions;
         private readonly ISettingsManager _settingsManager;
         private readonly IElasticSearchRequestBuilder _searchRequestBuilder;
         private readonly IElasticSearchResponseBuilder _searchResponseBuilder;
@@ -47,21 +46,20 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             )
         {
             _searchOptions = searchOptions.Value;
-            _elasticOptions = elasticOptions.Value;
             _settingsManager = settingsManager;
             _searchRequestBuilder = searchRequestBuilder;
             _searchResponseBuilder = searchResponseBuilder;
             _propertyService = propertyService;
 
-            ServerUrl = new Uri(_elasticOptions.Server);
+            ServerUrl = new Uri(elasticOptions.Value.Server);
             var settings = new ElasticsearchClientSettings(ServerUrl);
 
-            if (!string.IsNullOrWhiteSpace(_elasticOptions.CertificateFingerprint))
+            if (!string.IsNullOrWhiteSpace(elasticOptions.Value.CertificateFingerprint))
             {
-                settings = settings.CertificateFingerprint(_elasticOptions.CertificateFingerprint);
+                settings = settings.CertificateFingerprint(elasticOptions.Value.CertificateFingerprint);
             }
 
-            settings = settings.Authentication(new BasicAuthentication(_elasticOptions.User, _elasticOptions.Key));
+            settings = settings.Authentication(new BasicAuthentication(elasticOptions.Value.User, elasticOptions.Value.Key));
 
             Client = new ElasticsearchClient(settings);
         }
@@ -104,13 +102,11 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private static BulkRequestDescriptor CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
+        private static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
         {
-            descriptor = descriptor
+            descriptor
                 .Index(indexName)
                 .IndexMany(documents);
-
-            return descriptor;
         }
 
         protected virtual async Task<CreateIndexResult> InternalCreateIndexAsync(string documentType, IList<IndexDocument> documents)
@@ -152,7 +148,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             var mapping = await LoadMappingAsync(indexName);
             var existingProperties = new Properties(mapping);
 
-            if (existingProperties == null)
+            if (mapping.IsNullOrEmpty())
             {
                 newProperties = properties;
                 allProperties = properties;
@@ -239,7 +235,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             var isCollection = field.IsCollection || field.Values.Count > 1;
             object result;
 
-            if (property is GeoPointProperty point)
+            if (property is GeoPointProperty)
             {
                 result = isCollection
                     ? field.Values.OfType<GeoPoint>().Select(x => x.ToElasticValue()).ToArray()
@@ -389,7 +385,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
         {
             var response = await Client.Indices.ExistsAsync(indexName);
 
-            if (response.IsSuccess() == false)
+            if (!response.IsSuccess())
             {
                 ThrowException($"Index check call failed for index: {indexName}", response.ApiCallDetails.OriginalException);
             }
@@ -480,13 +476,11 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private static BulkRequestDescriptor CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
+        private static void CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
         {
             var ids = documents.Select(x => new Id(x.Id));
 
-            descriptor = descriptor.DeleteMany(indexName, ids);
-
-            return descriptor;
+            descriptor.DeleteMany(indexName, ids);
         }
 
         protected virtual string GetIndexName(string documentType)
