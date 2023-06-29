@@ -56,14 +56,12 @@ For Elastic Cloud v8.x, use the following configuration:
 ## Documentation
 * [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
 * [Elastic .NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
-* [View on GitHub](docs/index.md)
 
 ## References
 * Deployment: https://docs.virtocommerce.org/docs/latest/developer-guide/deploy-module-from-source-code/
 * Installation: https://docs.virtocommerce.org/docs/latest/user-guide/modules/
 * Home: https://virtocommerce.com
 * Community: https://www.virtocommerce.org
-* [Download Latest Release](https://github.com/VirtoCommerce/elastic-search/releases/latest)
 
 ## License
 
