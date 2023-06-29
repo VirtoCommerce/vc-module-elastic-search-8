@@ -46,8 +46,6 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             {
                 //todo: fix object serialization
                 //case NestedProperty nestedProperty:
-                //var objects = field.Value.GetPropertyNames<object>(deep: 7);
-                //nestedProperty.Properties = new Properties(objects.ToDictionary(x => new PropertyName(x), _ => (IProperty)new TextProperty()));
                 //break;
                 case IntegerNumberProperty integerNumberProperty:
                     integerNumberProperty.Store = field.IsRetrievable;
