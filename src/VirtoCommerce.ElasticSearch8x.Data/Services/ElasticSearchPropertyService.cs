@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Mapping;
 using VirtoCommerce.ElasticSearch8x.Core;
 using VirtoCommerce.ElasticSearch8x.Core.Services;
-using VirtoCommerce.ElasticSearch8x.Data.Extensions;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.SearchModule.Core.Model;
 
@@ -47,8 +45,9 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             switch (property)
             {
                 case NestedProperty nestedProperty:
-                    var objects = field.Value.GetPropertyNames<object>(deep: 7);
-                    nestedProperty.Properties = new Properties(objects.ToDictionary(x => new PropertyName(x), _ => (IProperty)new TextProperty()));
+                    //todo: fix object serialization
+                    //var objects = field.Value.GetPropertyNames<object>(deep: 7);
+                    //nestedProperty.Properties = new Properties(objects.ToDictionary(x => new PropertyName(x), _ => (IProperty)new TextProperty()));
                     break;
                 case IntegerNumberProperty integerNumberProperty:
                     integerNumberProperty.Store = field.IsRetrievable;

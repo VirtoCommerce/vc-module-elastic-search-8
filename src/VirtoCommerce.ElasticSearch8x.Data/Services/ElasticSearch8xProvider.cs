@@ -19,6 +19,7 @@ using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Exceptions;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerce.SearchModule.Core.Services;
+using ModuleSettings = VirtoCommerce.ElasticSearch8x.Core.ModuleConstants.Settings.General;
 
 namespace VirtoCommerce.ElasticSearch8x.Data.Services
 {
@@ -221,8 +222,12 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                         properties.Add(fieldName, providerField);
                     }
 
-                    var value = GetFieldValue(providerField, field);
-                    result.Add(fieldName, value);
+                    //todo: fix object serialization
+                    if (field.Name != "__object")
+                    {
+                        var value = GetFieldValue(providerField, field);
+                        result.Add(fieldName, value);
+                    }
                 }
             }
 
@@ -249,7 +254,6 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
             return result;
         }
-
 
 
         #region CreateIndex (move to index create service)
@@ -328,22 +332,22 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         protected virtual int GetFieldsLimit()
         {
-            return 1000;
+            return _settingsManager.GetValueByDescriptor<int>(ModuleSettings.IndexTotalFieldsLimit);
         }
 
         protected virtual string GetTokenFilterName()
         {
-            return "custom_edge_ngram";
+            return _settingsManager.GetValueByDescriptor<string>(ModuleSettings.TokenFilter);
         }
 
         protected virtual int GetMinGram()
         {
-            return 1;
+            return _settingsManager.GetValueByDescriptor<int>(ModuleSettings.MinGram);
         }
 
         protected virtual int GetMaxGram()
         {
-            return 20;
+            return _settingsManager.GetValueByDescriptor<int>(ModuleSettings.MaxGram);
         }
 
         #endregion
