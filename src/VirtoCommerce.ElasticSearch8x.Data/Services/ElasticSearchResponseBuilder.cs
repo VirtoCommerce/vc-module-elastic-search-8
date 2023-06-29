@@ -77,7 +77,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private IList<AggregationResponse> GetAggregations(AggregateDictionary searchResponseAggregations, VirtoCommerceSearchRequest request)
+        private static IList<AggregationResponse> GetAggregations(AggregateDictionary searchResponseAggregations, VirtoCommerceSearchRequest request)
         {
             var result = new List<AggregationResponse>();
 
@@ -150,9 +150,8 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         private static void AddRangeAggregationValues(AggregateDictionary searchResponseAggregations, AggregationResponse aggregationResponse, RangeAggregationRequest rangeAggregationRequest)
         {
-            foreach (var value in rangeAggregationRequest.Values)
+            foreach (var queryValueId in rangeAggregationRequest.Values.Select(x => x.Id))
             {
-                var queryValueId = value.Id;
                 var responseValueId = $"{aggregationResponse.Id}-{queryValueId}";
                 AddAggregationValues(aggregationResponse, responseValueId, searchResponseAggregations);
             }

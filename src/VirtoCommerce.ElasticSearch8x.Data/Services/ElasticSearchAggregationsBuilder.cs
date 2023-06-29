@@ -51,7 +51,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                 }
             }
 
-            return result.Any() ? new AggregationDictionary(result) : null;
+            return new AggregationDictionary(result);
         }
 
         protected static bool IsRawKeywordField(string fieldName, IDictionary<PropertyName, IProperty> availableFields)
