@@ -1,46 +1,67 @@
-# ElasticSearch8x
+# Virto Commerce Elastic Search 8.x Module Preview version
 
 ## Overview
+This is a preview version of VirtoCommerce Elastic Search 8.x module that uses the new .NET client for Elasticsearch. The module implements Elasticsearch CRUD operations defined in `ISeachProvider` interface but since it's a preview version some features might not work.
 
-Short overview of what the new module is.
+## Know Limitations & Issues
+* Catalog object serialization via "Store serialized catalog objects in the index" platform settings is not implemented. Document field "__object" will not be indexed.
+* Filtered aggregations are currently not implemented in ElasticSearch .NET client, will throw NotImplementedException. 
+* BlueGreen indexation is not implemented.
+* Partial indexation is not implemented.
 
-- What is the new or updated experience?
+## Configuration
+The Elastic Search provider can be configured using the following keys:
 
-- Does this module replace an existing module/experience? If yes, what is the transition plan?
+* **Search.Provider**: Specifies the search provider name, which must be set to "ElasticSearch".
+* **Search.Scope**: Specifies the common name (prefix) for all indexes. Each document type is stored in a separate index, and the full index name is scope-{documenttype}. This allows one search service to serve multiple indexes. (Optional: Default value is "default".)
+* **Search.ElasticSearch.Server**: Specifies the network address and port of the Elasticsearch server.
+* **Search.ElasticSearch.User**: Specifies the username for the Elasticsearch server.
+* **Search.ElasticSearch.Key**: Specifies the password for the Elasticsearch server.
+* **Search.ElasticSearch.CertificateFingerprint**: During development, you can provide the server certificate fingerprint. When present, it is used to validate the certificate sent by the server. The fingerprint is expected to be the hex string representing the SHA256 public key fingerprint. (Optional)
 
-- Does this module has dependency on other ? If yes, list/explain the dependencies.
 
-- List the key deployment scenarios - why would people use this module?
+## Samples
+Here are some sample configurations for different scenarios:
 
-## Functional Requirements
+### Elasticsearch v8.x server
+For local v8.x server, use the following configuration:
 
-Short description of the new module functional requirements.
+```json
+"Search": {
+    "Provider": "ElasticSearch8x",
+    "Scope": "default",
+    "ElasticSearch8x": {
+        "Server": "https://localhost:9200",
+        "User": "elastic",
+        "Key": "{PASSWORD}"
+    }
+}
+```
 
-## Scenarios
+### Elastic Cloud v8.x
+For Elastic Cloud v8.x, use the following configuration:
 
-List of scenarios that the new module implements
+```json
+"Search": {
+    "Provider": "ElasticSearch",
+    "Scope": "default",
+    "ElasticSearch": {
+        "Server": "https://4fe3ad462de203c52b358ff2cc6fe9cc.europe-west1.gcp.cloud.es.io:9243",
+        "User": "elastic",
+        "Key": "{SECRET_KEY}"
+    }
+}
+```
 
-1. [Scenario 1](/doc/scenario-name1.md)
-1. [Scenario 2](/doc/scenario-name2.md)
-1. [Scenario 3](/doc/scenario-name3.md)
-    1. [Scenario 3.1](/doc/scenario-name31.md)
-    1. [Scenario 3.2](/doc/scenario-name32.md)
-1. [Scenario 4](/doc/scenario-name4.md)
+## Documentation
+* [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
+* [Elastic .NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
 
-## Web API
-
-Web API documentation for each module is built out automatically and can be accessed by following the link bellow:
-<https://link-to-swager-api>
-
-## Database Model
-
-![DB model](./docs/media/diagram-db-model.png)
-
-## Related topics
-
-[Some Article1](some-article1.md)
-
-[Some Article2](some-article2.md)
+## References
+* Deployment: https://docs.virtocommerce.org/docs/latest/developer-guide/deploy-module-from-source-code/
+* Installation: https://docs.virtocommerce.org/docs/latest/user-guide/modules/
+* Home: https://virtocommerce.com
+* Community: https://www.virtocommerce.org
 
 ## License
 
@@ -50,7 +71,7 @@ Licensed under the Virto Commerce Open Software License (the "License"); you
 may not use this file except in compliance with the License. You may
 obtain a copy of the License at
 
-<http://virtocommerce.com/opensourcelicense>
+http://virtocommerce.com/opensourcelicense
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
