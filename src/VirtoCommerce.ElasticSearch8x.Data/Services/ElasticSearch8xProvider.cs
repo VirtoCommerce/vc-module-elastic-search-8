@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Analysis;
 using Elastic.Clients.Elasticsearch.IndexManagement;
+using Elastic.Clients.Elasticsearch.Ingest;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Transport;
 using Microsoft.Extensions.Options;
@@ -19,7 +20,6 @@ using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Exceptions;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerce.SearchModule.Core.Services;
-using ModuleSettings = VirtoCommerce.ElasticSearch8x.Core.ModuleConstants.Settings.General;
 
 namespace VirtoCommerce.ElasticSearch8x.Data.Services
 {
@@ -78,7 +78,25 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
             var createIndexResult = await InternalCreateIndexAsync(documentType, documents);
 
-            var bulkResponse = await Client.BulkAsync(x => CreateBulkIndexRequest(createIndexResult.IndexName, createIndexResult.ProviderDocuments, x));
+            var pipelines = new List<string>();
+
+            var cognitiveSearchEnabled = _settingsManager.GetConginiteSearchEnabled();
+            if (cognitiveSearchEnabled)
+            {
+                // check if ml pipleline created
+                var pipelineName = _settingsManager.GetPiplelineName();
+                var getPipelineRequest = new GetPipelineRequest(pipelineName);
+
+                var piplineResult = await Client.Ingest.GetPipelineAsync(getPipelineRequest);
+                if (piplineResult.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
+                {
+                    throw new SearchException($"ML pipeline is not found: {pipelineName}. Please created the pipeleine first.");
+                }
+
+                pipelines.Add(pipelineName);
+            }
+
+            var bulkResponse = await Client.BulkAsync(x => CreateBulkIndexRequest(createIndexResult.IndexName, createIndexResult.ProviderDocuments, x, pipelines));
 
             await Client.Indices.RefreshAsync(Indices.Index(createIndexResult.IndexName));
 
@@ -102,11 +120,16 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        private static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
+        private void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
         {
             descriptor
                 .Index(indexName)
                 .IndexMany(documents);
+
+            foreach (var pipeline in pipelines)
+            {
+                descriptor.Pipeline(pipeline);
+            }
         }
 
         protected virtual async Task<CreateIndexResult> InternalCreateIndexAsync(string documentType, IList<IndexDocument> documents)
@@ -269,8 +292,8 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings)
         {
-            var fieldsLimit = GetFieldsLimit();
-            var ngramDiff = GetMaxGram() - GetMinGram();
+            var fieldsLimit = _settingsManager.GetFieldsLimit();
+            var ngramDiff = _settingsManager.GetMaxGram() - _settingsManager.GetMinGram();
 
             return settings
                 .MaxNgramDiff(ngramDiff)
@@ -306,44 +329,24 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         private void ConfigureNGramFilter(NGramTokenFilterDescriptor descriptor)
         {
-            descriptor.MinGram(GetMinGram()).MaxGram(GetMaxGram());
+            descriptor.MinGram(_settingsManager.GetMinGram()).MaxGram(_settingsManager.GetMaxGram());
         }
 
         private void ConfigureEdgeNGramFilter(EdgeNGramTokenFilterDescriptor descriptor)
         {
-            descriptor.MinGram(GetMinGram()).MaxGram(GetMaxGram());
+            descriptor.MinGram(_settingsManager.GetMinGram()).MaxGram(_settingsManager.GetMaxGram());
         }
 
         protected virtual void ConfigureSearchableFieldAnalyzer(CustomAnalyzerDescriptor descriptor)
         {
             descriptor
                 .Tokenizer("standard")
-                .Filter(new List<string> { "lowercase", GetTokenFilterName() });
+                .Filter(new List<string> { "lowercase", _settingsManager.GetTokenFilterName() });
         }
 
         protected virtual void ConfigureLowerCaseNormaliser(CustomNormalizerDescriptor descriptor)
         {
             descriptor.Filter(new List<string> { "lowercase" });
-        }
-
-        protected virtual int GetFieldsLimit()
-        {
-            return _settingsManager.GetValueByDescriptor<int>(ModuleSettings.IndexTotalFieldsLimit);
-        }
-
-        protected virtual string GetTokenFilterName()
-        {
-            return _settingsManager.GetValueByDescriptor<string>(ModuleSettings.TokenFilter);
-        }
-
-        protected virtual int GetMinGram()
-        {
-            return _settingsManager.GetValueByDescriptor<int>(ModuleSettings.MinGram);
-        }
-
-        protected virtual int GetMaxGram()
-        {
-            return _settingsManager.GetValueByDescriptor<int>(ModuleSettings.MaxGram);
         }
 
         #endregion

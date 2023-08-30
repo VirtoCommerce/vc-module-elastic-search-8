@@ -1,0 +1,44 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8x": {
+      "IndexTotalFieldsLimit": {
+        "title": "Maximum number of fields in an index",
+        "description": "index.mapping.total_fields.limit https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Token filter",
+        "description": "Select which token filter should be used when indexing searchable fields (requires rebuilding an index)"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Min Gram",
+          "description": "Minimum number of characters in a gram (requires rebuilding an index)"
+        },
+        "MaxGram": {
+          "title": "Max Gram",
+          "description": "Maximum number of characters in a gram (requires rebuilding an index)"
+        }
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Delete duplicate active indexes",
+        "description": "Search and delete duplicate active indexes before Delete and build operation"
+      },
+      "EnableCognitiveSearch": {
+        "title": "Enable cognitive search",
+        "description": "Enable cognitive search"
+      },
+      "ModelId": {
+        "title": "Cognitive model ID",
+        "description": "Cognitive model ID"
+      },
+      "ModelPipelineName": {
+        "title": "Cognitive pipleline name",
+        "description": "Cognitive pipleline name"
+      },
+      "ModelFieldName": {
+        "title": "Cognitive model field name",
+        "description": "Cognitive model field name"
+      }
+    }
+  }
+}

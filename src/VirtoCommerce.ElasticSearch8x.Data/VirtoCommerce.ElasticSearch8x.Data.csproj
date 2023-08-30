@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\**" />
+    <EmbeddedResource Remove="Models\**" />
+    <None Remove="Models\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -17,11 +23,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="VirtoCommerce.Platform.Data" Version="3.253.1" />
     <PackageReference Include="VirtoCommerce.SearchModule.Core" Version="3.223.0" />
-    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.9.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.9.2" />
   </ItemGroup>
 
   <ItemGroup>

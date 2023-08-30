@@ -23,34 +23,66 @@ public static class ModuleConstants
         {
             public static SettingDescriptor IndexTotalFieldsLimit { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch.IndexTotalFieldsLimit",
-                GroupName = "Search|ElasticSearch",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.IndexTotalFieldsLimit",
+                GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.Integer,
                 DefaultValue = 1000,
             };
 
             public static SettingDescriptor TokenFilter { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch.TokenFilter",
-                GroupName = "Search|ElasticSearch",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.TokenFilter",
+                GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = "custom_edge_ngram",
             };
 
             public static SettingDescriptor MinGram { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch.NGramTokenFilter.MinGram",
-                GroupName = "Search|ElasticSearch",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.NGramTokenFilter.MinGram",
+                GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.Integer,
                 DefaultValue = 1,
             };
 
             public static SettingDescriptor MaxGram { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch.NGramTokenFilter.MaxGram",
-                GroupName = "Search|ElasticSearch",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.NGramTokenFilter.MaxGram",
+                GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.Integer,
                 DefaultValue = 20,
+            };
+
+            public static SettingDescriptor EnableCognitiveSearch { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8x.EnableCognitiveSearch",
+                GroupName = "Search|ElasticSearch8x",
+                ValueType = SettingValueType.Boolean,
+                DefaultValue = true,
+            };
+
+            public static SettingDescriptor CognitiveModelId { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8x.ModelId",
+                GroupName = "Search|ElasticSearch8x",
+                ValueType = SettingValueType.ShortText,
+                DefaultValue = ".elser_model_1",
+            };
+
+            public static SettingDescriptor CognitiveModelPiplelineName { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8x.ModelPipelineName",
+                GroupName = "Search|ElasticSearch8x",
+                ValueType = SettingValueType.ShortText,
+                DefaultValue = "elser-v1-pipeline",
+            };
+
+            public static SettingDescriptor CognitiveModelFieldName { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8x.ModelFieldName",
+                GroupName = "Search|ElasticSearch8x",
+                ValueType = SettingValueType.ShortText,
+                DefaultValue = "ml.tokens",
             };
 
             public static IEnumerable<SettingDescriptor> AllGeneralSettings
@@ -61,6 +93,10 @@ public static class ModuleConstants
                     yield return TokenFilter;
                     yield return MinGram;
                     yield return MaxGram;
+                    yield return EnableCognitiveSearch;
+                    yield return CognitiveModelId;
+                    yield return CognitiveModelPiplelineName;
+                    yield return CognitiveModelFieldName;
                 }
             }
         }
