@@ -85,7 +85,10 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             {
                 // check if ml pipleline created
                 var pipelineName = _settingsManager.GetPiplelineName();
-                var getPipelineRequest = new GetPipelineRequest(pipelineName);
+                var getPipelineRequest = new GetPipelineRequest(pipelineName)
+                {
+                    Summary = true
+                };
 
                 var piplineResult = await Client.Ingest.GetPipelineAsync(getPipelineRequest);
                 if (piplineResult.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
