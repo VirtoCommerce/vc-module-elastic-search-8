@@ -12,12 +12,13 @@ This is a preview version of VirtoCommerce Elastic Search 8.x module that uses t
 ## Configuration
 The Elastic Search provider can be configured using the following keys:
 
-* **Search.Provider**: Specifies the search provider name, which must be set to "ElasticSearch".
+* **Search.Provider**: Specifies the search provider name, which must be set to "ElasticSearch8x".
 * **Search.Scope**: Specifies the common name (prefix) for all indexes. Each document type is stored in a separate index, and the full index name is scope-{documenttype}. This allows one search service to serve multiple indexes. (Optional: Default value is "default".)
-* **Search.ElasticSearch.Server**: Specifies the network address and port of the Elasticsearch server.
-* **Search.ElasticSearch.User**: Specifies the username for the Elasticsearch server.
-* **Search.ElasticSearch.Key**: Specifies the password for the Elasticsearch server.
-* **Search.ElasticSearch.CertificateFingerprint**: During development, you can provide the server certificate fingerprint. When present, it is used to validate the certificate sent by the server. The fingerprint is expected to be the hex string representing the SHA256 public key fingerprint. (Optional)
+
+* **Search.ElasticSearch8x.Server**: Specifies the network address and port of the Elasticsearch server.
+* **Search.ElasticSearch8x.User**: Specifies the username for the Elasticsearch server.
+* **Search.ElasticSearch8x.Key**: Specifies the password for the Elasticsearch server.
+* **Search.ElasticSearch8x.CertificateFingerprint**: During development, you can provide the server certificate fingerprint. When present, it is used to validate the certificate sent by the server. The fingerprint is expected to be the hex string representing the SHA256 public key fingerprint. (Optional)
 
 
 ## Samples
@@ -43,10 +44,10 @@ For Elastic Cloud v8.x, use the following configuration:
 
 ```json
 "Search": {
-    "Provider": "ElasticSearch",
+    "Provider": "ElasticSearch8x",
     "Scope": "default",
-    "ElasticSearch": {
-        "Server": "https://4fe3ad462de203c52b358ff2cc6fe9cc.europe-west1.gcp.cloud.es.io:9243",
+    "ElasticSearch8x": {
+        "Server": "https://vcdemo.es.eastus2.azure.elastic-cloud.com",
         "User": "elastic",
         "Key": "{SECRET_KEY}"
     }
