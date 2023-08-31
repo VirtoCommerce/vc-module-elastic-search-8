@@ -83,18 +83,13 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             var cognitiveSearchEnabled = _settingsManager.GetConginiteSearchEnabled();
             if (cognitiveSearchEnabled)
             {
+                // check if ml field is created
+                await CreateMLField(createIndexResult.IndexName);
+
                 // check if ml pipleline created
                 var pipelineName = _settingsManager.GetPiplelineName();
-                var getPipelineRequest = new GetPipelineRequest(pipelineName)
-                {
-                    Summary = true
-                };
 
-                var piplineResult = await Client.Ingest.GetPipelineAsync(getPipelineRequest);
-                if (piplineResult.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
-                {
-                    throw new SearchException($"ML pipeline is not found: {pipelineName}. Please created the pipeleine first.");
-                }
+                await CheckMLPipeline(pipelineName);
 
                 pipelines.Add(pipelineName);
             }
@@ -121,6 +116,44 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             }));
 
             return result;
+        }
+
+        private async Task CheckMLPipeline(string pipelineName)
+        {
+            var getPipelineRequest = new GetPipelineRequest(pipelineName)
+            {
+                Summary = true
+            };
+
+            var piplineResult = await Client.Ingest.GetPipelineAsync(getPipelineRequest);
+            if (piplineResult.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            {
+                throw new SearchException($"ML pipeline is not found: {pipelineName}. Please created the pipeleine first.");
+            }
+        }
+
+        private async Task CreateMLField(string indexName)
+        {
+            var fieldName = _settingsManager.GetModelFieldName();
+            var propertyName = fieldName.Split('.').FirstOrDefault();
+
+            var indexMappings = await GetMappingAsync(indexName);
+
+            if (!indexMappings.ContainsKey(propertyName))
+            {
+                var rankFeaturesProperty = new Properties
+                {
+                    { fieldName, new RankFeaturesProperty() }
+                };
+
+                var request = new PutMappingRequest(indexName) { Properties = rankFeaturesProperty };
+                var response = await Client.Indices.PutMappingAsync(request);
+
+                if (!response.ApiCallDetails.HasSuccessfulStatusCode)
+                {
+                    throw new SearchException($"Failed to create ML field: {fieldName}", response.ApiCallDetails.OriginalException);
+                }
+            }
         }
 
         private void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
