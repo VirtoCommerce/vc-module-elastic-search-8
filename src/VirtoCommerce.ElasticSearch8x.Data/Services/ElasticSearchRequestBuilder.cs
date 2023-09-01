@@ -44,7 +44,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                 Sort = GetSorting(request?.Sorting),
                 From = request?.Skip,
                 Size = request?.Take,
-                TrackScores = request?.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)) ?? false,
+                TrackScores = request?.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)),
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = request?.Take == 1 ? new TrackHits(true) : null
             };
