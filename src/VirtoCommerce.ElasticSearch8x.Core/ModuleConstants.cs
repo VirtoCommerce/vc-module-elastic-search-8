@@ -53,33 +53,33 @@ public static class ModuleConstants
                 DefaultValue = 20,
             };
 
-            public static SettingDescriptor EnableCognitiveSearch { get; } = new()
+            public static SettingDescriptor EnableSemanticSearch { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch8x.EnableCognitiveSearch",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.EnableSemanticSearch",
                 GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.Boolean,
-                DefaultValue = true,
+                DefaultValue = false,
             };
 
-            public static SettingDescriptor CognitiveModelId { get; } = new()
+            public static SettingDescriptor SemanticModelId { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch8x.ModelId",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.SemanticModelId",
                 GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = ".elser_model_1",
             };
 
-            public static SettingDescriptor CognitiveModelPiplelineName { get; } = new()
+            public static SettingDescriptor SemanticPiplelineName { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch8x.ModelPipelineName",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.SemanticPiplelineName",
                 GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = "elser-v1-pipeline",
             };
 
-            public static SettingDescriptor CognitiveModelFieldName { get; } = new()
+            public static SettingDescriptor SemanticFieldName { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch8x.ModelFieldName",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.SemanticFieldName",
                 GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = "ml.tokens",
@@ -93,10 +93,10 @@ public static class ModuleConstants
                     yield return TokenFilter;
                     yield return MinGram;
                     yield return MaxGram;
-                    yield return EnableCognitiveSearch;
-                    yield return CognitiveModelId;
-                    yield return CognitiveModelPiplelineName;
-                    yield return CognitiveModelFieldName;
+                    yield return EnableSemanticSearch;
+                    yield return SemanticModelId;
+                    yield return SemanticPiplelineName;
+                    yield return SemanticFieldName;
                 }
             }
         }

@@ -27,22 +27,22 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Extensions
 
         public static bool GetConginiteSearchEnabled(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<bool>(ModuleSettings.EnableCognitiveSearch);
+            return settingsManager.GetValueByDescriptor<bool>(ModuleSettings.EnableSemanticSearch);
         }
 
         public static string GetPiplelineName(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.CognitiveModelPiplelineName);
+            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticPiplelineName);
         }
 
         public static string GetModelId(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.CognitiveModelId);
+            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticModelId);
         }
 
         public static string GetModelFieldName(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.CognitiveModelFieldName);
+            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticFieldName);
         }
     }
 }
