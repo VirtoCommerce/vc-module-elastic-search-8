@@ -68,9 +68,11 @@ For Elastic Cloud v8.x, use the following configuration:
 ### Overview
 Semantic search is a search method that helps you find data based on the intent and contextual meaning of a search query, instead of a match on query terms (lexical search).
 
+![Classis Search Vs Semantic Search](./docs/media/classic-and-semantic-search.gif)
+
 Elasticsearch provides semantic search capabilities using natural language processing (NLP) and vector search. Deploying an NLP model to Elasticsearch enables it to extract text embeddings out of text. Embeddings are vectors that provide a numeric representation of a text. Pieces of content with similar meaning have similar representations.
 
-![](https://www.elastic.co/guide/en/elasticsearch/reference/current/images/search/vector-search-oversimplification.png)
+![Vector Search Over Simplification](https://www.elastic.co/guide/en/elasticsearch/reference/current/images/search/vector-search-oversimplification.png)
 
 ### NLP models
 Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of the language model is critical for implementing semantic search successfully. 
