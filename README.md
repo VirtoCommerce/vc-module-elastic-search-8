@@ -112,7 +112,7 @@ After enabling Machine Learning instances, you'll need to activate Machine Train
 2. Create an ingest pipeline with an inference processor to use ELSER to infer against the data that is being ingested in the pipeline:
 
 ```json
-PUT _ingest/pipeline/elser-v1-test
+PUT _ingest/pipeline/elser-v1-pipeline
 {
   "processors": [
     {
