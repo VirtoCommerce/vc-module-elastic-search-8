@@ -9,8 +9,8 @@
         <!--<dependency id="VirtoCommerce.Core" version="3.200.4" />-->
     </dependencies>
 
-    <title>VirtoCommerce ElasticSearch8x module</title>
-    <description>VirtoCommerce ElasticSearch8x module</description>
+    <title>Elastic Search 8x</title>
+    <description>Indexed search functionality with Elastic 8 engines</description>
 
     <authors>
         <author>Konstantin Savosteev</author>

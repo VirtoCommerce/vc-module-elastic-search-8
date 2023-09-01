@@ -1,7 +1,16 @@
-# Virto Commerce Elastic Search 8.x Module Preview version
+# Virto Commerce Elastic Search 8.x Module (Preview
 
 ## Overview
-This is a preview version of VirtoCommerce Elastic Search 8.x module that uses the new .NET client for Elasticsearch. The module implements Elasticsearch CRUD operations defined in `ISeachProvider` interface but since it's a preview version some features might not work.
+
+The Virto Commerce Elastic Search module implements the ISearchProvider defined in the VirtoCommerce Search module. It leverages the Elasticsearch engine to store indexed documents.
+
+The module supports the following Elasticsearch deployment options:
+* Standalone Elasticsearch 8.x
+* Elastic Cloud 8.x
+
+## Features
+* New .NET client for Elasticsearch
+* Semantic Search (Preview)
 
 ## Know Limitations & Issues
 * Catalog object serialization via "Store serialized catalog objects in the index" platform settings is not implemented. Document field "__object" will not be indexed.
@@ -54,9 +63,98 @@ For Elastic Cloud v8.x, use the following configuration:
 }
 ```
 
+## Semantic Search (Preview)
+
+### Overview
+Semantic search is a search method that helps you find data based on the intent and contextual meaning of a search query, instead of a match on query terms (lexical search).
+
+Elasticsearch provides semantic search capabilities using natural language processing (NLP) and vector search. Deploying an NLP model to Elasticsearch enables it to extract text embeddings out of text. Embeddings are vectors that provide a numeric representation of a text. Pieces of content with similar meaning have similar representations.
+
+![](https://www.elastic.co/guide/en/elasticsearch/reference/current/images/search/vector-search-oversimplification.png)
+
+### NLP models
+Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of the language model is critical for implementing semantic search successfully. 
+
+By defaul, we recommend using ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform semantic search by using sparse vector representation.  
+
+### Prerequisites
+
+Elastic Cloud 8.9 or higher should be delpoyed and configured.
+
+### Enable Machine Learning Instances
+After creating a Elastic Cloud deployment, you'll need to enable Machine Learning capabilities:
+
+1. Navigate to [deployments page](https://cloud.elastic.co/home)
+2. In your deployment list click on Manage 
+3. Click Actions - Edit Deployment
+4. Find Machine Learning instances and click +Add Capacity: 4 GB RAM, 1 zone
+5. Click on Save and wait till configuration apply
+
+![Activate ML](./docs/media/ml.png)
+
+### Activate Machine Learning Model
+After enabling Machine Learning instances, you'll need to activate Machine Trained model:
+
+1. Navigate to Kibana
+2. In your deployment open Analytics - Machine learning - Trained models
+3. On .elser_model_1 click Download model
+4. After the download is finished, start the deployment by clicking the Start deployment button.
+5. Provide a deployment ID, select the priority, and set the number of allocations and threads per allocation values.
+6. Click Start
+
+![Trained models](./docs/media/ml-activate.png)
+
+![Start elser deployment](./docs/media/start-elser.png)
+
+### Configure Pipeline Ingester
+
+1. Navigate to Management - Dev Tools
+2. Create an ingest pipeline with an inference processor to use ELSER to infer against the data that is being ingested in the pipeline:
+
+```json
+PUT _ingest/pipeline/elser-v1-test
+{
+  "processors": [
+    {
+      "inference": {
+        "model_id": ".elser_model_1",
+        "target_field": "ml",
+        "field_map": {
+          "name": "text_field"
+        },
+        "inference_config": {
+          "text_expansion": {
+            "results_field": "tokens"
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+### Reindex and Query Data
+1. Navigate to Virto Commerce Settings - Search - ElasticSearch8x
+2. Enable Cognitive Search
+3. Check that settings are correct. Make sure that Cognitive model name, ML field name and pipeline name are the same as above.
+4. Go to Search Index and rebuild them.
+5. After the indexation is finished, you can use Semantic Search.
+
+![Settings](./docs/media/settings.png)
+
+### Enjoy Semantic Search
+Examples below demonstrates comparison between classic and semantic search for the same query: "Quench Your Thirst".
+
+#### Classic Search 
+![Classic Search](./docs/media/classic-search.png)
+
+#### Semantic Search
+![Semantic Search](./docs/media/semantic-search.png)
+
 ## Documentation
 * [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
 * [Elastic .NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
+* [Semantic Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search.html)
 
 ## References
 * Deployment: https://docs.virtocommerce.org/docs/latest/developer-guide/deploy-module-from-source-code/
