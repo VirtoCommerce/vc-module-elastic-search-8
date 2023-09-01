@@ -75,11 +75,11 @@ Elasticsearch provides semantic search capabilities using natural language proce
 ### NLP models
 Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of the language model is critical for implementing semantic search successfully. 
 
-By defaul, we recommend using ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform semantic search by using sparse vector representation.  
+By default, we recommend using ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform semantic search by using sparse vector representation.  
 
 ### Prerequisites
 
-Elastic Cloud 8.9 or higher should be delpoyed and configured.
+Elastic Cloud 8.9 or higher should be deployed and configured.
 
 ### Enable Machine Learning Instances
 After creating a Elastic Cloud deployment, you'll need to enable Machine Learning capabilities:
@@ -135,8 +135,8 @@ PUT _ingest/pipeline/elser-v1-test
 
 ### Reindex and Query Data
 1. Navigate to Virto Commerce Settings - Search - ElasticSearch8x
-2. Enable Cognitive Search
-3. Check that settings are correct. Make sure that Cognitive model name, ML field name and pipeline name are the same as above.
+2. Enable Semantic Search
+3. Check that settings are correct. Make sure that semantic model ID, semantic field name and pipeline name are the same as above.
 4. Go to Search Index and rebuild them.
 5. After the indexation is finished, you can use Semantic Search.
 
