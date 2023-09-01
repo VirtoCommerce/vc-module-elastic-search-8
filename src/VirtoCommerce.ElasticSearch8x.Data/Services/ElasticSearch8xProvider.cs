@@ -156,7 +156,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             }
         }
 
-        private void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
+        private static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
         {
             descriptor
                 .Index(indexName)

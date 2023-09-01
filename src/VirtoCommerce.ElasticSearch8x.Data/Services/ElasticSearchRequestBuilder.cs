@@ -36,28 +36,18 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, IDictionary<PropertyName, IProperty> availableFields)
         {
-            var result = new ElasticSearchRequest(indexName)
+            return new ElasticSearchRequest(indexName)
             {
                 Query = GetQuery(request),
                 PostFilter = _searchFiltersBuilder.GetFilterQuery(request?.Filter, availableFields),
                 Aggregations = _searchAggregationsBuilder.GetAggregations(request?.Aggregations, availableFields),
                 Sort = GetSorting(request?.Sorting),
-                From = request.Skip,
-                Size = request.Take,
-                //TrackScores = request.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)) ?? false,
+                From = request?.Skip,
+                Size = request?.Take,
+                TrackScores = request?.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)) ?? false,
+                Source = GetSourceFilters(request?.IncludeFields),
+                TrackTotalHits = request?.Take == 1 ? new TrackHits(true) : null
             };
-
-            if (request?.IncludeFields?.Any() == true)
-            {
-                result.Source = GetSourceFilters(request);
-            }
-
-            if (request?.Take == 1)
-            {
-                result.TrackTotalHits = new TrackHits(true);
-            }
-
-            return result;
         }
 
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)
@@ -141,10 +131,10 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
             return result;
         }
 
-        protected virtual SourceConfig GetSourceFilters(VirtoCommerceSearchRequest request)
+        protected virtual SourceConfig GetSourceFilters(IList<string> includeFields)
         {
-            return request?.IncludeFields != null
-                ? new SourceConfig(new SourceFilter { Includes = request.IncludeFields.ToArray() })
+            return includeFields != null
+                ? new SourceConfig(new SourceFilter { Includes = includeFields.ToArray() })
                 : null;
         }
     }
