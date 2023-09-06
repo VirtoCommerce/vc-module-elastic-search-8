@@ -25,14 +25,14 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Extensions
             return settingsManager.GetValueByDescriptor<int>(ModuleSettings.MaxGram);
         }
 
-        public static bool GetConginiteSearchEnabled(this ISettingsManager settingsManager)
+        public static bool GetSemanticSearchEnabled(this ISettingsManager settingsManager)
         {
             return settingsManager.GetValueByDescriptor<bool>(ModuleSettings.EnableSemanticSearch);
         }
 
-        public static string GetPiplelineName(this ISettingsManager settingsManager)
+        public static string GetPipelineName(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticPiplelineName);
+            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticPipelineName);
         }
 
         public static string GetModelId(this ISettingsManager settingsManager)

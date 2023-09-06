@@ -59,7 +59,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                 return result;
             }
 
-            if (_settingsManager.GetConginiteSearchEnabled())
+            if (_settingsManager.GetSemanticSearchEnabled())
             {
                 var fieldName = _settingsManager.GetModelFieldName();
                 var testExpansionQuery = new TextExpansionQuery(fieldName)

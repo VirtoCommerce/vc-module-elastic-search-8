@@ -69,9 +69,9 @@ public static class ModuleConstants
                 DefaultValue = ".elser_model_1",
             };
 
-            public static SettingDescriptor SemanticPiplelineName { get; } = new()
+            public static SettingDescriptor SemanticPipelineName { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch8x.SemanticPiplelineName",
+                Name = "VirtoCommerce.Search.ElasticSearch8x.SemanticPipelineName",
                 GroupName = "Search|ElasticSearch8x",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = "elser-v1-pipeline",
@@ -95,7 +95,7 @@ public static class ModuleConstants
                     yield return MaxGram;
                     yield return EnableSemanticSearch;
                     yield return SemanticModelId;
-                    yield return SemanticPiplelineName;
+                    yield return SemanticPipelineName;
                     yield return SemanticFieldName;
                 }
             }

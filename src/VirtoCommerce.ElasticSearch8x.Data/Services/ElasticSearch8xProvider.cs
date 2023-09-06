@@ -80,15 +80,14 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
             var pipelines = new List<string>();
 
-            var cognitiveSearchEnabled = _settingsManager.GetConginiteSearchEnabled();
-            if (cognitiveSearchEnabled)
+            if (_settingsManager.GetSemanticSearchEnabled())
             {
-                // check if ml field is created
+                // Check if ML field is created
                 await CreateMLField(createIndexResult.IndexName);
 
-                // check if ml pipleline created
-                var pipelineName = _settingsManager.GetPiplelineName();
+                var pipelineName = _settingsManager.GetPipelineName();
 
+                // Check if ML pipeline created
                 await CheckMLPipeline(pipelineName);
 
                 pipelines.Add(pipelineName);
@@ -125,10 +124,11 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                 Summary = true
             };
 
-            var piplineResult = await Client.Ingest.GetPipelineAsync(getPipelineRequest);
-            if (piplineResult.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            var pipelineResult = await Client.Ingest.GetPipelineAsync(getPipelineRequest);
+
+            if (pipelineResult.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
             {
-                throw new SearchException($"ML pipeline is not found: {pipelineName}. Please created the pipeleine first.");
+                throw new SearchException($"ML pipeline is not found: {pipelineName}. Please create the pipeline first.");
             }
         }
 
@@ -360,7 +360,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         protected virtual void ConfigureNormalizers(NormalizersDescriptor descriptor)
         {
-            descriptor.Custom("lowercase", ConfigureLowerCaseNormaliser);
+            descriptor.Custom("lowercase", ConfigureLowerCaseNormalizer);
         }
 
         private void ConfigureNGramFilter(NGramTokenFilterDescriptor descriptor)
@@ -380,7 +380,7 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
                 .Filter(new List<string> { "lowercase", _settingsManager.GetTokenFilterName() });
         }
 
-        protected virtual void ConfigureLowerCaseNormaliser(CustomNormalizerDescriptor descriptor)
+        protected virtual void ConfigureLowerCaseNormalizer(CustomNormalizerDescriptor descriptor)
         {
             descriptor.Filter(new List<string> { "lowercase" });
         }
