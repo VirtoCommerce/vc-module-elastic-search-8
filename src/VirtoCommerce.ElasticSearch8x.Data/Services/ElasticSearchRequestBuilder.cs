@@ -52,12 +52,12 @@ namespace VirtoCommerce.ElasticSearch8x.Data.Services
 
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)
         {
-            Query result = null;
-
             if (string.IsNullOrEmpty(request?.SearchKeywords))
             {
-                return result;
+                return null;
             }
+
+            Query result;
 
             if (_settingsManager.GetSemanticSearchEnabled())
             {
