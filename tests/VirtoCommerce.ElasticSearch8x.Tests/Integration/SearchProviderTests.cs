@@ -865,8 +865,7 @@ namespace VirtoCommerce.ElasticSearch8x.Tests.Integration
             Assert.Equal(1, GetAggregationValueCount(response, "Size", "4"));
         }
 
-        //todo: fix TermFilter in Aggregations
-        //[Fact]
+        [Fact]
         public virtual async Task CanGetRangeFacets()
         {
             var provider = GetSearchProvider();
@@ -948,8 +947,7 @@ namespace VirtoCommerce.ElasticSearch8x.Tests.Integration
             Assert.Equal(1, GetAggregationValueCount(response, "Color", "Silver"));
         }
 
-        //todo: fix TermFilter in Aggregations
-        //[Fact]
+        [Fact]
         public async Task CanGetFacetWithFilterOnly()
         {
             var provider = GetSearchProvider();
@@ -980,8 +978,7 @@ namespace VirtoCommerce.ElasticSearch8x.Tests.Integration
             Assert.Equal(2, GetAggregationValueCount(response, "Filtered-Aggregation", "Filtered-Aggregation"));
         }
 
-        //todo: fix TermFilter in Aggregations
-        //[Fact]
+        [Fact]
         public virtual async Task CanApplyDifferentFiltersToFacetsAndRequest()
         {
             var provider = GetSearchProvider();
