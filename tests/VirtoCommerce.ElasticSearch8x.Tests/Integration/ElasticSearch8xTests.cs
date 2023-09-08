@@ -26,9 +26,11 @@ namespace VirtoCommerce.ElasticSearch8x.Tests.Integration
             var elasticOptions = Options.Create(_configuration.GetSection("ElasticSearch8x").Get<ElasticSearch8xOptions>());
             elasticOptions.Value.Server ??= Environment.GetEnvironmentVariable("TestElasticsearchHost") ?? "localhost:9200";
 
+            var settingsManager = GetSettingsManager();
+
             var filtersBuilder = new ElasticSearchFiltersBuilder();
             var aggregationsBuilder = new ElasticSearchAggregationsBuilder(filtersBuilder);
-            var requestBuilder = new ElasticSearchRequestBuilder(filtersBuilder, aggregationsBuilder);
+            var requestBuilder = new ElasticSearchRequestBuilder(filtersBuilder, aggregationsBuilder, settingsManager);
 
             var responseBuilder = new ElasticSearchResponseBuilder();
             var propertyService = new ElasticSearchPropertyService();
@@ -36,7 +38,7 @@ namespace VirtoCommerce.ElasticSearch8x.Tests.Integration
             var provider = new ElasticSearch8xProvider(
                 searchOptions,
                 elasticOptions,
-                GetSettingsManager(),
+                settingsManager,
                 requestBuilder,
                 responseBuilder,
                 propertyService
