@@ -70,6 +70,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             TermAggregationRequest termAggregationRequest)
         {
             var facetSize = termAggregationRequest.Size;
+            if (facetSize != null)
+            {
+                facetSize = facetSize > 0 ? facetSize : int.MaxValue;
+            }
 
             TermsAggregation termsAggregation = null;
 
@@ -78,7 +82,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 termsAggregation = new TermsAggregation(aggregationId)
                 {
                     Field = field,
-                    Size = facetSize == null ? null : facetSize > 0 ? facetSize : int.MaxValue,
+                    Size = facetSize,
                 };
 
                 if (termAggregationRequest.Values?.Any() == true)
