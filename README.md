@@ -14,7 +14,6 @@ The module supports the following Elasticsearch deployment options:
 
 ## Know Limitations & Issues
 * Catalog object serialization via "Store serialized catalog objects in the index" platform settings is not implemented. Document field "__object" will not be indexed.
-* Filtered aggregations are currently not implemented in ElasticSearch .NET client, will throw NotImplementedException. 
 * BlueGreen indexation is not implemented.
 * Partial indexation is not implemented.
 
