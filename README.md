@@ -1,4 +1,4 @@
-# Virto Commerce Elastic Search 8.x Module (Preview
+# Virto Commerce Elastic Search 8 Module (Preview)
 
 ## Overview
 
@@ -20,13 +20,13 @@ The module supports the following Elasticsearch deployment options:
 ## Configuration
 The Elastic Search provider can be configured using the following keys:
 
-* **Search.Provider**: Specifies the search provider name, which must be set to "ElasticSearch8x".
+* **Search.Provider**: Specifies the search provider name, which must be set to "ElasticSearch8".
 * **Search.Scope**: Specifies the common name (prefix) for all indexes. Each document type is stored in a separate index, and the full index name is scope-{documenttype}. This allows one search service to serve multiple indexes. (Optional: Default value is "default".)
 
-* **Search.ElasticSearch8x.Server**: Specifies the network address and port of the Elasticsearch server.
-* **Search.ElasticSearch8x.User**: Specifies the username for the Elasticsearch server.
-* **Search.ElasticSearch8x.Key**: Specifies the password for the Elasticsearch server.
-* **Search.ElasticSearch8x.CertificateFingerprint**: During development, you can provide the server certificate fingerprint. When present, it is used to validate the certificate sent by the server. The fingerprint is expected to be the hex string representing the SHA256 public key fingerprint. (Optional)
+* **Search.ElasticSearch8.Server**: Specifies the network address and port of the Elasticsearch server.
+* **Search.ElasticSearch8.User**: Specifies the username for the Elasticsearch server.
+* **Search.ElasticSearch8.Key**: Specifies the password for the Elasticsearch server.
+* **Search.ElasticSearch8.CertificateFingerprint**: During development, you can provide the server certificate fingerprint. When present, it is used to validate the certificate sent by the server. The fingerprint is expected to be the hex string representing the SHA256 public key fingerprint. (Optional)
 
 
 ## Samples
@@ -37,9 +37,9 @@ For local v8.x server, use the following configuration:
 
 ```json
 "Search": {
-    "Provider": "ElasticSearch8x",
+    "Provider": "ElasticSearch8",
     "Scope": "default",
-    "ElasticSearch8x": {
+    "ElasticSearch8": {
         "Server": "https://localhost:9200",
         "User": "elastic",
         "Key": "{PASSWORD}"
@@ -52,9 +52,9 @@ For Elastic Cloud v8.x, use the following configuration:
 
 ```json
 "Search": {
-    "Provider": "ElasticSearch8x",
+    "Provider": "ElasticSearch8",
     "Scope": "default",
-    "ElasticSearch8x": {
+    "ElasticSearch8": {
         "Server": "https://vcdemo.es.eastus2.azure.elastic-cloud.com",
         "User": "elastic",
         "Key": "{SECRET_KEY}"
@@ -135,7 +135,7 @@ PUT _ingest/pipeline/elser-v1-pipeline
 ```
 
 ### Reindex and Query Data
-1. Navigate to Virto Commerce Settings - Search - ElasticSearch8x
+1. Navigate to Virto Commerce Settings - Search - ElasticSearch8
 2. Enable Semantic Search
 3. Check that settings are correct. Make sure that semantic model ID, semantic field name and pipeline name are the same as above.
 4. Go to Search Index and rebuild them.
