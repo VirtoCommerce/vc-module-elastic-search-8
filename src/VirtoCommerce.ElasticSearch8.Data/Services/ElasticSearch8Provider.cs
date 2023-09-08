@@ -277,7 +277,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         properties.Add(fieldName, providerField);
                     }
 
-                    //todo: fix object serialization
                     if (field.Name != "__object")
                     {
                         var value = GetFieldValue(providerField, field);

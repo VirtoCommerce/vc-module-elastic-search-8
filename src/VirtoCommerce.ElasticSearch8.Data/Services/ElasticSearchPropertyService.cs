@@ -44,9 +44,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             switch (property)
             {
-                //todo: fix object serialization
-                //case NestedProperty nestedProperty:
-                //break;
                 case IntegerNumberProperty integerNumberProperty:
                     integerNumberProperty.Store = field.IsRetrievable;
                     break;
