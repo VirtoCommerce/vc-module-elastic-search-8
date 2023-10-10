@@ -120,6 +120,7 @@ PUT _ingest/pipeline/elser-v1-pipeline
       "inference": {
         "model_id": ".elser_model_1",
         "target_field": "ml",
+        "ignore_failure": true,
         "field_map": {
           "name": "text_field"
         },
