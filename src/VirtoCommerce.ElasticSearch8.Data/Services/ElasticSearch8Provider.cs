@@ -51,21 +51,26 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _searchResponseBuilder = searchResponseBuilder;
             _propertyService = propertyService;
 
-            ServerUrl = new Uri(elasticOptions.Value.Server);
-            var settings = new ElasticsearchClientSettings(ServerUrl);
-
-            if (!string.IsNullOrWhiteSpace(elasticOptions.Value.CertificateFingerprint))
+            if (!string.IsNullOrEmpty(elasticOptions.Value.Server))
             {
-                settings = settings.CertificateFingerprint(elasticOptions.Value.CertificateFingerprint);
+                ServerUrl = new Uri(elasticOptions.Value.Server);
+                var settings = new ElasticsearchClientSettings(ServerUrl);
+
+                if (!string.IsNullOrWhiteSpace(elasticOptions.Value.CertificateFingerprint))
+                {
+                    settings = settings.CertificateFingerprint(elasticOptions.Value.CertificateFingerprint);
+                }
+
+                settings = settings.Authentication(new BasicAuthentication(elasticOptions.Value.User, elasticOptions.Value.Key));
+
+                Client = new ElasticsearchClient(settings);
             }
-
-            settings = settings.Authentication(new BasicAuthentication(elasticOptions.Value.User, elasticOptions.Value.Key));
-
-            Client = new ElasticsearchClient(settings);
         }
 
         public async Task<IndexingResult> IndexAsync(string documentType, IList<IndexDocument> documents)
         {
+            CheckClientCreated();
+
             return await InternalIndexAsync(documentType, documents);
         }
 
@@ -242,7 +247,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             await Client.Indices.RefreshAsync(indexName);
         }
 
-
         protected virtual SearchDocument ConvertToProviderDocument(IndexDocument document, IDictionary<PropertyName, IProperty> properties)
         {
             var result = new SearchDocument { Id = document.Id };
@@ -308,7 +312,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             return result;
         }
-
 
         #region CreateIndex (move to index create service)
 
@@ -443,6 +446,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public async Task<SearchResponse> SearchAsync(string documentType, SearchModule.Core.Model.SearchRequest request)
         {
+            CheckClientCreated();
+
             var indexName = GetIndexName(documentType);
             SearchResponse<SearchDocument> providerResponse;
 
@@ -469,6 +474,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public async Task DeleteIndexAsync(string documentType)
         {
+            CheckClientCreated();
+
             try
             {
                 //get backup index by alias and delete if present
@@ -493,6 +500,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public async Task<IndexingResult> RemoveAsync(string documentType, IList<IndexDocument> documents)
         {
+            CheckClientCreated();
+
             var indexName = GetIndexName(documentType);
 
             var providerDocuments = documents.Select(d => new SearchDocument { Id = d.Id }).ToArray();
@@ -529,6 +538,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected virtual void RemoveMappingFromCache(string indexName)
         {
             _mappings.TryRemove(indexName, out _);
+        }
+
+        private void CheckClientCreated()
+        {
+            if (Client == null)
+            {
+                throw new SearchException("Elastic Search 8 Provider connection is not configured. Please configure it in Search:ElasticSearch8 app configuration section.");
+            }
         }
 
         protected class CreateIndexResult
