@@ -17,10 +17,24 @@ public static class ModuleConstants
     public const string CompletionSubFieldName = "completion";
     public const int SuggestionFieldLength = 256;
 
+    // Semantic/vector search section
+    public const string NoModel = "None";
+    public const string ElserModel = "ELSER";
+    public const string ThirdPartyModel = "ThirdParty";
+
+    public const string ModelPropertyName = "__ml";
+    public const string TokensFieldName = "tokens";
+    public const string VectorFieldName = "predicted_value";
+
+    public const string TokensPropertyName = $"{ModelPropertyName}.{TokensFieldName}";
+    public const string VectorPropertyName = $"{ModelPropertyName}.{VectorFieldName}";
+
     public static class Settings
     {
         public static class General
         {
+
+
             public static SettingDescriptor IndexTotalFieldsLimit { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.IndexTotalFieldsLimit",
@@ -85,6 +99,15 @@ public static class ModuleConstants
                 DefaultValue = "ml.tokens",
             };
 
+            public static SettingDescriptor SemanticModelType { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8.SemanticModelType",
+                ValueType = SettingValueType.ShortText,
+                GroupName = "Search|ElasticSearch8",
+                DefaultValue = ElserModel,
+                AllowedValues = new object[] { ElserModel, ThirdPartyModel },
+            };
+
             public static IEnumerable<SettingDescriptor> AllGeneralSettings
             {
                 get
@@ -94,6 +117,7 @@ public static class ModuleConstants
                     yield return MinGram;
                     yield return MaxGram;
                     yield return EnableSemanticSearch;
+                    yield return SemanticModelType;
                     yield return SemanticModelId;
                     yield return SemanticPipelineName;
                     yield return SemanticFieldName;

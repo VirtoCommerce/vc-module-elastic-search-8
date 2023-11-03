@@ -44,5 +44,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
         {
             return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticFieldName);
         }
+
+        public static string GetSemanticModelType(this ISettingsManager settingsManager)
+        {
+            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticModelType);
+        }
     }
 }

@@ -61,6 +61,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             settings = settings.Authentication(new BasicAuthentication(elasticOptions.Value.User, elasticOptions.Value.Key));
 
+            //var transport = new DefaultHttpTransport<IElasticsearchClientSettings>(settings);
+            //settings = settings.DisableDirectStreaming();
             Client = new ElasticsearchClient(settings);
         }
 
@@ -141,12 +143,29 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (!indexMappings.ContainsKey(propertyName))
             {
-                var rankFeaturesProperty = new Properties
+                Properties properties;
+                if (_settingsManager.GetSemanticModelType() == ModuleConstants.ElserModel)
                 {
-                    { fieldName, new RankFeaturesProperty() }
-                };
+                    properties = new Properties
+                    {
+                        { fieldName, new RankFeaturesProperty() }
+                    };
+                }
+                else
+                {
+                    properties = new Properties
+                    {
+                        { fieldName, new DenseVectorProperty
+                            {
+                                Dims = 384, // todo: depends on the model
+                                Index = true,
+                                Similarity = "cosine",
+                            }
+                        }
+                    };
+                }
 
-                var request = new PutMappingRequest(indexName) { Properties = rankFeaturesProperty };
+                var request = new PutMappingRequest(indexName) { Properties = properties };
                 var response = await Client.Indices.PutMappingAsync(request);
 
                 if (!response.ApiCallDetails.HasSuccessfulStatusCode)
@@ -451,7 +470,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var availableFields = await GetMappingAsync(indexName);
                 var providerRequest = _searchRequestBuilder.BuildRequest(request, indexName, availableFields);
                 providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
-
             }
             catch (Exception ex)
             {

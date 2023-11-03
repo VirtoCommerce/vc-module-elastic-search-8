@@ -36,7 +36,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, IDictionary<PropertyName, IProperty> availableFields)
         {
-            return new ElasticSearchRequest(indexName)
+            var query = new ElasticSearchRequest(indexName)
             {
                 Query = GetQuery(request),
                 PostFilter = _searchFiltersBuilder.GetFilterQuery(request?.Filter, availableFields),
@@ -48,6 +48,33 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = request?.Take == 1 ? new TrackHits(true) : null
             };
+
+            // use knn search and rank feature
+            if (_settingsManager.GetSemanticSearchEnabled() &&
+                _settingsManager.GetSemanticModelType() == ModuleConstants.ThirdPartyModel &&
+                !string.IsNullOrEmpty(request?.SearchKeywords))
+            {
+                var knn = new KnnQuery
+                {
+                    k = request.Take,
+                    NumCandidates = 100,
+                    Field = _settingsManager.GetModelFieldName(),
+                    QueryVectorBuilder = QueryVectorBuilder.TextEmbedding(new TextEmbedding()
+                    {
+                        ModelId = _settingsManager.GetModelId(),
+                        ModelText = request.SearchKeywords,
+                    }),
+                };
+
+                query.Knn = new KnnQuery[] { knn };
+
+                query.Rank = Rank.Rrf(new RrfRank()
+                {
+                    WindowSize = request.Take
+                });
+            }
+
+            return query;
         }
 
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)
@@ -59,38 +86,59 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             Query result;
 
-            if (_settingsManager.GetSemanticSearchEnabled())
+            // basic search query 
+            var multiMatchQuery = GetMultimatchKeywordSearchQuery(request);
+
+            if (_settingsManager.GetSemanticSearchEnabled() && _settingsManager.GetSemanticModelType() == ModuleConstants.ElserModel)
             {
-                var fieldName = _settingsManager.GetModelFieldName();
-                var testExpansionQuery = new TextExpansionQuery(fieldName)
-                {
-                    ModelId = _settingsManager.GetModelId(),
-                    ModelText = request.SearchKeywords,
-                };
-                result = Query.TextExpansion(testExpansionQuery);
+                var textExpansionQuery = GetTextExpansionKeywordSearchQuery(request);
+                var queries = new Query[] { textExpansionQuery, multiMatchQuery };
+
+                var boolQuery = new BoolQuery { Should = queries };
+
+                result = Query.Bool(boolQuery);
+                //result = Query.TextExpansion(testExpansionQuery);
             }
             else
             {
-                var keywords = request.SearchKeywords;
-                var fields = request.SearchFields?.Select(x => x.ToElasticFieldName()).ToArray() ?? new[] { "_all" };
-
-                var multiMatch = new MultiMatchQuery
-                {
-                    Fields = fields,
-                    Query = keywords,
-                    Analyzer = "standard",
-                    Operator = Operator.And
-                };
-
-                if (request.IsFuzzySearch)
-                {
-                    multiMatch.Fuzziness = request.Fuzziness != null ? new Fuzziness(request.Fuzziness.Value) : null;
-                }
-
-                result = multiMatch;
+                result = multiMatchQuery;
             }
 
             return result;
+        }
+
+        private TextExpansionQuery GetTextExpansionKeywordSearchQuery(VirtoCommerceSearchRequest request)
+        {
+            var fieldName = _settingsManager.GetModelFieldName();
+
+            var testExpansionQuery = new TextExpansionQuery(fieldName)
+            {
+                ModelId = _settingsManager.GetModelId(),
+                ModelText = request.SearchKeywords,
+            };
+
+            return testExpansionQuery;
+        }
+
+        private static MultiMatchQuery GetMultimatchKeywordSearchQuery(VirtoCommerceSearchRequest request)
+        {
+            var keywords = request.SearchKeywords;
+            var fields = request.SearchFields?.Select(x => x.ToElasticFieldName()).ToArray() ?? new[] { "_all" };
+
+            var multiMatch = new MultiMatchQuery
+            {
+                Fields = fields,
+                Query = keywords,
+                Analyzer = "standard",
+                Operator = Operator.And
+            };
+
+            if (request.IsFuzzySearch)
+            {
+                multiMatch.Fuzziness = request.Fuzziness != null ? new Fuzziness(request.Fuzziness.Value) : null;
+            }
+
+            return multiMatch;
         }
 
         protected virtual IList<ElasticSearchSortOptions> GetSorting(IEnumerable<VirtoCommerceSortingField> fields)
