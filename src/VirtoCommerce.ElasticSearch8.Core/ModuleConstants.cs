@@ -18,7 +18,7 @@ public static class ModuleConstants
     public const int SuggestionFieldLength = 256;
 
     // Semantic/vector search section
-    public const string NoModel = "None";
+    public const string NoModel = "Disabled";
     public const string ElserModel = "ELSER";
     public const string ThirdPartyModel = "ThirdParty";
 
@@ -38,7 +38,7 @@ public static class ModuleConstants
             public static SettingDescriptor IndexTotalFieldsLimit { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.IndexTotalFieldsLimit",
-                GroupName = "Search|ElasticSearch8",
+                GroupName = "Search|ElasticSearch8|General",
                 ValueType = SettingValueType.Integer,
                 DefaultValue = 1000,
             };
@@ -46,7 +46,7 @@ public static class ModuleConstants
             public static SettingDescriptor TokenFilter { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.TokenFilter",
-                GroupName = "Search|ElasticSearch8",
+                GroupName = "Search|ElasticSearch8|General",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = "custom_edge_ngram",
             };
@@ -54,7 +54,7 @@ public static class ModuleConstants
             public static SettingDescriptor MinGram { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.NGramTokenFilter.MinGram",
-                GroupName = "Search|ElasticSearch8",
+                GroupName = "Search|ElasticSearch8|General",
                 ValueType = SettingValueType.Integer,
                 DefaultValue = 1,
             };
@@ -62,23 +62,25 @@ public static class ModuleConstants
             public static SettingDescriptor MaxGram { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.NGramTokenFilter.MaxGram",
-                GroupName = "Search|ElasticSearch8",
+                GroupName = "Search|ElasticSearch8|General",
                 ValueType = SettingValueType.Integer,
                 DefaultValue = 20,
             };
 
-            public static SettingDescriptor EnableSemanticSearch { get; } = new()
+
+            public static SettingDescriptor SemanticSearchType { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch8.EnableSemanticSearch",
-                GroupName = "Search|ElasticSearch8",
-                ValueType = SettingValueType.Boolean,
-                DefaultValue = false,
+                Name = "VirtoCommerce.Search.ElasticSearch8.SemanticSearchType",
+                ValueType = SettingValueType.ShortText,
+                GroupName = "Search|ElasticSearch8|Semantic",
+                DefaultValue = NoModel,
+                AllowedValues = new object[] { NoModel, ElserModel, ThirdPartyModel },
             };
 
             public static SettingDescriptor SemanticModelId { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.SemanticModelId",
-                GroupName = "Search|ElasticSearch8",
+                GroupName = "Search|ElasticSearch8|Semantic",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = ".elser_model_1",
             };
@@ -86,26 +88,9 @@ public static class ModuleConstants
             public static SettingDescriptor SemanticPipelineName { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.SemanticPipelineName",
-                GroupName = "Search|ElasticSearch8",
+                GroupName = "Search|ElasticSearch8|Semantic",
                 ValueType = SettingValueType.ShortText,
                 DefaultValue = "elser-v1-pipeline",
-            };
-
-            public static SettingDescriptor SemanticFieldName { get; } = new()
-            {
-                Name = "VirtoCommerce.Search.ElasticSearch8.SemanticFieldName",
-                GroupName = "Search|ElasticSearch8",
-                ValueType = SettingValueType.ShortText,
-                DefaultValue = "ml.tokens",
-            };
-
-            public static SettingDescriptor SemanticModelType { get; } = new()
-            {
-                Name = "VirtoCommerce.Search.ElasticSearch8.SemanticModelType",
-                ValueType = SettingValueType.ShortText,
-                GroupName = "Search|ElasticSearch8",
-                DefaultValue = ElserModel,
-                AllowedValues = new object[] { ElserModel, ThirdPartyModel },
             };
 
             public static IEnumerable<SettingDescriptor> AllGeneralSettings
@@ -116,11 +101,9 @@ public static class ModuleConstants
                     yield return TokenFilter;
                     yield return MinGram;
                     yield return MaxGram;
-                    yield return EnableSemanticSearch;
-                    yield return SemanticModelType;
+                    yield return SemanticSearchType;
                     yield return SemanticModelId;
                     yield return SemanticPipelineName;
-                    yield return SemanticFieldName;
                 }
             }
         }

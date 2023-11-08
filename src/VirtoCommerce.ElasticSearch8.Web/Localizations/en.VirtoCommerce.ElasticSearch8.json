@@ -39,7 +39,7 @@
         "title": "Semantic field name",
         "description": "Semantic model field name. Contains embeddings produced by the semantic pipeline. X.tokens or X.predicted_value"
       },
-      "SemanticModelType": {
+      "SemanticSearchType": {
         "title": "Semantic model type",
         "description": "Semantic model type"
       }

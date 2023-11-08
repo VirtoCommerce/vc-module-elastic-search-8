@@ -1,3 +1,4 @@
+using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.Platform.Core.Settings;
 using ModuleSettings = VirtoCommerce.ElasticSearch8.Core.ModuleConstants.Settings.General;
 
@@ -25,9 +26,15 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
             return settingsManager.GetValueByDescriptor<int>(ModuleSettings.MaxGram);
         }
 
+        public static string GetSemanticSearchType(this ISettingsManager settingsManager)
+        {
+            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticSearchType);
+        }
+
         public static bool GetSemanticSearchEnabled(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<bool>(ModuleSettings.EnableSemanticSearch);
+            var semanticSearchType = settingsManager.GetSemanticSearchType();
+            return semanticSearchType != ModuleConstants.NoModel;
         }
 
         public static string GetPipelineName(this ISettingsManager settingsManager)
@@ -38,16 +45,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
         public static string GetModelId(this ISettingsManager settingsManager)
         {
             return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticModelId);
-        }
-
-        public static string GetModelFieldName(this ISettingsManager settingsManager)
-        {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticFieldName);
-        }
-
-        public static string GetSemanticModelType(this ISettingsManager settingsManager)
-        {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticModelType);
         }
     }
 }

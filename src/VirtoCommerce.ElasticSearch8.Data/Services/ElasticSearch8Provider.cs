@@ -136,33 +136,38 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         private async Task CreateMLField(string indexName)
         {
-            var fieldName = _settingsManager.GetModelFieldName();
-            var propertyName = fieldName.Split('.').FirstOrDefault();
-
             var indexMappings = await GetMappingAsync(indexName);
 
-            if (!indexMappings.ContainsKey(propertyName))
+            if (!indexMappings.ContainsKey(ModuleConstants.ModelPropertyName))
             {
-                Properties properties;
-                if (_settingsManager.GetSemanticModelType() == ModuleConstants.ElserModel)
+                var properties = default(Properties);
+
+                var semanticSearchModelType = _settingsManager.GetSemanticSearchType();
+                switch (semanticSearchModelType)
                 {
-                    properties = new Properties
-                    {
-                        { fieldName, new RankFeaturesProperty() }
-                    };
-                }
-                else
-                {
-                    properties = new Properties
-                    {
-                        { fieldName, new DenseVectorProperty
-                            {
-                                Dims = 384, // todo: depends on the model
-                                Index = true,
-                                Similarity = "cosine",
+                    case ModuleConstants.ElserModel:
+                        properties = new Properties
+                        {
+                            { ModuleConstants.TokensPropertyName, new RankFeaturesProperty() }
+                        };
+                        break;
+                    case ModuleConstants.ThirdPartyModel:
+                        properties = new Properties
+                        {
+                            { ModuleConstants.VectorPropertyName, new DenseVectorProperty
+                                            {
+                                                Index = true,
+                                                Dims = 384, // todo: depends on the model
+                                                Similarity = "cosine",
+                                            }
                             }
-                        }
-                    };
+                        };
+                        break;
+                }
+
+                if (properties is null)
+                {
+                    return;
                 }
 
                 var request = new PutMappingRequest(indexName) { Properties = properties };
@@ -170,7 +175,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 if (!response.ApiCallDetails.HasSuccessfulStatusCode)
                 {
-                    throw new SearchException($"Failed to create ML field: {fieldName}", response.ApiCallDetails.OriginalException);
+                    throw new SearchException($"Failed to create {ModuleConstants.ModelPropertyName} field", response.ApiCallDetails.OriginalException);
                 }
             }
         }

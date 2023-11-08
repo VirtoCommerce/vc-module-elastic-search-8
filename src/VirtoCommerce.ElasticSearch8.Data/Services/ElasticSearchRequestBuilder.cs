@@ -50,15 +50,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             };
 
             // use knn search and rank feature
-            if (_settingsManager.GetSemanticSearchEnabled() &&
-                _settingsManager.GetSemanticModelType() == ModuleConstants.ThirdPartyModel &&
-                !string.IsNullOrEmpty(request?.SearchKeywords))
+            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel && !string.IsNullOrEmpty(request?.SearchKeywords))
             {
                 var knn = new KnnQuery
                 {
                     k = request.Take,
                     NumCandidates = 100,
-                    Field = _settingsManager.GetModelFieldName(),
+                    Field = ModuleConstants.VectorPropertyName,
                     QueryVectorBuilder = QueryVectorBuilder.TextEmbedding(new TextEmbedding()
                     {
                         ModelId = _settingsManager.GetModelId(),
@@ -89,7 +87,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             // basic search query 
             var multiMatchQuery = GetMultimatchKeywordSearchQuery(request);
 
-            if (_settingsManager.GetSemanticSearchEnabled() && _settingsManager.GetSemanticModelType() == ModuleConstants.ElserModel)
+            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
             {
                 var textExpansionQuery = GetTextExpansionKeywordSearchQuery(request);
                 var queries = new Query[] { textExpansionQuery, multiMatchQuery };
@@ -97,7 +95,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var boolQuery = new BoolQuery { Should = queries };
 
                 result = Query.Bool(boolQuery);
-                //result = Query.TextExpansion(testExpansionQuery);
             }
             else
             {
@@ -109,9 +106,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         private TextExpansionQuery GetTextExpansionKeywordSearchQuery(VirtoCommerceSearchRequest request)
         {
-            var fieldName = _settingsManager.GetModelFieldName();
-
-            var testExpansionQuery = new TextExpansionQuery(fieldName)
+            var testExpansionQuery = new TextExpansionQuery(ModuleConstants.TokensPropertyName)
             {
                 ModelId = _settingsManager.GetModelId(),
                 ModelText = request.SearchKeywords,
