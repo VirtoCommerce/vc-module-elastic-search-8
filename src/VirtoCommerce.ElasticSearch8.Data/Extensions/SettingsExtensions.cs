@@ -7,42 +7,42 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
     {
         public static int GetFieldsLimit(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<int>(ModuleSettings.IndexTotalFieldsLimit);
+            return settingsManager.GetValue<int>(ModuleSettings.IndexTotalFieldsLimit);
         }
 
         public static string GetTokenFilterName(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.TokenFilter);
+            return settingsManager.GetValue<string>(ModuleSettings.TokenFilter);
         }
 
         public static int GetMinGram(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<int>(ModuleSettings.MinGram);
+            return settingsManager.GetValue<int>(ModuleSettings.MinGram);
         }
 
         public static int GetMaxGram(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<int>(ModuleSettings.MaxGram);
+            return settingsManager.GetValue<int>(ModuleSettings.MaxGram);
         }
 
         public static bool GetSemanticSearchEnabled(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<bool>(ModuleSettings.EnableSemanticSearch);
+            return settingsManager.GetValue<bool>(ModuleSettings.EnableSemanticSearch);
         }
 
         public static string GetPipelineName(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticPipelineName);
+            return settingsManager.GetValue<string>(ModuleSettings.SemanticPipelineName);
         }
 
         public static string GetModelId(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticModelId);
+            return settingsManager.GetValue<string>(ModuleSettings.SemanticModelId);
         }
 
         public static string GetModelFieldName(this ISettingsManager settingsManager)
         {
-            return settingsManager.GetValueByDescriptor<string>(ModuleSettings.SemanticFieldName);
+            return settingsManager.GetValue<string>(ModuleSettings.SemanticFieldName);
         }
     }
 }

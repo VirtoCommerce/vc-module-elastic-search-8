@@ -33,7 +33,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
             var target = new ElasticSearchPropertyService();
 
             // Act
-            var result = target.CreateProperty(new IndexDocumentField(name, value));
+            var result = target.CreateProperty(new IndexDocumentField(name, value, IndexDocumentFieldValueType.Complex));
 
             // Assert
             Assert.IsType<NestedProperty>(result);
