@@ -160,7 +160,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                             { ModuleConstants.VectorPropertyName, new DenseVectorProperty
                                             {
                                                 Index = true,
-                                                Dims = 384, // todo: depends on the model
+                                                Dims = _settingsManager.GetVectorModelDimentionsCount(),
                                                 Similarity = "cosine",
                                             }
                             }
