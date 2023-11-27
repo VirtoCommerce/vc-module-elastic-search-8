@@ -42,6 +42,10 @@
       "SemanticSearchType": {
         "title": "Semantic model type",
         "description": "Semantic model type"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Vector model dimensions number",
+        "description": "The number of dimensions number of the vector model. Typicaly found in the model description."
       }
     }
   }

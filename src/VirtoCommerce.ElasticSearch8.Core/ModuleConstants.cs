@@ -93,9 +93,9 @@ public static class ModuleConstants
                 DefaultValue = "elser-v1-pipeline",
             };
 
-            public static SettingDescriptor SemanticVectorModelDimentions { get; } = new()
+            public static SettingDescriptor SemanticVectorModelDimensions { get; } = new()
             {
-                Name = "VirtoCommerce.Search.ElasticSearch8.SemanticVectorModelDimentions",
+                Name = "VirtoCommerce.Search.ElasticSearch8.SemanticVectorModelDimensions",
                 GroupName = "Search|ElasticSearch8|Semantic",
                 ValueType = SettingValueType.PositiveInteger,
                 DefaultValue = 384,
@@ -112,7 +112,7 @@ public static class ModuleConstants
                     yield return SemanticSearchType;
                     yield return SemanticModelId;
                     yield return SemanticPipelineName;
-                    yield return SemanticVectorModelDimentions;
+                    yield return SemanticVectorModelDimensions;
                 }
             }
         }
