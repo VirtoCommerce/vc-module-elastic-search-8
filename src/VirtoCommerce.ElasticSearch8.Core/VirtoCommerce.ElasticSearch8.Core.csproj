@@ -13,7 +13,7 @@
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.9.2" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="VirtoCommerce.Platform.Core" Version="3.400.0" />
-    <PackageReference Include="VirtoCommerce.SearchModule.Core" Version="3.403.0" />
+    <PackageReference Include="VirtoCommerce.SearchModule.Core" Version="3.404.0" />
   </ItemGroup>
 
 </Project>

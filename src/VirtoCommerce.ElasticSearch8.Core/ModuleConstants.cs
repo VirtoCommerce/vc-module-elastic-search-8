@@ -5,6 +5,7 @@ namespace VirtoCommerce.ElasticSearch8.Core;
 
 public static class ModuleConstants
 {
+    public const string ProviderName = "ElasticSearch8";
     public const string ElasticSearchExceptionTitle = "Elasticsearch8 Server";
 
     public const string ScoreFieldName = "score";
