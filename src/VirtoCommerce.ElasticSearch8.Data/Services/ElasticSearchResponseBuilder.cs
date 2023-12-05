@@ -15,12 +15,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
     {
         public virtual SearchResponse ToSearchResponse(SearchResponse<SearchDocument> response, VirtoCommerceSearchRequest request)
         {
-            var result = new SearchResponse
+            var result = new SearchResponse();
+
+            if (response.Total > 0)
             {
-                TotalCount = response.Total,
-                Documents = response.Hits.Select(ToSearchDocument).ToArray(),
-                Aggregations = GetAggregations(response.Aggregations, request)
-            };
+                result.TotalCount = response.Total;
+                result.Documents = response.Hits.Select(ToSearchDocument).ToArray();
+                result.Aggregations = GetAggregations(response.Aggregations, request);
+            }
 
             return result;
         }
