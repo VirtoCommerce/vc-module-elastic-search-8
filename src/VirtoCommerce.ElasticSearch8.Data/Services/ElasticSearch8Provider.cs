@@ -484,7 +484,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 throw new SearchException(ex.Message, ex);
             }
 
-            if (!providerResponse.IsValidResponse)
+            if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
             {
                 ThrowException(providerResponse.DebugInformation, providerResponse.ApiCallDetails.OriginalException);
             }
