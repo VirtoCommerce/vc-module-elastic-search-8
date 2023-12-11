@@ -24,6 +24,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly IElasticSearchAggregationsBuilder _searchAggregationsBuilder;
         private readonly ISettingsManager _settingsManager;
 
+        private const int NearestNeighborMaxCandidates = 10000;
+
         public ElasticSearchRequestBuilder(
             IElasticSearchFiltersBuilder searchFiltersBuilder,
             IElasticSearchAggregationsBuilder searchAggregationsBuilder,
@@ -52,10 +54,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             // use knn search and rank feature
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel && !string.IsNullOrEmpty(request?.SearchKeywords))
             {
+                var numCandidates = request.Take * 2;
+                numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
+
                 var knn = new KnnQuery
                 {
                     k = request.Take,
-                    NumCandidates = 100,
+                    NumCandidates = numCandidates,
                     Field = ModuleConstants.VectorPropertyName,
                     QueryVectorBuilder = QueryVectorBuilder.TextEmbedding(new TextEmbedding()
                     {
@@ -65,11 +70,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 };
 
                 query.Knn = new KnnQuery[] { knn };
-
-                query.Rank = Rank.Rrf(new RrfRank()
-                {
-                    WindowSize = request.Take
-                });
             }
 
             return query;
