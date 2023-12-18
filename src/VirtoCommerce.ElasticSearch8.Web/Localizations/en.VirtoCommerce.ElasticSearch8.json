@@ -45,7 +45,7 @@
       },
       "SemanticVectorModelDimensions": {
         "title": "Vector model dimensions number",
-        "description": "The number of dimensions number of the vector model. Typicaly found in the model description."
+        "description": "Number of dimensions of the third party vector model. Typicaly found in the model description."
       }
     }
   }
