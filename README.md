@@ -98,7 +98,7 @@ After enabling Machine Learning instances, you'll need to activate Machine Train
 
 1. Navigate to Kibana
 2. In your deployment open Analytics - Machine learning - Trained models
-3. On .elser_model_1 click Download model
+3. On .elser_model_2 click Download model. (There are two versions available: one version which runs on any hardware and one version which is `linux-x86_64` optimized. You can see which model is recommended for your cluster's hardware configuration)
 4. After the download is finished, start the deployment by clicking the Start deployment button.
 5. Provide a deployment ID, select the priority, and set the number of allocations and threads per allocation values.
 6. Click Start
@@ -113,27 +113,25 @@ After enabling Machine Learning instances, you'll need to activate Machine Train
 2. Create an ingest pipeline with an inference processor to use ELSER to infer against the data that is being ingested in the pipeline:
 
 ```json
-PUT _ingest/pipeline/elser-v1-pipeline
+PUT _ingest/pipeline/elser-v2-pipeline
 {
   "processors": [
     {
       "inference": {
-        "model_id": ".elser_model_1",
-        "target_field": "ml",
+        "model_id": ".elser_model_2",
         "ignore_failure": true,
-        "field_map": {
-          "name": "text_field"
-        },
-        "inference_config": {
-          "text_expansion": {
-            "results_field": "tokens"
+        "input_output": [ 
+          {
+            "input_field": "name",
+            "output_field": "__ml.tokens"
           }
-        }
+        ]
       }
     }
   ]
 }
 ```
+For the current ELSER v2 model implementation.
 
 ### Reindex and Query Data
 1. Navigate to Virto Commerce Settings - Search - ElasticSearch8
