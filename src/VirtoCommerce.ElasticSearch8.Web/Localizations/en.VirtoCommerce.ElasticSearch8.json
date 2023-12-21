@@ -37,7 +37,15 @@
       },
       "SemanticFieldName": {
         "title": "Semantic field name",
-        "description": "Semantic model field name. Contains embeddings produced by the semantic pipeline."
+        "description": "Semantic model field name. Contains embeddings produced by the semantic pipeline. X.tokens or X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Semantic model type",
+        "description": "Semantic model type"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Vector model dimensions number",
+        "description": "Number of dimensions of the third party vector model. Typicaly found in the model description."
       }
     }
   }
