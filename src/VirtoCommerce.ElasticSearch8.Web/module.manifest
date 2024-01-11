@@ -1,13 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <module>
   <id>VirtoCommerce.ElasticSearch8</id>
   <version>3.800.0</version>
-  <version-tag>
-  </version-tag>
-  <platformVersion>3.800.0-alpha.12831-net8</platformVersion>
+  <version-tag />
+  
+  <platformVersion>3.800.0</platformVersion>
   <dependencies>
-    <dependency id="VirtoCommerce.Search" version="3.800.0-alpha.726-pt-14740-net8" />
+    <dependency id="VirtoCommerce.Search" version="3.800.0" />
   </dependencies>
+  
   <title>Elastic Search 8</title>
   <description>Indexed search functionality with Elastic 8 engines</description>
   <authors>
