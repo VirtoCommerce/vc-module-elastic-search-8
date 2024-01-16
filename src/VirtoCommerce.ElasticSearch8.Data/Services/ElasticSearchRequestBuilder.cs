@@ -48,7 +48,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Size = request?.Take,
                 TrackScores = request?.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)),
                 Source = GetSourceFilters(request?.IncludeFields),
-                TrackTotalHits = request?.Take == 1 ? new TrackHits(true) : null
+                TrackTotalHits = new TrackHits(true),
             };
 
             // use knn search and rank feature
