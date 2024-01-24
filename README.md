@@ -1,16 +1,19 @@
-# Virto Commerce Elastic Search 8 Module (Preview)
+# Virto Commerce Elastic Search 8 Module
 
 ## Overview
 
 The Virto Commerce Elastic Search module implements the ISearchProvider defined in the VirtoCommerce Search module. It leverages the Elasticsearch engine to store indexed documents.
 
 The module supports the following Elasticsearch deployment options:
-* Standalone Elasticsearch 8.x
 * Elastic Cloud 8.x
+* Standalone Elasticsearch 8.x
 
 ## Features
-* New .NET client for Elasticsearch
-* Semantic Search (Preview)
+* Full-Text Search with new .NET client for Elasticsearch.
+* Semantic Search.
+* Hybrid Mode Search - combine the best search results from full-text and semantic queries.
+* Third party ML models support.
+
 
 ## Know Limitations & Issues
 * Catalog object serialization via "Store serialized catalog objects in the index" platform settings is not implemented. Document field "__object" will not be indexed.
@@ -62,7 +65,10 @@ For Elastic Cloud v8.x, use the following configuration:
 }
 ```
 
-## Semantic Search (Preview)
+## Full-Text Search 
+The provider performs full-text keyword searches on a documents, optionally with filters and aggregations.
+
+## Semantic Search 
 
 ### Overview
 Semantic search is a search method that helps you find data based on the intent and contextual meaning of a search query, instead of a match on query terms (lexical search).
@@ -77,6 +83,8 @@ Elasticsearch provides semantic search capabilities using natural language proce
 Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of the language model is critical for implementing semantic search successfully. 
 
 By default, we recommend using ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform semantic search by using sparse vector representation.  
+
+## Semantic Search and ELSER Model Setup
 
 ### Prerequisites
 
@@ -119,13 +127,16 @@ PUT _ingest/pipeline/elser-v2-pipeline
     {
       "inference": {
         "model_id": ".elser_model_2",
+        "target_field": "__ml",
         "ignore_failure": true,
-        "input_output": [ 
-          {
-            "input_field": "name",
-            "output_field": "__ml.tokens"
+        "field_map": {
+          "name": "text_field"
+        },
+        "inference_config": {
+          "text_expansion": {
+            "results_field": "tokens"
           }
-        ]
+        }
       }
     }
   ]
@@ -150,6 +161,47 @@ Examples below demonstrates comparison between classic and semantic search for t
 
 #### Semantic Search
 ![Semantic Search](./docs/media/semantic-search.png)
+
+## Semantic Search and Third-Party ML Model Setup
+
+### Adding Third Party ML model support
+
+To install third party model:
+
+1. Install Docker.
+2. Clone Eland repository [GitHub - elastic/eland: Python Client and Toolkit for DataFrames, Big Data, Machine Learning and ETL in Elasticsearch](https://github.com/elastic/eland)
+3. Create a Docker image of Eland. From the root directory of the cloned project:
+  ```
+  docker build -t elastic/eland .
+  ```
+4. Select a text embedding model from the [third-party model reference list](https://www.elastic.co/guide/en/machine-learning/8.12/ml-nlp-model-ref.html#ml-nlp-model-ref-ner) and install the model by running the eland_import_model_hub command in the Docker image:
+  ```
+  docker run -it --rm elastic/eland eland_import_hub_model --cloud-id <cloud id> -u <username> -p <password> --hub-model-id sentence-transformers/msmarco-MiniLM-L-12-v3 --task-type text_embedding --start
+  ``` 
+  where `sentence-transformers/msmarco-MiniLM-L-12-v3` ID the model. After installing the model it will start automatically.
+5. Create the pipeline similar to ELSER model (`__ml` property is predefined in Elastic8 Provider now):
+  ```
+  PUT _ingest/pipeline/my-text-embeddings-pipeline
+  {
+    "processors": [
+      {
+        "inference": {
+          "model_id": "sentence-transformers__msmarco-minilm-l-12-v3",
+          "target_field": "__ml",
+          "ignore_failure": true,
+          "field_map": {
+            "name": "text_field"
+          }
+        }
+      }
+    ]
+  }
+  ```
+
+6. Select Third Party model type in platform settings:
+![](https://github.com/VirtoCommerce/vc-module-elastic-search-8/assets/20122385/d6b0e5b2-eade-4892-b11c-c85efb52bdc7)
+
+7. Depending on the number of dimensions of your model you might need to adjust Semantic Vector Model Dimensions settings.
 
 ## Documentation
 * [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
