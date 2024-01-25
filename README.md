@@ -235,18 +235,17 @@ This provided script serves as a versatile tool for testing and exploring the ca
 * "boost": - Applies a boost factor to both the text expansion and multi-match conditions. Boosting allows emphasizing certain conditions over others, influencing the final score.
 
 ```json
-GET default-product/_search
 {
   "explain": true,
   "track_total_hits": true,
   "min_score": 0.2,
   
   "size": 10, 
-  "_source": ["name", "code", "_score", "description"],
+  "_source": ["name", "code", "_score"], // Replace with your actual fields
   
   "query":{
     "bool": {
-      "filter": [
+      "filter": [ // Replace with your actual filters
         {
           "term": {
             "__outline": "fc596540864a41bf8ab78734ee7353a3/e55de15e-ff39-4b05-bc7e-c57aede725f5"
@@ -256,16 +255,16 @@ GET default-product/_search
           {
             "text_expansion":{
               "__ml.tokens":{
-                "model_id": ".elser_model_2_virtostart",
-                "model_text": "Cat",
+                "model_id": ".elser_model_2_virtostart", // model_id
+                "model_text": "Cat",  // Replace with your query
                 "boost": 1
               }
             }
           },
           {
             "multi_match": {
-              "query": "Cat",
-              "fields": ["__content"],  // Replace with your actual fields
+              "query": "Cat", // Replace with your query
+              "fields": ["__content"],  
               "analyzer": "standard",
               "operator": "and",
               "boost": 1
