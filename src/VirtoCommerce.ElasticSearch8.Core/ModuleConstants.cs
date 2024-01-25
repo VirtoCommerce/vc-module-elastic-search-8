@@ -68,6 +68,13 @@ public static class ModuleConstants
                 DefaultValue = 20,
             };
 
+            public static SettingDescriptor MinScore { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8.MinScore",
+                GroupName = "Search|ElasticSearch8|General",
+                ValueType = SettingValueType.Decimal,
+                DefaultValue = 0.1,
+            };
 
             public static SettingDescriptor SemanticSearchType { get; } = new()
             {
@@ -102,6 +109,22 @@ public static class ModuleConstants
                 DefaultValue = 384,
             };
 
+            public static SettingDescriptor SemanticBoost { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8.SemanticBoost",
+                GroupName = "Search|ElasticSearch8|Semantic",
+                ValueType = SettingValueType.Decimal,
+                DefaultValue = 1.0M,
+            };
+
+            public static SettingDescriptor KeywordBoost { get; } = new()
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8.KeywordBoost",
+                GroupName = "Search|ElasticSearch8|Semantic",
+                ValueType = SettingValueType.Decimal,
+                DefaultValue = 1.0M,
+            };
+
             public static IEnumerable<SettingDescriptor> AllGeneralSettings
             {
                 get
@@ -110,10 +133,13 @@ public static class ModuleConstants
                     yield return TokenFilter;
                     yield return MinGram;
                     yield return MaxGram;
+                    yield return MinScore;
                     yield return SemanticSearchType;
                     yield return SemanticModelId;
                     yield return SemanticPipelineName;
                     yield return SemanticVectorModelDimensions;
+                    yield return SemanticBoost;
+                    yield return KeywordBoost;
                 }
             }
         }

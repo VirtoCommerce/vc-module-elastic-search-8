@@ -19,6 +19,10 @@
           "description": "Maximum number of characters in a gram (requires rebuilding an index)"
         }
       },
+      "MinScore": {
+        "title": "Min Score",
+        "description": "Specifies the minimum score a document must have to be considered a match. Documents with scores below this threshold will not be included in the results. Set 0 to return all documents."
+      },
       "DeleteDuplicateIndexes": {
         "title": "Delete duplicate active indexes",
         "description": "Search and delete duplicate active indexes before Delete and build operation"
@@ -46,6 +50,14 @@
       "SemanticVectorModelDimensions": {
         "title": "Vector model dimensions number",
         "description": "Number of dimensions of the third party vector model. Typicaly found in the model description."
+      },
+      "KeywordBoost": {
+        "title": "Boost for keyword search",
+        "description": "Floating point number used as the constant relevance score for every document matching the Boost for keyword search. Defaults to 1.0."
+      },
+      "SemanticBoost": {
+        "title": "Boost for semantic search",
+        "description": "Floating point number used as the constant relevance score for every document matching the Boost for semantic search. Defaults to 1.0."
       }
     }
   }

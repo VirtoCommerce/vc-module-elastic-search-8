@@ -49,6 +49,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 TrackScores = request?.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)),
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = new TrackHits(true),
+                MinScore = _settingsManager.GetMinScore(),
             };
 
             // use knn search and rank feature
@@ -90,6 +91,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
             {
                 var textExpansionQuery = GetTextExpansionKeywordSearchQuery(request);
+
+                // configure boost
+                textExpansionQuery.Boost = _settingsManager.GetSemanticBoost();
+                multiMatchQuery.Boost = _settingsManager.GetKeywordBoost();
+
                 var queries = new Query[] { textExpansionQuery, multiMatchQuery };
 
                 var boolQuery = new BoolQuery { Should = queries };

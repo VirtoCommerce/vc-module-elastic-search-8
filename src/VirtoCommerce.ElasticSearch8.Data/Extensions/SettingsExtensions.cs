@@ -52,5 +52,23 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
         {
             return settingsManager.GetValue<int>(ModuleSettings.SemanticVectorModelDimensions);
         }
+
+        public static double? GetMinScore(this ISettingsManager settingsManager)
+        {
+            var value = (double)settingsManager.GetValue<decimal>(ModuleSettings.MinScore);
+            return value > 0 ? value : null;
+        }
+
+        public static float? GetKeywordBoost(this ISettingsManager settingsManager)
+        {
+            var value = (float)settingsManager.GetValue<decimal>(ModuleSettings.KeywordBoost);
+            return value > 0 ? value : null;
+        }
+
+        public static float? GetSemanticBoost(this ISettingsManager settingsManager)
+        {
+            var value = (float)settingsManager.GetValue<decimal>(ModuleSettings.SemanticBoost);
+            return value > 0 ? value : null;
+        }
     }
 }
