@@ -82,7 +82,16 @@ Elasticsearch provides semantic search capabilities using natural language proce
 ### NLP models
 Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of the language model is critical for implementing semantic search successfully. 
 
-By default, we recommend using ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform semantic search by using sparse vector representation.  
+By default, we recommend using ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform semantic search by using sparse vector representation.
+
+### Enjoy Semantic Search
+Examples below demonstrates comparison between classic and semantic search for the same query: "Quench Your Thirst".
+
+#### Classic Search 
+![Classic Search](./docs/media/classic-search.png)
+
+#### Semantic Search
+![Semantic Search](./docs/media/semantic-search.png)
 
 ## Semantic Search and ELSER Model Setup
 
@@ -142,6 +151,7 @@ PUT _ingest/pipeline/elser-v2-pipeline
   ]
 }
 ```
+
 For the current ELSER v2 model implementation.
 
 ### Reindex and Query Data
@@ -153,33 +163,34 @@ For the current ELSER v2 model implementation.
 
 ![Settings](./docs/media/settings.png)
 
-### Enjoy Semantic Search
-Examples below demonstrates comparison between classic and semantic search for the same query: "Quench Your Thirst".
-
-#### Classic Search 
-![Classic Search](./docs/media/classic-search.png)
-
-#### Semantic Search
-![Semantic Search](./docs/media/semantic-search.png)
-
 ## Semantic Search and Third-Party ML Model Setup
 
-### Adding Third Party ML model support
+### Select Text Embedding Model
 
-To install third party model:
+Select a **text embedding model** from the [third-party model reference list](https://www.elastic.co/guide/en/machine-learning/8.12/ml-nlp-model-ref.html).
 
-1. Install Docker.
-2. Clone Eland repository [GitHub - elastic/eland: Python Client and Toolkit for DataFrames, Big Data, Machine Learning and ETL in Elasticsearch](https://github.com/elastic/eland)
-3. Create a Docker image of Eland. From the root directory of the cloned project:
+### Add Trained Model
+
+1. Install the Eland Python Client. Eland can be installed with [pip](https://pypi.org/project/pip/):
+  ```cmd
+  pip install eland
   ```
-  docker build -t elastic/eland .
+
+2. Importing your third-party model. Follow the instructions on importing compatible third-party models:
+  ```cmd
+  eland_import_hub_model --cloud-id <cloud-id> -u <username> -p <password> --hub-model-id <model-id> --task-type text_embedding
   ```
-4. Select a text embedding model from the [third-party model reference list](https://www.elastic.co/guide/en/machine-learning/8.12/ml-nlp-model-ref.html#ml-nlp-model-ref-ner) and install the model by running the eland_import_model_hub command in the Docker image:
-  ```
-  docker run -it --rm elastic/eland eland_import_hub_model --cloud-id <cloud id> -u <username> -p <password> --hub-model-id sentence-transformers/msmarco-MiniLM-L-12-v3 --task-type text_embedding --start
-  ``` 
-  where `sentence-transformers/msmarco-MiniLM-L-12-v3` ID the model. After installing the model it will start automatically.
-5. Create the pipeline similar to ELSER model (`__ml` property is predefined in Elastic8 Provider now):
+
+> **Note:** For demo purpose, you can use [sentence-transformers/msmarco-MiniLM-L-12-v3](https://huggingface.co/sentence-transformers/msmarco-MiniLM-L-12-v3) model.
+
+> **Note:** You can find more information in [Import models with Eland](https://www.elastic.co/guide/en/machine-learning/8.12/ml-nlp-import-model.html)
+
+### Deploy Trained Model
+
+Navigate to Machine Learning - Model Management - Trained Models section, click `Start deployment` in the table row containing your new model to deploy and use it.
+
+### Configure Pipeline Ingester
+Create the pipeline similar to ELSER model (`__ml` property is predefined in Elastic8 Provider now):
   ```
   PUT _ingest/pipeline/my-text-embeddings-pipeline
   {
@@ -198,10 +209,80 @@ To install third party model:
   }
   ```
 
-6. Select Third Party model type in platform settings:
+### Reindex and Query Data
+1. Navigate to Virto Commerce Settings - Search - ElasticSearch8
+1. Enable Semantic Search
+1. Select Third Party model type in platform settings.
+1. Check that settings are correct. Make sure that semantic model ID, semantic field name and pipeline name are the same as above.
+1. Go to Search Index and rebuild them.
+1. After the indexation is finished, you can use Semantic Search.
+
 ![](https://github.com/VirtoCommerce/vc-module-elastic-search-8/assets/20122385/d6b0e5b2-eade-4892-b11c-c85efb52bdc7)
 
-7. Depending on the number of dimensions of your model you might need to adjust Semantic Vector Model Dimensions settings.
+> **Note:** Depending on the number of dimensions of your model you might need to adjust Semantic Vector Model Dimensions settings.
+
+## How to Explain?
+The Elastic provides an explain API that computes a score explanation for a query and a specific document. This can give useful feedback whether a document matches or didn’t match a specific query.
+
+This provided script serves as a versatile tool for testing and exploring the capabilities of Elasticsearch, specifically tailored for a Virto Commerce Elastic Search 8 release. It combines several features to demonstrate querying and scoring mechanisms.
+
+**Explanation of Query Parameters:**
+* "explain" - This parameter instructs Elasticsearch to compute a score explanation for each document, providing insight into how well each document matches the query.
+* "track_total_hits - Ensures that the total number of hits for the query is accurately tracked.
+* "min_score" - Specifies the minimum score a document must have to be considered a match. Documents with scores below this threshold will not be included in the results.
+* "size" - Specifies the number of documents to return in the results.
+* "_source" - Specifies the fields to be included in the result set. In this case, the name, code, score, and description of each document.
+* "boost": - Applies a boost factor to both the text expansion and multi-match conditions. Boosting allows emphasizing certain conditions over others, influencing the final score.
+
+```json
+GET default-product/_search
+{
+  "explain": true,
+  "track_total_hits": true,
+  "min_score": 0.2,
+  
+  "size": 10, 
+  "_source": ["name", "code", "_score", "description"],
+  
+  "query":{
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "__outline": "fc596540864a41bf8ab78734ee7353a3/e55de15e-ff39-4b05-bc7e-c57aede725f5"
+          }
+        }       ], 
+        "should": [
+          {
+            "text_expansion":{
+              "__ml.tokens":{
+                "model_id": ".elser_model_2_virtostart",
+                "model_text": "Cat",
+                "boost": 1
+              }
+            }
+          },
+          {
+            "multi_match": {
+              "query": "Cat",
+              "fields": ["__content"],  // Replace with your actual fields
+              "analyzer": "standard",
+              "operator": "and",
+              "boost": 1
+            }
+          }
+          ]
+    }
+  }
+}
+
+```
+
+## Optimizing performance
+The tokens generated by ELSER must be indexed for use in the text_expansion query. However, it is not necessary to retain those terms in the document source.
+You can save disk space by using the source exclude mapping to remove the ELSER terms from the document source.
+
+Following links provide more information about source filtering: [Saving disk space by excluding the ELSER tokens from document source](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search-elser.html#optimization)
 
 ## Documentation
 * [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
