@@ -136,16 +136,13 @@ PUT _ingest/pipeline/elser-v2-pipeline
     {
       "inference": {
         "model_id": ".elser_model_2",
-        "target_field": "__ml",
         "ignore_failure": true,
-        "field_map": {
-          "name": "text_field"
-        },
-        "inference_config": {
-          "text_expansion": {
-            "results_field": "tokens"
+        "input_output": [ 
+          {
+            "input_field": "name",
+            "output_field": "__ml.tokens"
           }
-        }
+        ]
       }
     }
   ]
