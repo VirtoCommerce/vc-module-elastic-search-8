@@ -67,11 +67,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        public async Task<IndexingResult> IndexAsync(string documentType, IList<IndexDocument> documents)
+        public Task<IndexingResult> IndexAsync(string documentType, IList<IndexDocument> documents)
         {
             CheckClientCreated();
 
-            return await InternalIndexAsync(documentType, documents);
+            return InternalIndexAsync(documentType, documents);
         }
 
         protected virtual async Task<IndexingResult> InternalIndexAsync(string documentType, IList<IndexDocument> documents)
