@@ -125,6 +125,7 @@ After enabling Machine Learning instances, you'll need to activate Machine Train
 ![Start elser deployment](./docs/media/start-elser.png)
 
 ### Configure Pipeline Ingester
+For the ELSER v2 model implementation.
 
 1. Navigate to Management - Dev Tools
 2. Create an ingest pipeline with an inference processor to use ELSER to infer against the data that is being ingested in the pipeline:
@@ -134,12 +135,17 @@ PUT _ingest/pipeline/elser-v2-pipeline
 {
   "processors": [
     {
+      "script": {
+        "source": "ctx['__content'] = ctx['__content'].join('. ')" // Merge content fields into one
+      }
+    },
+    {
       "inference": {
-        "model_id": ".elser_model_2",
-        "ignore_failure": true,
+        "model_id": ".elser_model_2", // TODO: Replace with your model_id
+        "ignore_failure": false,
         "input_output": [ 
           {
-            "input_field": "name",
+            "input_field": "__content", // TODO: Replace with your actual field
             "output_field": "__ml.tokens"
           }
         ]
@@ -149,7 +155,47 @@ PUT _ingest/pipeline/elser-v2-pipeline
 }
 ```
 
-For the current ELSER v2 model implementation.
+If you need to configure diffent field for different document type, you can create a pipeline for each index with if condition inside it:
+
+```json
+PUT _ingest/pipeline/elser-v2-pipeline
+{
+  "processors": [
+    {
+      "script": {
+        "source": "ctx['__content'] = ctx['__content'].join('. ')"
+      }
+    },
+    {
+      "inference": {
+        "if": "ctx['_index'] == 'default-product'", // TODO: Replace with your actual index name
+        "model_id": ".elser_model_2_virtostart",
+        "ignore_failure": false,
+        "input_output": [ 
+          {
+            "input_field": "semantic_description", // TODO: Replace with your actual field
+            "output_field": "__ml.tokens"
+          }
+        ]
+      }
+    },
+    {
+      "inference": {
+        "if": "ctx['_index'] == 'default-customerorder'", // TODO: Replace with your actual index name
+        "model_id": ".elser_model_2_virtostart",
+        "ignore_failure": false,
+        "input_output": [ 
+          {
+            "input_field": "__content", // TODO: Replace with your actual field
+            "output_field": "__ml.tokens"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
 
 ### Reindex and Query Data
 1. Navigate to Virto Commerce Settings - Search - ElasticSearch8

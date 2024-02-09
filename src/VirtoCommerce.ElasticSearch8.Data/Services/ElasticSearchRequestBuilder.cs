@@ -160,7 +160,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     Order = geoSorting.IsDescending ? SortOrder.Desc : SortOrder.Asc,
                 });
             }
-            else if (field.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName))
+            else if (field.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName) ||
+                field.FieldName.EqualsInvariant("_score"))
             {
                 result = ElasticSearchSortOptions.Field(Field.ScoreField, new FieldSort
                 {
