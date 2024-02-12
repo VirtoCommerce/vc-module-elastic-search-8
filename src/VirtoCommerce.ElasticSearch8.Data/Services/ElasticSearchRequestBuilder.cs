@@ -38,7 +38,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, IDictionary<PropertyName, IProperty> availableFields)
         {
-            var query = new ElasticSearchRequest(indexName)
+            var result = new ElasticSearchRequest(indexName)
             {
                 Query = GetQuery(request),
                 PostFilter = _searchFiltersBuilder.GetFilterQuery(request?.Filter, availableFields),
@@ -49,11 +49,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 TrackScores = request?.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)),
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = new TrackHits(true),
-                MinScore = _settingsManager.GetMinScore(),
+                // Apply MinScore for Search by Keywords Only
+                MinScore = !string.IsNullOrEmpty(request?.SearchKeywords) ? _settingsManager.GetMinScore() : null,
             };
 
             // use knn search and rank feature
-            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel && !string.IsNullOrEmpty(request?.SearchKeywords))
+            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel
+                && !string.IsNullOrEmpty(request?.SearchKeywords))
             {
                 var numCandidates = request.Take * 2;
                 numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
@@ -70,10 +72,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     }),
                 };
 
-                query.Knn = new KnnQuery[] { knn };
+                result.Knn = new KnnQuery[] { knn };
             }
 
-            return query;
+            return result;
         }
 
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)
