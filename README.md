@@ -278,6 +278,7 @@ This provided script serves as a versatile tool for testing and exploring the ca
 * "boost": - Applies a boost factor to both the text expansion and multi-match conditions. Boosting allows emphasizing certain conditions over others, influencing the final score.
 
 ```json
+POST default-product/_search
 {
   "explain": true,
   "track_total_hits": true,
