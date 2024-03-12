@@ -81,43 +81,57 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Items = new List<IndexingResultItem>()
             };
 
-            var createIndexResult = await InternalCreateIndexAsync(documentType, documents);
-
-            var pipelines = new List<string>();
-
-            if (_settingsManager.GetSemanticSearchEnabled())
+            if (!documents.IsNullOrEmpty())
             {
-                // Check if ML field is created
-                await CreateMLField(createIndexResult.IndexName);
+                var createIndexResult = await InternalCreateIndexAsync(documentType, documents);
 
-                var pipelineName = _settingsManager.GetPipelineName();
+                var pipelines = new List<string>();
 
-                // Check if ML pipeline created
-                await CheckMLPipeline(pipelineName);
+                if (_settingsManager.GetSemanticSearchEnabled())
+                {
+                    // Check if ML field is created
+                    await CreateMLField(createIndexResult.IndexName);
 
-                pipelines.Add(pipelineName);
+                    var pipelineName = _settingsManager.GetPipelineName();
+
+                    // Check if ML pipeline created
+                    await CheckMLPipeline(pipelineName);
+
+                    pipelines.Add(pipelineName);
+                }
+
+                var bulkResponse = await Client.BulkAsync(x =>
+                    CreateBulkIndexRequest(createIndexResult.IndexName, createIndexResult.ProviderDocuments, x,
+                        pipelines));
+
+                await Client.Indices.RefreshAsync(Indices.Index(createIndexResult.IndexName));
+
+                if (!bulkResponse.IsValidResponse)
+                {
+                    result.Items.Add(new IndexingResultItem
+                    {
+                        Id = ModuleConstants.ElasticSearchExceptionTitle,
+                        ErrorMessage = bulkResponse.ApiCallDetails?.OriginalException?.Message,
+                        Succeeded = false
+                    });
+                }
+
+                result.Items.AddRange(bulkResponse.Items.Select(i => new IndexingResultItem
+                {
+                    Id = i.Id,
+                    Succeeded = i.IsValid,
+                    ErrorMessage = i.Error?.Reason
+                }));
             }
-
-            var bulkResponse = await Client.BulkAsync(x => CreateBulkIndexRequest(createIndexResult.IndexName, createIndexResult.ProviderDocuments, x, pipelines));
-
-            await Client.Indices.RefreshAsync(Indices.Index(createIndexResult.IndexName));
-
-            if (!bulkResponse.IsValidResponse)
+            else
             {
                 result.Items.Add(new IndexingResultItem
                 {
-                    Id = ModuleConstants.ElasticSearchExceptionTitle,
-                    ErrorMessage = bulkResponse.ApiCallDetails?.OriginalException?.Message,
+                    ErrorMessage = "No documents to index",
                     Succeeded = false
                 });
             }
 
-            result.Items.AddRange(bulkResponse.Items.Select(i => new IndexingResultItem
-            {
-                Id = i.Id,
-                Succeeded = i.IsValid,
-                ErrorMessage = i.Error?.Reason
-            }));
 
             return result;
         }
