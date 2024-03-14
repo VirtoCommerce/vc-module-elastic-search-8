@@ -9,6 +9,8 @@ public static class ModuleConstants
     public const string ElasticSearchExceptionTitle = "Elasticsearch8 Server";
 
     public const string ScoreFieldName = "score";
+    // For compatibility with Elastic App Search
+    public const string ElasticScoreFieldName = "_score";
 
     public const string ActiveIndexAlias = "active";
     public const string BackupIndexAlias = "backup";

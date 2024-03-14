@@ -46,7 +46,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Sort = GetSorting(request?.Sorting),
                 From = request?.Skip,
                 Size = request?.Take,
-                TrackScores = request?.Sorting?.Any(x => x.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName)),
+                TrackScores = request?.Sorting?.Any(x => IsScoreField(x)),
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = new TrackHits(true),
                 MinScore = _settingsManager.GetMinScore(),
@@ -160,8 +160,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     Order = geoSorting.IsDescending ? SortOrder.Desc : SortOrder.Asc,
                 });
             }
-            else if (field.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName) ||
-                field.FieldName.EqualsInvariant("_score"))
+            else if (IsScoreField(field))
             {
                 result = ElasticSearchSortOptions.Field(Field.ScoreField, new FieldSort
                 {
@@ -179,6 +178,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
 
             return result;
+        }
+
+        protected virtual bool IsScoreField(VirtoCommerceSortingField field)
+        {
+            return field.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName) ||
+                            field.FieldName.EqualsInvariant(ModuleConstants.ElasticScoreFieldName);
         }
 
         protected virtual SourceConfig GetSourceFilters(IList<string> includeFields)
