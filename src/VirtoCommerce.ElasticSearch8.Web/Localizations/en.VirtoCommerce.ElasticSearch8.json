@@ -21,7 +21,7 @@
       },
       "MinScore": {
         "title": "Min Score",
-        "description": "Specifies the minimum score a document must have to be considered a match. Documents with scores below this threshold will not be included in the results. Set 0 to return all documents."
+        "description": "Specifies the minimum score a document must have to be considered a match. Documents with scores below this threshold will not be included in the results. Set 0 to return all documents. Applied if Keyword is specified."
       },
       "DeleteDuplicateIndexes": {
         "title": "Delete duplicate active indexes",
