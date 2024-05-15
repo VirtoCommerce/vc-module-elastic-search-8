@@ -251,13 +251,15 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     }
 
                     var indexName = GetIndexName(documentType);
-                    if (await IndexExistsAsync(indexName))
+                    if (!await IndexExistsAsync(indexName))
                     {
-                        var aliasResponse = await Client.Indices.PutAliasAsync(indexName, indexAlias);
-                        if (!aliasResponse.IsValidResponse)
-                        {
-                            throw new SearchException(aliasResponse.DebugInformation);
-                        }
+                        continue;
+                    }
+
+                    var aliasResponse = await Client.Indices.PutAliasAsync(indexName, indexAlias);
+                    if (!aliasResponse.IsValidResponse)
+                    {
+                        throw new SearchException(aliasResponse.DebugInformation);
                     }
                 }
             }
