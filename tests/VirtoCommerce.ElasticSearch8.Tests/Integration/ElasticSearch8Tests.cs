@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VirtoCommerce.ElasticSearch8.Core.Models;
 using VirtoCommerce.ElasticSearch8.Data.Services;
@@ -35,13 +36,17 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             var responseBuilder = new ElasticSearchResponseBuilder();
             var propertyService = new ElasticSearchPropertyService();
 
+            var loggerFactory = LoggerFactory.Create(builder => { builder.ClearProviders(); });
+            var logger = loggerFactory.CreateLogger<ElasticSearch8Provider>();
+
             var provider = new ElasticSearch8Provider(
                 searchOptions,
                 elasticOptions,
                 settingsManager,
                 requestBuilder,
                 responseBuilder,
-                propertyService
+                propertyService,
+                logger
                 );
 
             return provider;
