@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Core.Models;
 using VirtoCommerce.ElasticSearch8.Core.Services;
+using VirtoCommerce.ElasticSearch8.Data.Extensions;
 using VirtoCommerce.ElasticSearch8.Data.Services;
 using VirtoCommerce.Platform.Core.Modularity;
 using VirtoCommerce.Platform.Core.Settings;
@@ -38,10 +39,12 @@ public class Module : IModule, IHasConfiguration
         var settingsRegistrar = appBuilder.ApplicationServices.GetRequiredService<ISettingsRegistrar>();
         settingsRegistrar.RegisterSettings(ModuleConstants.Settings.AllSettings, ModuleInfo.Id);
 
-
         if (Configuration.SearchProviderActive(ModuleConstants.ProviderName))
         {
-            appBuilder.UseSearchProvider<ElasticSearch8Provider>(ModuleConstants.ProviderName);
+            appBuilder.UseSearchProvider<ElasticSearch8Provider>(ModuleConstants.ProviderName, (provider, documentTypes) =>
+            {
+                provider.AddActiveAlias(documentTypes);
+            });
         }
     }
 
