@@ -168,7 +168,7 @@ PUT _ingest/pipeline/elser-v2-pipeline
     },
     {
       "inference": {
-        "if": "ctx['_index'] == 'default-product'", // TODO: Replace with your actual index name
+        "if": "ctx._index.contains('default-product')", // TODO: Replace with your actual index name
         "model_id": ".elser_model_2_virtostart",
         "ignore_failure": false,
         "input_output": [ 
@@ -181,7 +181,7 @@ PUT _ingest/pipeline/elser-v2-pipeline
     },
     {
       "inference": {
-        "if": "ctx['_index'] == 'default-customerorder'", // TODO: Replace with your actual index name
+        "if": "ctx._index.contains('default-customerorder')", // TODO: Replace with your actual index name
         "model_id": ".elser_model_2_virtostart",
         "ignore_failure": false,
         "input_output": [ 
