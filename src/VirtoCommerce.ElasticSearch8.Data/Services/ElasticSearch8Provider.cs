@@ -145,7 +145,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             CheckClientCreated();
 
-            var indexName = GetIndexName(ActiveIndexAlias, documentType);
+            var indexName = GetIndexAlias(ActiveIndexAlias, documentType);
 
             var providerDocuments = documents.Select(d => new SearchDocument { Id = d.Id }).ToArray();
 

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using VirtoCommerce.SearchModule.Core.Model;
+using VirtoCommerce.SearchModule.Core.Services;
 using Xunit;
 
 namespace VirtoCommerce.ElasticSearch8.Tests.Integration
@@ -19,10 +20,26 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             // Delete index
             await provider.DeleteIndexAsync(DocumentType);
 
+            // Create index
+            if (provider is ISupportIndexCreate supportIndexCreate)
+            {
+                await supportIndexCreate.CreateIndexAsync(DocumentType, BuildSchema());
+            }
+
             // Create index and add documents
             var primaryDocuments = GetPrimaryDocuments();
 
-            var response = await provider.IndexAsync(DocumentType, primaryDocuments);
+            IndexingResult response;
+            var supportIndexSwap = provider as ISupportIndexSwap;
+
+            if (supportIndexSwap != null)
+            {
+                response = await supportIndexSwap.IndexWithBackupAsync(DocumentType, primaryDocuments);
+            }
+            else
+            {
+                response = await provider.IndexAsync(DocumentType, primaryDocuments);
+            }
 
             Assert.NotNull(response);
             Assert.NotNull(response.Items);
@@ -32,12 +49,25 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             // Update index with new fields and add more documents
             var secondaryDocuments = GetSecondaryDocuments();
 
-            response = await provider.IndexAsync(DocumentType, secondaryDocuments);
+            if (supportIndexSwap != null)
+            {
+                response = await supportIndexSwap.IndexWithBackupAsync(DocumentType, secondaryDocuments);
+            }
+            else
+            {
+                response = await provider.IndexAsync(DocumentType, secondaryDocuments);
+            }
 
             Assert.NotNull(response);
             Assert.NotNull(response.Items);
             Assert.Equal(secondaryDocuments.Count, response.Items.Count);
             Assert.All(response.Items, i => Assert.True(i.Succeeded));
+
+            // Switch from backup to active index
+            if (supportIndexSwap != null)
+            {
+                await supportIndexSwap.SwapIndexAsync(DocumentType);
+            }
 
             // Remove some documents
             response = await provider.RemoveAsync(DocumentType, new[] { new IndexDocument("Item-7"), new IndexDocument("Item-8") });
@@ -210,7 +240,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             var request = new SearchRequest
             {
                 SearchKeywords = " shirt ",
-                SearchFields = new[] { "Content" },
+                SearchFields = new[] { "__content" },
                 Take = 10,
             };
 
@@ -222,7 +252,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             request = new SearchRequest
             {
                 SearchKeywords = "red shirt",
-                SearchFields = new[] { "Content" },
+                SearchFields = new[] { "__content" },
                 Take = 10,
             };
 
