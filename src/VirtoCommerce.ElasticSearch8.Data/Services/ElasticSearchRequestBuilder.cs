@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Elastic.Clients.Elasticsearch;
@@ -36,7 +37,16 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _settingsManager = settingsManager;
         }
 
+        [Obsolete("Use BuildRequest(VirtoCommerceSearchRequest, string, string, IDictionary<PropertyName, IProperty>)", DiagnosticId = "VC0008", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions")]
         public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, IDictionary<PropertyName, IProperty> availableFields)
+        {
+            return BuildRequest(request: request,
+                indexName: indexName,
+                documentType: null,
+                availableFields: availableFields);
+        }
+
+        public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, string documentType, IDictionary<PropertyName, IProperty> availableFields)
         {
             var result = new ElasticSearchRequest(indexName)
             {
@@ -50,7 +60,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = new TrackHits(true),
                 // Apply MinScore for Search by Keywords Only
-                MinScore = !string.IsNullOrEmpty(request?.SearchKeywords) ? _settingsManager.GetMinScore() : null,
+                MinScore = !string.IsNullOrEmpty(request?.SearchKeywords) ? _settingsManager.GetMinScore(documentType) : null,
             };
 
             // use knn search and rank feature

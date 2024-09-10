@@ -76,6 +76,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 settings = settings.Authentication(new BasicAuthentication(elasticOptions.Value.User, elasticOptions.Value.Key));
 
+                settings.DisableDirectStreaming();
+
                 Client = new ElasticsearchClient(settings);
             }
         }
@@ -90,7 +92,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             try
             {
                 var availableFields = await GetMappingAsync(indexName);
-                var providerRequest = _searchRequestBuilder.BuildRequest(request, indexName, availableFields);
+                var providerRequest = _searchRequestBuilder.BuildRequest(request, indexName, documentType, availableFields);
                 providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
             }
             catch (Exception ex)
@@ -360,7 +362,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                             { ModuleConstants.VectorPropertyName, new DenseVectorProperty
                                             {
                                                 Index = true,
-                                                Dims = _settingsManager.GetVectorModelDimentionsCount(),
+                                                Dims = _settingsManager.GetVectorModelDimensionsCount(),
                                                 Similarity = "cosine",
                                             }
                             }

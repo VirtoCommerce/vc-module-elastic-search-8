@@ -1,4 +1,9 @@
+using System.Linq;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using VirtoCommerce.ElasticSearch8.Core;
+using VirtoCommerce.ElasticSearch8.Core.Models;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
 using ModuleSettings = VirtoCommerce.ElasticSearch8.Core.ModuleConstants.Settings.General;
 
@@ -6,6 +11,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
 {
     public static class SettingsExtensions
     {
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
         public static int GetFieldsLimit(this ISettingsManager settingsManager)
         {
             return settingsManager.GetValue<int>(ModuleSettings.IndexTotalFieldsLimit);
@@ -48,9 +58,37 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
         }
 
 
-        public static int GetVectorModelDimentionsCount(this ISettingsManager settingsManager)
+        public static int GetVectorModelDimensionsCount(this ISettingsManager settingsManager)
         {
             return settingsManager.GetValue<int>(ModuleSettings.SemanticVectorModelDimensions);
+        }
+
+        public static double? GetMinScore(this ISettingsManager settingsManager, string documentType)
+        {
+            if (string.IsNullOrEmpty(documentType))
+            {
+                return settingsManager.GetMinScore();
+            }
+
+            var scoresValue = settingsManager.GetValue<string>(ModuleSettings.MinScorePerDocumentType);
+
+            if (string.IsNullOrEmpty(scoresValue))
+            {
+                return settingsManager.GetMinScore();
+            }
+
+            DocumentTypeMinScore[] documentScores;
+            try
+            {
+                documentScores = JsonSerializer.Deserialize<DocumentTypeMinScore[]>(scoresValue, _jsonSerializerOptions);
+            }
+            catch (JsonException)
+            {
+                return settingsManager.GetMinScore();
+            }
+
+            var score = documentScores?.FirstOrDefault(x => documentType.EqualsInvariant(x.DocumentType));
+            return score == null ? settingsManager.GetMinScore() : score.MinScore;
         }
 
         public static double? GetMinScore(this ISettingsManager settingsManager)
