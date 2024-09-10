@@ -76,8 +76,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 settings = settings.Authentication(new BasicAuthentication(elasticOptions.Value.User, elasticOptions.Value.Key));
 
-                settings.DisableDirectStreaming();
-
                 Client = new ElasticsearchClient(settings);
             }
         }
