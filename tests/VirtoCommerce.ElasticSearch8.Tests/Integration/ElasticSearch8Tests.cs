@@ -33,7 +33,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
 
             var filtersBuilder = new ElasticSearchFiltersBuilder();
             var aggregationsBuilder = new ElasticSearchAggregationsBuilder(filtersBuilder);
-            var builderLogger = loggerFactory.CreateLogger<ElasticSearch8Provider>();
+            var builderLogger = loggerFactory.CreateLogger<ElasticSearchRequestBuilder>();
             var requestBuilder = new ElasticSearchRequestBuilder(filtersBuilder, aggregationsBuilder, settingsManager, builderLogger);
 
             var responseBuilder = new ElasticSearchResponseBuilder();
