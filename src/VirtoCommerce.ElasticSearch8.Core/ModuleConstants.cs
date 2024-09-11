@@ -83,18 +83,24 @@ public static class ModuleConstants
                 Name = "VirtoCommerce.Search.ElasticSearch8.MinScorePerDocumentType",
                 GroupName = "Search|ElasticSearch8|General",
                 ValueType = SettingValueType.Json,
-                DefaultValue = "[{\n" +
-                   "  \"documentType\": \"Product\",\n" +
-                   "  \"minScore\": 0.1\n" +
-                   "},\n" +
-                   "{\n" +
-                   "  \"documentType\": \"Category\",\n" +
-                   "  \"minScore\": 0.1\n" +
-                   "},\n" +
-                   "{\n" +
-                   "  \"documentType\": \"Member\",\n" +
-                   "  \"minScore\": 0.1\n" +
-                   "}]"
+                DefaultValue =
+                    $$"""
+                    [
+                        {
+                          "documentType": "Product",
+                          "minScore": 0.1
+                        },
+                        {
+                          "documentType": "Category",
+                          "minScore": 0.1
+                        },
+                        {
+                          "documentType": "Member",
+                          "minScore": 0.1
+                        }
+                    ]
+                    """,
+
             };
 
             public static SettingDescriptor SemanticSearchType { get; } = new()

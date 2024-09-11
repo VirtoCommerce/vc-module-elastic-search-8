@@ -23,6 +23,10 @@
         "title": "Min Score",
         "description": "Specifies the minimum score a document must have to be considered a match. Documents with scores below this threshold will not be included in the results. Set 0 to return all documents. Applied if Keyword is specified."
       },
+      "MinScorePerDocumentType": {
+        "title": "Min Score For Document Type",
+        "description": "Specifies the minimum score for the specific document type. Documents with scores below this threshold will not be included in the results. Set 0 to return all documents. Applied if Keyword is specified."
+      },
       "DeleteDuplicateIndexes": {
         "title": "Delete duplicate active indexes",
         "description": "Search and delete duplicate active indexes before Delete and build operation"

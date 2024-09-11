@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Core.Models;
 using VirtoCommerce.Platform.Core.Common;
@@ -63,7 +64,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
             return settingsManager.GetValue<int>(ModuleSettings.SemanticVectorModelDimensions);
         }
 
-        public static double? GetMinScore(this ISettingsManager settingsManager, string documentType)
+        public static double? GetMinScore(this ISettingsManager settingsManager, string documentType, ILogger<Services.ElasticSearchRequestBuilder> logger)
         {
             if (string.IsNullOrEmpty(documentType))
             {
@@ -84,6 +85,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
             }
             catch (JsonException)
             {
+                logger.LogError("Failed to deserialize MinScorePerDocumentType setting value");
+
                 return settingsManager.GetMinScore();
             }
 

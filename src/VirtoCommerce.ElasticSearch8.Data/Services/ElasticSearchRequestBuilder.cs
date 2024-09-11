@@ -5,6 +5,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Microsoft.Extensions.Logging;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Core.Services;
 using VirtoCommerce.ElasticSearch8.Data.Extensions;
@@ -24,20 +25,23 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly IElasticSearchFiltersBuilder _searchFiltersBuilder;
         private readonly IElasticSearchAggregationsBuilder _searchAggregationsBuilder;
         private readonly ISettingsManager _settingsManager;
+        private readonly ILogger<ElasticSearchRequestBuilder> _logger;
 
         private const int NearestNeighborMaxCandidates = 10000;
 
         public ElasticSearchRequestBuilder(
             IElasticSearchFiltersBuilder searchFiltersBuilder,
             IElasticSearchAggregationsBuilder searchAggregationsBuilder,
-            ISettingsManager settingsManager)
+            ISettingsManager settingsManager,
+            ILogger<ElasticSearchRequestBuilder> logger)
         {
             _searchFiltersBuilder = searchFiltersBuilder;
             _searchAggregationsBuilder = searchAggregationsBuilder;
             _settingsManager = settingsManager;
+            _logger = logger;
         }
 
-        [Obsolete("Use BuildRequest(VirtoCommerceSearchRequest, string, string, IDictionary<PropertyName, IProperty>)", DiagnosticId = "VC0008", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions")]
+        [Obsolete("Use BuildRequest(VirtoCommerceSearchRequest, string, string, IDictionary<PropertyName, IProperty>)", DiagnosticId = "VC0009", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions")]
         public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, IDictionary<PropertyName, IProperty> availableFields)
         {
             return BuildRequest(request: request,
@@ -60,7 +64,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = new TrackHits(true),
                 // Apply MinScore for Search by Keywords Only
-                MinScore = !string.IsNullOrEmpty(request?.SearchKeywords) ? _settingsManager.GetMinScore(documentType) : null,
+                MinScore = !string.IsNullOrEmpty(request?.SearchKeywords) ? _settingsManager.GetMinScore(documentType, _logger) : null,
             };
 
             // use knn search and rank feature
