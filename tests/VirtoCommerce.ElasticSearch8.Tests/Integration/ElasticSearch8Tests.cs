@@ -29,15 +29,17 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
 
             var settingsManager = GetSettingsManager();
 
+            var loggerFactory = LoggerFactory.Create(builder => { builder.ClearProviders(); });
+
             var filtersBuilder = new ElasticSearchFiltersBuilder();
             var aggregationsBuilder = new ElasticSearchAggregationsBuilder(filtersBuilder);
-            var requestBuilder = new ElasticSearchRequestBuilder(filtersBuilder, aggregationsBuilder, settingsManager);
+            var builderLogger = loggerFactory.CreateLogger<ElasticSearchRequestBuilder>();
+            var requestBuilder = new ElasticSearchRequestBuilder(filtersBuilder, aggregationsBuilder, settingsManager, builderLogger);
 
             var responseBuilder = new ElasticSearchResponseBuilder();
             var propertyService = new ElasticSearchPropertyService();
 
-            var loggerFactory = LoggerFactory.Create(builder => { builder.ClearProviders(); });
-            var logger = loggerFactory.CreateLogger<ElasticSearch8Provider>();
+            var providerLogger = loggerFactory.CreateLogger<ElasticSearch8Provider>();
 
             var provider = new ElasticSearch8Provider(
                 searchOptions,
@@ -46,7 +48,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
                 requestBuilder,
                 responseBuilder,
                 propertyService,
-                logger
+                providerLogger
                 );
 
             return provider;

@@ -78,6 +78,31 @@ public static class ModuleConstants
                 DefaultValue = 0.1,
             };
 
+            public static SettingDescriptor MinScorePerDocumentType { get; } = new SettingDescriptor
+            {
+                Name = "VirtoCommerce.Search.ElasticSearch8.MinScorePerDocumentType",
+                GroupName = "Search|ElasticSearch8|General",
+                ValueType = SettingValueType.Json,
+                DefaultValue =
+                    $$"""
+                    [
+                        {
+                          "documentType": "Product",
+                          "minScore": 0.1
+                        },
+                        {
+                          "documentType": "Category",
+                          "minScore": 0.1
+                        },
+                        {
+                          "documentType": "Member",
+                          "minScore": 0.1
+                        }
+                    ]
+                    """,
+
+            };
+
             public static SettingDescriptor SemanticSearchType { get; } = new()
             {
                 Name = "VirtoCommerce.Search.ElasticSearch8.SemanticSearchType",
@@ -136,6 +161,7 @@ public static class ModuleConstants
                     yield return MinGram;
                     yield return MaxGram;
                     yield return MinScore;
+                    yield return MinScorePerDocumentType;
                     yield return SemanticSearchType;
                     yield return SemanticModelId;
                     yield return SemanticPipelineName;
