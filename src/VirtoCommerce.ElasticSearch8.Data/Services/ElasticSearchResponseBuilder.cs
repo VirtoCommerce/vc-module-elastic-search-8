@@ -5,6 +5,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using VirtoCommerce.ElasticSearch8.Core.Services;
+using VirtoCommerce.SearchModule.Core.Extensions;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerceSearchRequest = VirtoCommerce.SearchModule.Core.Model.SearchRequest;
 
@@ -43,6 +44,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     result.Add(name, value);
                 }
             }
+
+            result.SetRelevanceScore(hit.Score);
 
             return result;
         }
