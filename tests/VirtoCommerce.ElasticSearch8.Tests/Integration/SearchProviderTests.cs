@@ -834,6 +834,58 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
         }
 
         [Fact]
+        public virtual async Task CanGetAllFacetValuesForBooleanField()
+        {
+            var provider = GetSearchProvider();
+
+            var request = new SearchRequest
+            {
+                Aggregations =
+                [
+                    new TermAggregationRequest { FieldName = "HasMultiplePrices", Size = 0 },
+                ],
+                Take = 0,
+            };
+
+            var response = await provider.SearchAsync(DocumentType, request);
+
+            Assert.Equal(0, response.DocumentsCount);
+            Assert.Equal(1, response.Aggregations?.Count);
+
+            Assert.Equal(2, GetAggregationValuesCount(response, "HasMultiplePrices"));
+            Assert.Equal(2, GetAggregationValueCount(response, "HasMultiplePrices", "true"));
+            Assert.Equal(4, GetAggregationValueCount(response, "HasMultiplePrices", "false"));
+        }
+
+        [Fact]
+        public virtual async Task CanGetAllFacetValuesForDateTimeField()
+        {
+            var provider = GetSearchProvider();
+
+            var request = new SearchRequest
+            {
+                Aggregations =
+                [
+                    new TermAggregationRequest { FieldName = "Date", Size = 0 },
+                ],
+                Take = 0,
+            };
+
+            var response = await provider.SearchAsync(DocumentType, request);
+
+            Assert.Equal(0, response.DocumentsCount);
+            Assert.Equal(1, response.Aggregations?.Count);
+
+            Assert.Equal(6, GetAggregationValuesCount(response, "Date"));
+            Assert.Equal(1, GetAggregationValueCount(response, "Date", "2017-04-28T15:24:31.180Z"));
+            Assert.Equal(1, GetAggregationValueCount(response, "Date", "2017-04-27T15:24:31.180Z"));
+            Assert.Equal(1, GetAggregationValueCount(response, "Date", "2017-04-26T15:24:31.180Z"));
+            Assert.Equal(1, GetAggregationValueCount(response, "Date", "2017-04-25T15:24:31.180Z"));
+            Assert.Equal(1, GetAggregationValueCount(response, "Date", "2017-04-24T15:24:31.180Z"));
+            Assert.Equal(1, GetAggregationValueCount(response, "Date", "2017-04-23T15:24:31.180Z"));
+        }
+
+        [Fact]
         public virtual async Task CanGetSpecificFacetValuesForStringField()
         {
             var provider = GetSearchProvider();

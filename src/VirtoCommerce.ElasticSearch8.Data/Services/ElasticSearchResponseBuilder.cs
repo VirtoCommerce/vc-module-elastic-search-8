@@ -5,6 +5,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using VirtoCommerce.ElasticSearch8.Core.Services;
+using VirtoCommerce.ElasticSearch8.Data.Extensions;
 using VirtoCommerce.SearchModule.Core.Extensions;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerceSearchRequest = VirtoCommerce.SearchModule.Core.Model.SearchRequest;
@@ -148,7 +149,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     {
                         var aggregationValue = new AggregationResponseValue
                         {
-                            Id = bucket.Key.ToString(),
+                            Id = bucket.KeyAsString ?? bucket.Key.ToStringInvariant(),
                             Count = bucket.DocCount
                         };
                         aggregation.Values.Add(aggregationValue);
