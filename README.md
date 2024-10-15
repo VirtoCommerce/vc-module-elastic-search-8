@@ -66,7 +66,7 @@ For Elastic Cloud v8.x, use the following configuration:
 ```
 
 ## Full-Text Search 
-The provider performs full-text keyword searches on a documents, optionally with filters and aggregations.
+The provider performs full-text keyword searches on a document, optionally with filters and aggregations.
 
 ## Semantic Search 
 
@@ -75,9 +75,10 @@ Semantic search is a search method that helps you find data based on the intent 
 
 ![Classis Search Vs Semantic Search](./docs/media/classic-and-semantic-search.gif)
 
-Elasticsearch provides semantic search capabilities using natural language processing (NLP) and vector search. Deploying an NLP model to Elasticsearch enables it to extract text embeddings out of text. Embeddings are vectors that provide a numeric representation of a text. Pieces of content with similar meaning have similar representations.
+Elasticsearch provides semantic search capabilities using natural language processing (NLP) and vector search. Deploying an NLP model to Elasticsearch enables it to extract text embeddings out of text. Embeddings are vectors that provide a numeric representation of a text. Pieces of content with similar meanings have similar representations.
 
-![Vector Search Over Simplification](https://www.elastic.co/guide/en/elasticsearch/reference/current/images/search/vector-search-oversimplification.png)
+![Vector Search Over Simplification](https://github.com/user-attachments/assets/558f674b-ef3c-496b-8a6d-070e9eb959c5)
+
 
 ### NLP models
 Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of the language model is critical for implementing semantic search successfully. 
