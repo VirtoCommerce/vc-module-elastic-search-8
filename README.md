@@ -9,15 +9,14 @@ The module supports the following Elasticsearch deployment options:
 * Standalone Elasticsearch 8.x
 
 ## Features
-* Full-Text Search with new .NET client for Elasticsearch.
+* Full-text search with new .NET client for Elasticsearch.
 * Semantic Search.
 * Hybrid Mode Search - combine the best search results from full-text and semantic queries.
-* Third party ML models support.
+* Third-party ML models support.
 
 
 ## Know Limitations & Issues
 * Catalog object serialization via "Store serialized catalog objects in the index" platform settings is not implemented. Document field "__object" will not be indexed.
-* BlueGreen indexation is not implemented.
 * Partial indexation is not implemented.
 
 ## Configuration
@@ -81,12 +80,12 @@ Elasticsearch provides semantic search capabilities using natural language proce
 
 
 ### NLP models
-Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of the language model is critical for implementing semantic search successfully. 
+Elasticsearch offers the usage of a wide range of NLP models, including both dense and sparse vector models. Your choice of language model is critical for implementing semantic search successfully. 
 
-By default, we recommend using ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform semantic search by using sparse vector representation.
+By default, we recommend using the ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform a semantic search by using sparse vector representation.
 
 ### Enjoy Semantic Search
-Examples below demonstrates comparison between classic and semantic search for the same query: "Quench Your Thirst".
+Examples below demonstrate a comparison between classic and semantic search for the same query: "Quench Your Thirst".
 
 #### Classic Search 
 ![Classic Search](./docs/media/classic-search.png)
@@ -101,13 +100,13 @@ Examples below demonstrates comparison between classic and semantic search for t
 Elastic Cloud 8.9 or higher should be deployed and configured.
 
 ### Enable Machine Learning Instances
-After creating a Elastic Cloud deployment, you'll need to enable Machine Learning capabilities:
+After creating an Elastic Cloud deployment, you'll need to enable Machine Learning capabilities:
 
 1. Navigate to [deployments page](https://cloud.elastic.co/home)
 2. In your deployment list click on Manage 
 3. Click Actions - Edit Deployment
 4. Find Machine Learning instances and click +Add Capacity: 4 GB RAM, 1 zone
-5. Click on Save and wait till configuration apply
+5. Click on Save and wait till the configuration apply
 
 ![Activate ML](./docs/media/ml.png)
 
@@ -117,7 +116,7 @@ After enabling Machine Learning instances, you'll need to activate Machine Train
 1. Navigate to Kibana
 2. In your deployment open Analytics - Machine learning - Trained models
 3. On .elser_model_2 click Download model. (There are two versions available: one version which runs on any hardware and one version which is `linux-x86_64` optimized. You can see which model is recommended for your cluster's hardware configuration)
-4. After the download is finished, start the deployment by clicking the Start deployment button.
+4. After the download is finished, start the deployment by clicking the Start Deployment button.
 5. Provide a deployment ID, select the priority, and set the number of allocations and threads per allocation values.
 6. Click Start
 
@@ -156,7 +155,7 @@ PUT _ingest/pipeline/elser-v2-pipeline
 }
 ```
 
-If you need to configure diffent field for different document type, you can create a pipeline for each index with if condition inside it:
+If you need to configure different fields for different document types, you can create a pipeline for each index with if condition inside it:
 
 ```json
 PUT _ingest/pipeline/elser-v2-pipeline
@@ -201,7 +200,7 @@ PUT _ingest/pipeline/elser-v2-pipeline
 ### Reindex and Query Data
 1. Navigate to Virto Commerce Settings - Search - ElasticSearch8
 2. Enable Semantic Search
-3. Check that settings are correct. Make sure that semantic model ID, semantic field name and pipeline name are the same as above.
+3. Check that the settings are correct. Make sure that the semantic model ID, semantic field name and pipeline name are the same as above.
 4. Go to Search Index and rebuild them.
 5. After the indexation is finished, you can use Semantic Search.
 
@@ -231,10 +230,10 @@ Select a **text embedding model** from the [third-party model reference list](ht
 
 ### Deploy Trained Model
 
-Navigate to Machine Learning - Model Management - Trained Models section, click `Start deployment` in the table row containing your new model to deploy and use it.
+Navigate to the Machine Learning - Model Management - Trained Models section, and click `Start deployment` in the table row containing your new model to deploy and use it.
 
 ### Configure Pipeline Ingester
-Create the pipeline similar to ELSER model (`__ml` property is predefined in Elastic8 Provider now):
+Create the pipeline similar to the ELSER model (`__ml` property is predefined in Elastic8 Provider now):
   ```
   PUT _ingest/pipeline/my-text-embeddings-pipeline
   {
@@ -257,7 +256,7 @@ Create the pipeline similar to ELSER model (`__ml` property is predefined in Ela
 1. Navigate to Virto Commerce Settings - Search - ElasticSearch8
 1. Enable Semantic Search
 1. Select Third Party model type in platform settings.
-1. Check that settings are correct. Make sure that semantic model ID, semantic field name and pipeline name are the same as above.
+1. Check that the settings are correct. Make sure that the semantic model ID, semantic field name and pipeline name are the same as above.
 1. Go to Search Index and rebuild them.
 1. After the indexation is finished, you can use Semantic Search.
 
@@ -266,7 +265,7 @@ Create the pipeline similar to ELSER model (`__ml` property is predefined in Ela
 > **Note:** Depending on the number of dimensions of your model you might need to adjust Semantic Vector Model Dimensions settings.
 
 ## How to Explain?
-The Elastic provides an explain API that computes a score explanation for a query and a specific document. This can give useful feedback whether a document matches or didn’t match a specific query.
+The Elastic provides an explain API that computes a score explanation for a query and a specific document. This can give useful feedback on whether a document matches or doesn’t match a specific query.
 
 This provided script serves as a versatile tool for testing and exploring the capabilities of Elasticsearch, specifically tailored for a Virto Commerce Elastic Search 8 release. It combines several features to demonstrate querying and scoring mechanisms.
 
@@ -326,11 +325,11 @@ POST default-product/_search
 The tokens generated by ELSER must be indexed for use in the text_expansion query. However, it is not necessary to retain those terms in the document source.
 You can save disk space by using the source exclude mapping to remove the ELSER terms from the document source.
 
-Following links provide more information about source filtering: [Saving disk space by excluding the ELSER tokens from document source](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search-elser.html#optimization)
+The following links provide more information about source filtering: [Saving disk space by excluding the ELSER tokens from document source](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search-elser.html#optimization)
 
 ## Documentation
 * [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
-* [Elastic .NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
+* [Elastic.NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
 * [Semantic Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search.html)
 
 ## References
