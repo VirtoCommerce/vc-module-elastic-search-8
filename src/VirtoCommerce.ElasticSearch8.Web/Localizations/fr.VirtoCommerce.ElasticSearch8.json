@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Nombre maximal de champs dans un index",
+        "description": "Spécifiez le nombre maximal de champs pouvant être inclus dans un index. Dépasser cette limite peut entraîner des problèmes de performance. Pour plus de détails, consultez la documentation Elasticsearch8 : https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Filtre de jeton",
+        "description": "Choisissez le filtre de jeton à appliquer lors de l'indexation des champs recherchables. Cela nécessite de reconstruire l'index"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Longueur minimale du gramme",
+          "description": "Spécifiez le nombre minimal de caractères dans un gramme. Cela nécessite de reconstruire l'index"
+        },
+        "MaxGram": {
+          "title": "Longueur maximale du gramme",
+          "description": "Spécifiez le nombre maximal de caractères dans un gramme. Cela nécessite de reconstruire l'index"
+        }
+      },
+      "MinScore": {
+        "title": "Score minimal",
+        "description": "Spécifiez le score minimal qu'un document doit avoir pour être considéré comme correspondant. Les documents avec un score inférieur ne seront pas inclus dans les résultats. Réglez sur 0 pour inclure tous les documents. S'applique lorsque le mot-clé est spécifié"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Score minimal par type de document",
+        "description": "Spécifiez le score minimal pour un type de document spécifique. Les documents avec un score inférieur ne seront pas inclus dans les résultats. Réglez sur 0 pour inclure tous les documents. S'applique lorsque le mot-clé est spécifié"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Suppression des index actifs en double",
+        "description": "Recherchez et supprimez les index actifs en double avant l'opération de suppression et de construction"
+      },
+      "EnableSemanticSearch": {
+        "title": "Activation de la recherche sémantique",
+        "description": "Activez ou désactivez la recherche sémantique"
+      },
+      "SemanticModelId": {
+        "title": "ID du modèle sémantique",
+        "description": "Assurez-vous que l'ID du modèle sémantique est correctement spécifié"
+      },
+      "SemanticPipelineName": {
+        "title": "Nom du pipeline sémantique",
+        "description": "Assurez-vous que le nom du pipeline du modèle sémantique est correctement spécifié. Il génère des embeddings produits par le modèle d'indexation des données"
+      },
+      "SemanticFieldName": {
+        "title": "Nom du champ sémantique",
+        "description": "Spécifiez le nom du champ du modèle sémantique. Contient des embeddings produits par le pipeline sémantique. X.tokens ou X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Type de modèle sémantique",
+        "description": "Sélectionnez le type de modèle sémantique dans la liste"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Nombre de dimensions du modèle vectoriel",
+        "description": "Spécifiez le nombre de dimensions du modèle vectoriel tiers. Généralement trouvé dans la description du modèle"
+      },
+      "KeywordBoost": {
+        "title": "Renforcement pour la recherche par mot-clé",
+        "description": "Spécifiez un nombre flottant pour ajuster le score de pertinence des documents correspondant aux recherches par mot-clé. Des valeurs plus élevées augmentent l'importance des correspondances par mot-clé. Par défaut, 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Renforcement pour la recherche sémantique",
+        "description": "Spécifiez un nombre flottant pour ajuster le score de pertinence des documents correspondant aux recherches sémantiques. Des valeurs plus élevées augmentent l'importance des correspondances sémantiques. Par défaut, 1.0"
+      }
+    }
+  }
+}

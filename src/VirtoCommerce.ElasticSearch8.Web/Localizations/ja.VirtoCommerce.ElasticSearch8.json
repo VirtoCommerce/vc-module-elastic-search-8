@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "インデックス内のフィールドの最大数",
+        "description": "インデックスに含めることができるフィールドの最大数を指定します。この制限を超えるとパフォーマンスに問題が発生する可能性があります。詳細については、Elasticsearch8のドキュメントをご参照ください: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "トークンフィルター",
+        "description": "検索可能なフィールドをインデックス化する際に適用するトークンフィルターを選択します。これにはインデックスの再構築が必要です"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "最小グラムの長さ",
+          "description": "グラム内の最小文字数を指定します。これにはインデックスの再構築が必要です"
+        },
+        "MaxGram": {
+          "title": "最大グラムの長さ",
+          "description": "グラム内の最大文字数を指定します。これにはインデックスの再構築が必要です"
+        }
+      },
+      "MinScore": {
+        "title": "最小スコア",
+        "description": "一致するために必要なドキュメントの最小スコアを指定します。この閾値を下回るスコアのドキュメントは結果に含まれません。すべてのドキュメントを返すには0を設定してください。キーワードが指定された場合に適用されます"
+      },
+      "MinScorePerDocumentType": {
+        "title": "ドキュメントタイプごとの最小スコア",
+        "description": "特定のドキュメントタイプに対する最小スコアを指定します。この閾値を下回るスコアのドキュメントは結果に含まれません。すべてのドキュメントを返すには0を設定してください。キーワードが指定された場合に適用されます"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "重複するアクティブインデックスの削除",
+        "description": "削除および構築操作の前に、重複するアクティブインデックスを検索して削除します"
+      },
+      "EnableSemanticSearch": {
+        "title": "セマンティック検索の有効化",
+        "description": "セマンティック検索を有効化または無効化します"
+      },
+      "SemanticModelId": {
+        "title": "セマンティックモデルID",
+        "description": "セマンティックモデルIDが正しく指定されていることを確認してください"
+      },
+      "SemanticPipelineName": {
+        "title": "セマンティックパイプライン名",
+        "description": "セマンティックモデルパイプライン名が正しく指定されていることを確認してください。データインデックス化モデルによって生成された埋め込みを生成します"
+      },
+      "SemanticFieldName": {
+        "title": "セマンティックフィールド名",
+        "description": "セマンティックパイプラインによって生成された埋め込みを含むセマンティックモデルフィールド名を指定します。X.tokensまたはX.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "セマンティックモデルタイプ",
+        "description": "リストからセマンティックモデルタイプを選択します"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "ベクトルモデルの次元数",
+        "description": "サードパーティのベクトルモデルの次元数を指定します。通常はモデルの説明に記載されています"
+      },
+      "KeywordBoost": {
+        "title": "キーワード検索のブースト",
+        "description": "キーワード検索と一致するドキュメントの関連性スコアを調整するための浮動小数点数を指定します。値が高いほどキーワードの一致の重要性が増します。デフォルト値は1.0です"
+      },
+      "SemanticBoost": {
+        "title": "セマンティック検索のブースト",
+        "description": "セマンティック検索と一致するドキュメントの関連性スコアを調整するための浮動小数点数を指定します。値が高いほどセマンティック一致の重要性が増します。デフォルト値は1.0です"
+      }
+    }
+  }
+}
