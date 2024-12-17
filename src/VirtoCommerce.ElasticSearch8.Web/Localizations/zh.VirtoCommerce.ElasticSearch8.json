@@ -2,66 +2,66 @@
   "settings": {
     "VirtoCommerce.Search.ElasticSearch8": {
       "IndexTotalFieldsLimit": {
-        "title": "インデックス内のフィールドの最大数",
-        "description": "インデックスに含めることができるフィールドの最大数を指定します。この制限を超えるとパフォーマンスに問題が発生する可能性があります。詳細については、Elasticsearch8のドキュメントをご参照ください: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+        "title": "索引中的最大字段数",
+        "description": "指定索引中可包含的最大字段数。超过此限制可能导致性能问题。有关更多详细信息，请参阅Elasticsearch8文档：https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
       },
       "TokenFilter": {
-        "title": "トークンフィルター",
-        "description": "検索可能なフィールドをインデックス化する際に適用するトークンフィルターを選択します。これにはインデックスの再構築が必要です"
+        "title": "标记过滤器",
+        "description": "选择在索引可搜索字段时应用的标记过滤器。这需要重建索引"
       },
       "NGramTokenFilter": {
         "MinGram": {
-          "title": "最小グラムの長さ",
-          "description": "グラム内の最小文字数を指定します。これにはインデックスの再構築が必要です"
+          "title": "最小gram长度",
+          "description": "指定gram中的最少字符数。这需要重建索引"
         },
         "MaxGram": {
-          "title": "最大グラムの長さ",
-          "description": "グラム内の最大文字数を指定します。これにはインデックスの再構築が必要です"
+          "title": "最大gram长度",
+          "description": "指定gram中的最大字符数。这需要重建索引"
         }
       },
       "MinScore": {
-        "title": "最小スコア",
-        "description": "一致するために必要なドキュメントの最小スコアを指定します。この閾値を下回るスコアのドキュメントは結果に含まれません。すべてのドキュメントを返すには0を設定してください。キーワードが指定された場合に適用されます"
+        "title": "最小得分",
+        "description": "指定文档必须具有的最小得分才能被视为匹配。得分低于此阈值的文档将不包含在结果中。设置为0以返回所有文档。适用于指定关键字时"
       },
       "MinScorePerDocumentType": {
-        "title": "ドキュメントタイプごとの最小スコア",
-        "description": "特定のドキュメントタイプに対する最小スコアを指定します。この閾値を下回るスコアのドキュメントは結果に含まれません。すべてのドキュメントを返すには0を設定してください。キーワードが指定された場合に適用されます"
+        "title": "每文档类型的最小得分",
+        "description": "为特定文档类型指定最小得分。得分低于此阈值的文档将不包含在结果中。设置为0以返回所有文档。适用于指定关键字时"
       },
       "DeleteDuplicateIndexes": {
-        "title": "重複するアクティブインデックスの削除",
-        "description": "削除および構築操作の前に、重複するアクティブインデックスを検索して削除します"
+        "title": "删除重复的活动索引",
+        "description": "在删除和构建操作之前搜索并删除重复的活动索引"
       },
       "EnableSemanticSearch": {
-        "title": "セマンティック検索の有効化",
-        "description": "セマンティック検索を有効化または無効化します"
+        "title": "语义搜索激活",
+        "description": "启用/禁用语义搜索"
       },
       "SemanticModelId": {
-        "title": "セマンティックモデルID",
-        "description": "セマンティックモデルIDが正しく指定されていることを確認してください"
+        "title": "语义模型ID",
+        "description": "确保正确指定语义模型ID"
       },
       "SemanticPipelineName": {
-        "title": "セマンティックパイプライン名",
-        "description": "セマンティックモデルパイプライン名が正しく指定されていることを確認してください。データインデックス化モデルによって生成された埋め込みを生成します"
+        "title": "语义管道名称",
+        "description": "确保正确指定语义模型管道名称。它生成由数据索引模型生成的嵌入"
       },
       "SemanticFieldName": {
-        "title": "セマンティックフィールド名",
-        "description": "セマンティックパイプラインによって生成された埋め込みを含むセマンティックモデルフィールド名を指定します。X.tokensまたはX.predicted_value"
+        "title": "语义字段名称",
+        "description": "指定语义模型字段名称。包含由语义管道生成的嵌入。X.tokens 或 X.predicted_value"
       },
       "SemanticSearchType": {
-        "title": "セマンティックモデルタイプ",
-        "description": "リストからセマンティックモデルタイプを選択します"
+        "title": "语义模型类型",
+        "description": "从列表中选择语义模型类型"
       },
       "SemanticVectorModelDimensions": {
-        "title": "ベクトルモデルの次元数",
-        "description": "サードパーティのベクトルモデルの次元数を指定します。通常はモデルの説明に記載されています"
+        "title": "向量模型维度数",
+        "description": "指定第三方向量模型的维度数。通常在模型描述中找到"
       },
       "KeywordBoost": {
-        "title": "キーワード検索のブースト",
-        "description": "キーワード検索と一致するドキュメントの関連性スコアを調整するための浮動小数点数を指定します。値が高いほどキーワードの一致の重要性が増します。デフォルト値は1.0です"
+        "title": "关键字搜索提升",
+        "description": "指定一个浮点数以调整文档匹配关键字搜索的相关性得分。较高的值增加关键字匹配的重要性。默认为1.0"
       },
       "SemanticBoost": {
-        "title": "セマンティック検索のブースト",
-        "description": "セマンティック検索と一致するドキュメントの関連性スコアを調整するための浮動小数点数を指定します。値が高いほどセマンティック一致の重要性が増します。デフォルト値は1.0です"
+        "title": "语义搜索提升",
+        "description": "指定一个浮点数以调整文档匹配语义搜索的相关性得分。较高的值增加语义匹配的重要性。默认为1.0"
       }
     }
   }
