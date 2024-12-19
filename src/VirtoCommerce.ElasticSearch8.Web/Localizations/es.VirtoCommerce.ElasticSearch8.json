@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Número máximo de campos en un índice",
+        "description": "Especifique el número máximo de campos que se pueden incluir en un índice. Superar este límite puede causar problemas de rendimiento. Para más detalles, consulte la documentación de Elasticsearch8: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Filtro de token",
+        "description": "Elija el filtro de token que se aplicará al indexar campos buscables. Esto requiere reconstruir el índice"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Longitud mínima de gram",
+          "description": "Especifique el número mínimo de caracteres en un gram. Esto requiere reconstruir el índice"
+        },
+        "MaxGram": {
+          "title": "Longitud máxima de gram",
+          "description": "Especifique el número máximo de caracteres en un gram. Esto requiere reconstruir el índice"
+        }
+      },
+      "MinScore": {
+        "title": "Puntuación mínima",
+        "description": "Especifique la puntuación mínima que un documento debe tener para ser considerado relevante. Los documentos con puntuaciones inferiores no serán incluidos en los resultados. Establezca 0 para incluir todos los documentos. Aplica cuando se especifica una palabra clave"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Puntuación mínima por tipo de documento",
+        "description": "Especifique la puntuación mínima para el tipo de documento específico. Los documentos con puntuaciones inferiores no serán incluidos en los resultados. Establezca 0 para incluir todos los documentos. Aplica cuando se especifica una palabra clave"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Eliminar índices activos duplicados",
+        "description": "Busque y elimine índices activos duplicados antes de la operación de eliminar y construir"
+      },
+      "EnableSemanticSearch": {
+        "title": "Activación de búsqueda semántica",
+        "description": "Habilitar/deshabilitar búsqueda semántica"
+      },
+      "SemanticModelId": {
+        "title": "ID del modelo semántico",
+        "description": "Asegúrese de que la ID del modelo semántico esté especificada correctamente"
+      },
+      "SemanticPipelineName": {
+        "title": "Nombre de la canalización semántica",
+        "description": "Asegúrese de que el nombre de la canalización del modelo semántico esté especificado correctamente. Genera incrustaciones producidas por el modelo de indexación de datos"
+      },
+      "SemanticFieldName": {
+        "title": "Nombre del campo semántico",
+        "description": "Especifique el nombre del campo del modelo semántico. Contiene incrustaciones producidas por la canalización semántica. X.tokens o X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Tipo de modelo semántico",
+        "description": "Seleccione el tipo de modelo semántico de la lista"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Número de dimensiones del modelo vectorial",
+        "description": "Especifique el número de dimensiones del modelo vectorial de terceros. Generalmente se encuentra en la descripción del modelo"
+      },
+      "KeywordBoost": {
+        "title": "Impulso para búsqueda por palabra clave",
+        "description": "Especifique un número en coma flotante para ajustar la puntuación de relevancia para los documentos que coincidan con las búsquedas por palabra clave. Valores más altos aumentan la importancia de las coincidencias. Por defecto es 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Impulso para búsqueda semántica",
+        "description": "Especifique un número en coma flotante para ajustar la puntuación de relevancia para los documentos que coincidan con las búsquedas semánticas. Valores más altos aumentan la importancia de las coincidencias. Por defecto es 1.0"
+      }
+    }
+  }
+}

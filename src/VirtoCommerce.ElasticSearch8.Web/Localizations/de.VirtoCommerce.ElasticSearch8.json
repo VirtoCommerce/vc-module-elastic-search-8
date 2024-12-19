@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Maximale Anzahl von Feldern in einem Index",
+        "description": "Geben Sie die maximale Anzahl von Feldern an, die in einem Index enthalten sein können. Das Überschreiten dieses Limits kann zu Leistungsproblemen führen. Weitere Details finden Sie in der Elasticsearch8-Dokumentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Token-Filter",
+        "description": "Wählen Sie den Token-Filter aus, der beim Indexieren durchsuchbarer Felder angewendet wird. Dies erfordert den Neuaufbau des Indexes"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Minimale Gram-Länge",
+          "description": "Geben Sie die minimale Anzahl von Zeichen in einem Gram an. Dies erfordert den Neuaufbau des Indexes"
+        },
+        "MaxGram": {
+          "title": "Maximale Gram-Länge",
+          "description": "Geben Sie die maximale Anzahl von Zeichen in einem Gram an. Dies erfordert den Neuaufbau des Indexes"
+        }
+      },
+      "MinScore": {
+        "title": "Mindestpunktzahl",
+        "description": "Geben Sie die Mindestpunktzahl an, die ein Dokument haben muss, um als Treffer zu gelten. Dokumente mit Punktzahlen unter diesem Schwellenwert werden nicht in die Ergebnisse aufgenommen. Setzen Sie den Wert auf 0, um alle Dokumente zurückzugeben. Gilt, wenn ein Schlüsselwort angegeben ist"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Mindestpunktzahl für Dokumenttyp",
+        "description": "Geben Sie die Mindestpunktzahl für den spezifischen Dokumenttyp an. Dokumente mit Punktzahlen unter diesem Schwellenwert werden nicht in die Ergebnisse aufgenommen. Setzen Sie den Wert auf 0, um alle Dokumente zurückzugeben. Gilt, wenn ein Schlüsselwort angegeben ist"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Löschen von doppelten aktiven Indizes",
+        "description": "Suchen und löschen Sie doppelte aktive Indizes vor der Lösch- und Aufbauoperation"
+      },
+      "EnableSemanticSearch": {
+        "title": "Aktivierung der semantischen Suche",
+        "description": "Semantische Suche aktivieren/deaktivieren"
+      },
+      "SemanticModelId": {
+        "title": "Semantisches Modell-ID",
+        "description": "Stellen Sie sicher, dass die ID des semantischen Modells korrekt angegeben ist"
+      },
+      "SemanticPipelineName": {
+        "title": "Name der semantischen Pipeline",
+        "description": "Stellen Sie sicher, dass der Name der semantischen Modell-Pipeline korrekt angegeben ist. Diese erzeugt Einbettungen, die vom Datenindexierungsmodell generiert werden"
+      },
+      "SemanticFieldName": {
+        "title": "Semantischer Feldname",
+        "description": "Geben Sie den Feldnamen des semantischen Modells an. Enthält Einbettungen, die von der semantischen Pipeline erzeugt wurden. X.tokens oder X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Semantischer Modelltyp",
+        "description": "Wählen Sie den semantischen Modelltyp aus der Liste aus"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Anzahl der Vektor-Modell-Dimensionen",
+        "description": "Geben Sie die Anzahl der Dimensionen des Drittanbieter-Vektormodells an. Diese Information ist in der Modellbeschreibung zu finden"
+      },
+      "KeywordBoost": {
+        "title": "Boost für die Schlüsselwortsuche",
+        "description": "Geben Sie eine Gleitkommazahl an, um die Relevanzbewertung für Dokumente anzupassen, die mit Schlüsselwortsuchen übereinstimmen. Höhere Werte erhöhen die Bedeutung von Schlüsselworttreffern. Standardwert ist 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Boost für semantische Suche",
+        "description": "Geben Sie eine Gleitkommazahl an, um die Relevanzbewertung für Dokumente anzupassen, die mit semantischen Suchen übereinstimmen. Höhere Werte erhöhen die Bedeutung von semantischen Treffern. Standardwert ist 1.0"
+      }
+    }
+  }
+}

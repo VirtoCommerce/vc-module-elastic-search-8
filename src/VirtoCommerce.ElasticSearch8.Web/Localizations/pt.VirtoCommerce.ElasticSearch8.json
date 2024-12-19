@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Número máximo de campos em um índice",
+        "description": "Especifique o número máximo de campos que podem ser incluídos em um índice. Ultrapassar esse limite pode causar problemas de desempenho. Para mais detalhes, consulte a documentação do Elasticsearch8: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Filtro de token",
+        "description": "Escolha o filtro de token a ser aplicado ao indexar campos pesquisáveis. Isso requer a reconstrução do índice"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Comprimento mínimo do gram",
+          "description": "Especifique o número mínimo de caracteres em um gram. Isso requer a reconstrução do índice"
+        },
+        "MaxGram": {
+          "title": "Comprimento máximo do gram",
+          "description": "Especifique o número máximo de caracteres em um gram. Isso requer a reconstrução do índice"
+        }
+      },
+      "MinScore": {
+        "title": "Pontuação mínima",
+        "description": "Especifique a pontuação mínima que um documento deve ter para ser considerado uma correspondência. Documentos com pontuações abaixo desse limite não serão incluídos nos resultados. Defina como 0 para incluir todos os documentos. Aplica-se quando uma palavra-chave é especificada"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Pontuação mínima por tipo de documento",
+        "description": "Especifique a pontuação mínima para um tipo específico de documento. Documentos com pontuações abaixo desse limite não serão incluídos nos resultados. Defina como 0 para incluir todos os documentos. Aplica-se quando uma palavra-chave é especificada"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Exclusão de índices ativos duplicados",
+        "description": "Procure e exclua índices ativos duplicados antes da operação de exclusão e construção"
+      },
+      "EnableSemanticSearch": {
+        "title": "Ativação da busca semântica",
+        "description": "Ativar/desativar a busca semântica"
+      },
+      "SemanticModelId": {
+        "title": "ID do modelo semântico",
+        "description": "Certifique-se de que o ID do modelo semântico esteja especificado corretamente"
+      },
+      "SemanticPipelineName": {
+        "title": "Nome do pipeline semântico",
+        "description": "Certifique-se de que o nome do pipeline do modelo semântico esteja especificado corretamente. Ele produz embeddings gerados pelo modelo de indexação de dados"
+      },
+      "SemanticFieldName": {
+        "title": "Nome do campo semântico",
+        "description": "Especifique o nome do campo do modelo semântico. Contém embeddings gerados pelo pipeline semântico. X.tokens ou X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Tipo de modelo semântico",
+        "description": "Selecione o tipo de modelo semântico da lista"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Número de dimensões do modelo vetorial",
+        "description": "Especifique o número de dimensões do modelo vetorial de terceiros. Geralmente encontrado na descrição do modelo"
+      },
+      "KeywordBoost": {
+        "title": "Impulso para busca por palavra-chave",
+        "description": "Especifique um número de ponto flutuante para ajustar a pontuação de relevância para documentos que correspondem às buscas por palavra-chave. Valores mais altos aumentam a importância das correspondências por palavra-chave. Padrão: 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Impulso para busca semântica",
+        "description": "Especifique um número de ponto flutuante para ajustar a pontuação de relevância para documentos que correspondem às buscas semânticas. Valores mais altos aumentam a importância das correspondências semânticas. Padrão: 1.0"
+      }
+    }
+  }
+}

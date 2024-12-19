@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Maksymalna liczba pól w indeksie",
+        "description": "Określ maksymalną liczbę pól, które mogą być uwzględnione w indeksie. Przekroczenie tego limitu może prowadzić do problemów z wydajnością. Szczegóły znajdują się w dokumentacji Elasticsearch8: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Filtr tokenów",
+        "description": "Wybierz filtr tokenów do zastosowania podczas indeksowania pól do wyszukiwania. Wymaga to przebudowy indeksu"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Minimalna długość n-gramu",
+          "description": "Określ minimalną liczbę znaków w n-gramie. Wymaga to przebudowy indeksu"
+        },
+        "MaxGram": {
+          "title": "Maksymalna długość n-gramu",
+          "description": "Określ maksymalną liczbę znaków w n-gramie. Wymaga to przebudowy indeksu"
+        }
+      },
+      "MinScore": {
+        "title": "Minimalny wynik",
+        "description": "Określ minimalny wynik, jaki dokument musi uzyskać, aby został uznany za dopasowany. Dokumenty o wynikach poniżej tego progu nie zostaną uwzględnione w wynikach. Ustaw 0, aby zwrócić wszystkie dokumenty. Stosowane, gdy określono słowo kluczowe"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Minimalny wynik dla typu dokumentu",
+        "description": "Określ minimalny wynik dla konkretnego typu dokumentu. Dokumenty o wynikach poniżej tego progu nie zostaną uwzględnione w wynikach. Ustaw 0, aby zwrócić wszystkie dokumenty. Stosowane, gdy określono słowo kluczowe"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Usuwanie zduplikowanych aktywnych indeksów",
+        "description": "Wyszukaj i usuń zduplikowane aktywne indeksy przed operacją usuwania i budowy"
+      },
+      "EnableSemanticSearch": {
+        "title": "Aktywacja wyszukiwania semantycznego",
+        "description": "Włącz/wyłącz wyszukiwanie semantyczne"
+      },
+      "SemanticModelId": {
+        "title": "Identyfikator modelu semantycznego",
+        "description": "Upewnij się, że identyfikator modelu semantycznego został poprawnie określony"
+      },
+      "SemanticPipelineName": {
+        "title": "Nazwa pipeline'u semantycznego",
+        "description": "Upewnij się, że nazwa pipeline'u semantycznego została poprawnie określona. Tworzy osadzenia generowane przez model indeksowania danych"
+      },
+      "SemanticFieldName": {
+        "title": "Nazwa pola semantycznego",
+        "description": "Określ nazwę pola semantycznego modelu. Zawiera osadzenia generowane przez pipeline semantyczny. X.tokens lub X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Typ modelu semantycznego",
+        "description": "Wybierz typ modelu semantycznego z listy"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Liczba wymiarów modelu wektorowego",
+        "description": "Określ liczbę wymiarów modelu wektorowego dostawcy zewnętrznego. Zwykle znajduje się w opisie modelu"
+      },
+      "KeywordBoost": {
+        "title": "Wzmocnienie wyszukiwania po słowach kluczowych",
+        "description": "Określ liczbę zmiennoprzecinkową w celu dostosowania wyniku trafności dokumentów dopasowanych do wyszukiwania po słowach kluczowych. Wyższe wartości zwiększają znaczenie dopasowań słów kluczowych. Domyślnie 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Wzmocnienie wyszukiwania semantycznego",
+        "description": "Określ liczbę zmiennoprzecinkową w celu dostosowania wyniku trafności dokumentów dopasowanych do wyszukiwania semantycznego. Wyższe wartości zwiększają znaczenie dopasowań semantycznych. Domyślnie 1.0"
+      }
+    }
+  }
+}

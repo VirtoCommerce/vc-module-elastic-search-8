@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "索引中的最大字段数",
+        "description": "指定索引中可包含的最大字段数。超过此限制可能导致性能问题。有关更多详细信息，请参阅Elasticsearch8文档：https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "标记过滤器",
+        "description": "选择在索引可搜索字段时应用的标记过滤器。这需要重建索引"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "最小gram长度",
+          "description": "指定gram中的最少字符数。这需要重建索引"
+        },
+        "MaxGram": {
+          "title": "最大gram长度",
+          "description": "指定gram中的最大字符数。这需要重建索引"
+        }
+      },
+      "MinScore": {
+        "title": "最小得分",
+        "description": "指定文档必须具有的最小得分才能被视为匹配。得分低于此阈值的文档将不包含在结果中。设置为0以返回所有文档。适用于指定关键字时"
+      },
+      "MinScorePerDocumentType": {
+        "title": "每文档类型的最小得分",
+        "description": "为特定文档类型指定最小得分。得分低于此阈值的文档将不包含在结果中。设置为0以返回所有文档。适用于指定关键字时"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "删除重复的活动索引",
+        "description": "在删除和构建操作之前搜索并删除重复的活动索引"
+      },
+      "EnableSemanticSearch": {
+        "title": "语义搜索激活",
+        "description": "启用/禁用语义搜索"
+      },
+      "SemanticModelId": {
+        "title": "语义模型ID",
+        "description": "确保正确指定语义模型ID"
+      },
+      "SemanticPipelineName": {
+        "title": "语义管道名称",
+        "description": "确保正确指定语义模型管道名称。它生成由数据索引模型生成的嵌入"
+      },
+      "SemanticFieldName": {
+        "title": "语义字段名称",
+        "description": "指定语义模型字段名称。包含由语义管道生成的嵌入。X.tokens 或 X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "语义模型类型",
+        "description": "从列表中选择语义模型类型"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "向量模型维度数",
+        "description": "指定第三方向量模型的维度数。通常在模型描述中找到"
+      },
+      "KeywordBoost": {
+        "title": "关键字搜索提升",
+        "description": "指定一个浮点数以调整文档匹配关键字搜索的相关性得分。较高的值增加关键字匹配的重要性。默认为1.0"
+      },
+      "SemanticBoost": {
+        "title": "语义搜索提升",
+        "description": "指定一个浮点数以调整文档匹配语义搜索的相关性得分。较高的值增加语义匹配的重要性。默认为1.0"
+      }
+    }
+  }
+}

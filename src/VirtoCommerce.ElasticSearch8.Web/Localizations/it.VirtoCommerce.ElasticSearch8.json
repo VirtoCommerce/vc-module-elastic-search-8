@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Numero massimo di campi in un indice",
+        "description": "Specifica il numero massimo di campi che possono essere inclusi in un indice. Superare questo limite può causare problemi di prestazioni. Per maggiori dettagli, consulta la documentazione di Elasticsearch8: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Filtro token",
+        "description": "Scegli il filtro token da applicare durante l'indicizzazione dei campi ricercabili. Questa operazione richiede la ricostruzione dell'indice"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Lunghezza minima del gram",
+          "description": "Specifica il numero minimo di caratteri in un gram. Questa operazione richiede la ricostruzione dell'indice"
+        },
+        "MaxGram": {
+          "title": "Lunghezza massima del gram",
+          "description": "Specifica il numero massimo di caratteri in un gram. Questa operazione richiede la ricostruzione dell'indice"
+        }
+      },
+      "MinScore": {
+        "title": "Punteggio minimo",
+        "description": "Specifica il punteggio minimo che un documento deve avere per essere considerato una corrispondenza. I documenti con punteggi inferiori non saranno inclusi nei risultati. Imposta su 0 per includere tutti i documenti. Si applica quando è specificata una parola chiave"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Punteggio minimo per tipo di documento",
+        "description": "Specifica il punteggio minimo per un tipo di documento specifico. I documenti con punteggi inferiori non saranno inclusi nei risultati. Imposta su 0 per includere tutti i documenti. Si applica quando è specificata una parola chiave"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Eliminazione degli indici duplicati attivi",
+        "description": "Cerca ed elimina gli indici attivi duplicati prima dell'operazione di eliminazione e costruzione"
+      },
+      "EnableSemanticSearch": {
+        "title": "Attivazione della ricerca semantica",
+        "description": "Abilita/disabilita la ricerca semantica"
+      },
+      "SemanticModelId": {
+        "title": "ID modello semantico",
+        "description": "Assicurati che l'ID del modello semantico sia specificato correttamente"
+      },
+      "SemanticPipelineName": {
+        "title": "Nome del pipeline semantico",
+        "description": "Assicurati che il nome del pipeline del modello semantico sia specificato correttamente. Genera embedding prodotti dal modello di indicizzazione dei dati"
+      },
+      "SemanticFieldName": {
+        "title": "Nome del campo semantico",
+        "description": "Specifica il nome del campo del modello semantico. Contiene embedding prodotti dal pipeline semantico. X.tokens o X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Tipo di modello semantico",
+        "description": "Seleziona il tipo di modello semantico dall'elenco"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Numero di dimensioni del modello vettoriale",
+        "description": "Specifica il numero di dimensioni del modello vettoriale di terze parti. Generalmente si trova nella descrizione del modello"
+      },
+      "KeywordBoost": {
+        "title": "Boost per la ricerca per parola chiave",
+        "description": "Specifica un numero a virgola mobile per regolare il punteggio di rilevanza per i documenti che corrispondono alle ricerche per parola chiave. Valori più alti aumentano l'importanza delle corrispondenze per parola chiave. Il valore predefinito è 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Boost per la ricerca semantica",
+        "description": "Specifica un numero a virgola mobile per regolare il punteggio di rilevanza per i documenti che corrispondono alle ricerche semantiche. Valori più alti aumentano l'importanza delle corrispondenze semantiche. Il valore predefinito è 1.0"
+      }
+    }
+  }
+}
