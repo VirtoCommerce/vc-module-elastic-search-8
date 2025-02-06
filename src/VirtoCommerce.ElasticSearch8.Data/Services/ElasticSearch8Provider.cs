@@ -69,6 +69,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 ServerUrl = new Uri(elasticOptions.Value.Server);
                 var settings = new ElasticsearchClientSettings(ServerUrl);
 
+                if (elasticOptions.Value.EnableDebugMode)
+                {
+                    settings = settings.EnableDebugMode();
+                }
+
                 if (!string.IsNullOrWhiteSpace(elasticOptions.Value.CertificateFingerprint))
                 {
                     settings = settings.CertificateFingerprint(elasticOptions.Value.CertificateFingerprint);
