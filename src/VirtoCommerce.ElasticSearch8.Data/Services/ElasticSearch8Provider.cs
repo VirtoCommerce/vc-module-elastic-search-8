@@ -71,7 +71,21 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 if (elasticOptions.Value.EnableDebugMode)
                 {
-                    settings = settings.EnableDebugMode();
+                    settings = settings.EnableDebugMode().OnRequestCompleted(response =>
+                    {
+                        if (response.HasSuccessfulStatusCode)
+                        {
+                            logger.LogDebug("ES8: {HttpStatusCode}, Success: {DebugInformation}",
+                                response.HttpStatusCode,
+                                response.DebugInformation);
+                        }
+                        else
+                        {
+                            logger.LogError("ES8: {HttpStatusCode}, Error: {DebugInformation}",
+                                response.HttpStatusCode,
+                                response.DebugInformation);
+                        }
+                    });
                 }
 
                 if (!string.IsNullOrWhiteSpace(elasticOptions.Value.CertificateFingerprint))
@@ -243,7 +257,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         /// <summary>
         /// Puts an active alias on a default index (if exists)
         /// </summary>
-        public async void AddActiveAlias(IEnumerable<string> documentTypes)
+        public async Task AddActiveAlias(IEnumerable<string> documentTypes)
         {
             try
             {
@@ -274,9 +288,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        public async Task CreateIndexAsync(string documentType, IndexDocument schema)
+        public Task CreateIndexAsync(string documentType, IndexDocument schema)
         {
-            await InternalCreateIndexAsync(documentType, new[] { schema }, new IndexingParameters { Reindex = true });
+            return InternalCreateIndexAsync(documentType, new[] { schema }, new IndexingParameters { Reindex = true });
         }
 
         protected virtual async Task<IndexingResult> InternalIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
