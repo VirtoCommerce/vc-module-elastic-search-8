@@ -75,13 +75,15 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     {
                         if (response.HasSuccessfulStatusCode)
                         {
-                            logger.LogDebug("ES8: {HttpStatusCode}, Success: {DebugInformation}",
+                            logger.LogDebug("Elasticsearch request to {Uri} completed successfully with status code {HttpStatusCode}. Debug information: {DebugInformation}",
+                                response.Uri,
                                 response.HttpStatusCode,
                                 response.DebugInformation);
                         }
                         else
                         {
-                            logger.LogError("ES8: {HttpStatusCode}, Error: {DebugInformation}",
+                            logger.LogError("Elasticsearch request to {Uri} failed with status code {HttpStatusCode}. Debug information: {DebugInformation}",
+                                response.Uri,
                                 response.HttpStatusCode,
                                 response.DebugInformation);
                         }
