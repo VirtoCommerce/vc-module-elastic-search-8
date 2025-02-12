@@ -155,6 +155,17 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         aggregation.Values.Add(aggregationValue);
                     }
                     break;
+                case DoubleTermsAggregate doubleTermsAggregate:
+                    foreach (var bucket in doubleTermsAggregate.Buckets.Where(x => x.DocCount > 0))
+                    {
+                        var aggregationValue = new AggregationResponseValue
+                        {
+                            Id = bucket.KeyAsString ?? bucket.Key.ToStringInvariant(),
+                            Count = bucket.DocCount
+                        };
+                        aggregation.Values.Add(aggregationValue);
+                    }
+                    break;
 
                 case FiltersAggregate filtersAggregate:
                     foreach (var bucket in filtersAggregate.Buckets.Where(x => x.DocCount > 0))
