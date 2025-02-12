@@ -372,16 +372,15 @@ Example (appsettings.Development.json):
 ### Warning
 Debug mode increases log verbosity and may expose sensitive data. Use it only during development or troubleshooting.
 
-## Documentation
+
+## References
+* [Documentation](https://docs.virtocommerce.org/platform/developer-guide/Fundamentals/Indexed-Search/integration/elastic-search-8/)
+* [Virto Commerce Home](https://virtocommerce.com)
+* [Community](https://www.virtocommerce.org)
 * [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
 * [Elastic.NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
 * [Semantic Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search.html)
 
-## References
-* Deployment: https://docs.virtocommerce.org/docs/latest/developer-guide/deploy-module-from-source-code/
-* Installation: https://docs.virtocommerce.org/docs/latest/user-guide/modules/
-* Home: https://virtocommerce.com
-* Community: https://www.virtocommerce.org
 
 ## License
 
