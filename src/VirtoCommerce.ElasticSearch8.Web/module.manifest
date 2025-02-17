@@ -23,7 +23,7 @@
   <assemblyFile>VirtoCommerce.ElasticSearch8.Web.dll</assemblyFile>
   <moduleType>VirtoCommerce.ElasticSearch8.Web.Module, VirtoCommerce.ElasticSearch8.Web</moduleType>
   <releaseNotes>First version.</releaseNotes>
-  <copyright>Copyright © 2011-2024 Virto Commerce. All rights reserved</copyright>
+  <copyright>Copyright © 2011-2025 Virto Commerce. All rights reserved</copyright>
   <tags>extension module</tags>
   <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
 </module>

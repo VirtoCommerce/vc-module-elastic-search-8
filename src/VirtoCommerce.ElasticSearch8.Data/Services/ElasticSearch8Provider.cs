@@ -69,6 +69,27 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 ServerUrl = new Uri(elasticOptions.Value.Server);
                 var settings = new ElasticsearchClientSettings(ServerUrl);
 
+                if (elasticOptions.Value.EnableDebugMode)
+                {
+                    settings = settings.EnableDebugMode().OnRequestCompleted(response =>
+                    {
+                        if (response.HasSuccessfulStatusCode)
+                        {
+                            logger.LogDebug("Elasticsearch request to {Uri} completed successfully with status code {HttpStatusCode}. Debug information: {DebugInformation}",
+                                response.Uri,
+                                response.HttpStatusCode,
+                                response.DebugInformation);
+                        }
+                        else
+                        {
+                            logger.LogError("Elasticsearch request to {Uri} failed with status code {HttpStatusCode}. Debug information: {DebugInformation}",
+                                response.Uri,
+                                response.HttpStatusCode,
+                                response.DebugInformation);
+                        }
+                    });
+                }
+
                 if (!string.IsNullOrWhiteSpace(elasticOptions.Value.CertificateFingerprint))
                 {
                     settings = settings.CertificateFingerprint(elasticOptions.Value.CertificateFingerprint);
@@ -238,7 +259,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         /// <summary>
         /// Puts an active alias on a default index (if exists)
         /// </summary>
-        public async void AddActiveAlias(IEnumerable<string> documentTypes)
+        public async Task AddActiveAlias(IEnumerable<string> documentTypes)
         {
             try
             {
@@ -269,9 +290,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        public async Task CreateIndexAsync(string documentType, IndexDocument schema)
+        public Task CreateIndexAsync(string documentType, IndexDocument schema)
         {
-            await InternalCreateIndexAsync(documentType, new[] { schema }, new IndexingParameters { Reindex = true });
+            return InternalCreateIndexAsync(documentType, new[] { schema }, new IndexingParameters { Reindex = true });
         }
 
         protected virtual async Task<IndexingResult> InternalIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)

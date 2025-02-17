@@ -30,6 +30,8 @@ The Elastic Search provider can be configured using the following keys:
 * **Search.ElasticSearch8.Key**: Specifies the password for the Elasticsearch server.
 * **Search.ElasticSearch8.CertificateFingerprint**: During development, you can provide the server certificate fingerprint. When present, it is used to validate the certificate sent by the server. The fingerprint is expected to be the hex string representing the SHA256 public key fingerprint. (Optional)
 
+* **Search.ElasticSearch8.EnableDebugMode**: Turns on settings that aid in debugging so that the original request and response JSON can be inspected. It also always asks the server for the full stack trace on errors. [Read more details here](https://github.com/elastic/elasticsearch-net/blob/main/docs/client-concepts/troubleshooting/debug-mode.asciidoc#L17). (Optional: Default value is false.)
+
 
 ## Samples
 Here are some sample configurations for different scenarios:
@@ -327,16 +329,64 @@ You can save disk space by using the source exclude mapping to remove the ELSER 
 
 The following links provide more information about source filtering: [Saving disk space by excluding the ELSER tokens from document source](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search-elser.html#optimization)
 
-## Documentation
+## Enable Debug Mode
+To facilitate debugging and troubleshooting within the Elasticsearch 8 module for Virto Commerce, you can enable debug mode. This mode configures Elasticsearch to provide detailed request/response logging and enhanced error information.
+
+### Enable Debug Mode in Elasticsearch Options
+Set the ElasticSearch8Options::EnableDebugMode property to true in your application configuration.
+This will:
+1. Disable direct streaming of requests/responses (DisableDirectStreaming()),
+1. Allowing raw JSON payloads to be captured. Format JSON output for improved readability (PrettyJson()).
+1. Request full error stack traces from the Elasticsearch server on failures.
+
+Example (appsettings.json):
+
+```json
+  "ElasticSearch8": {
+    "EnableDebugMode": true
+  }
+```
+
+### Adjust Logging Levels
+Configure the logger for the Elasticsearch provider service to include debug or error details.
+
+Add the following to your logging configuration with either Debug or Error level.
+
+* **Debug** logging provides detailed request/response data, which is useful for troubleshooting but may impact performance. Use sparingly in production environments.
+* **Error** logging only captures critical issues and is suitable for general monitoring.
+
+Example (appsettings.Development.json):
+
+```json
+{
+  "Serilog": {
+    "MinimumLevel": {
+      "Override": {
+          "VirtoCommerce.ElasticSearch8.Data.Services.ElasticSearch8Provider": "Debug"
+      }
+    },
+  }
+}
+```
+
+Virto Cloud Environment Variable:
+
+```yml
+Serilog__MinimumLevel__Override__VirtoCommerce__ElasticSearch8__Data__Services__ElasticSearch8Provider: "Debug"
+```
+
+### Warning
+Debug mode increases log verbosity and may expose sensitive data. Use it only during development or troubleshooting.
+
+
+## References
+* [Documentation](https://docs.virtocommerce.org/platform/developer-guide/Fundamentals/Indexed-Search/integration/elastic-search-8/)
+* [Virto Commerce Home](https://virtocommerce.com)
+* [Community](https://www.virtocommerce.org)
 * [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
 * [Elastic.NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
 * [Semantic Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search.html)
 
-## References
-* Deployment: https://docs.virtocommerce.org/docs/latest/developer-guide/deploy-module-from-source-code/
-* Installation: https://docs.virtocommerce.org/docs/latest/user-guide/modules/
-* Home: https://virtocommerce.com
-* Community: https://www.virtocommerce.org
 
 ## License
 
