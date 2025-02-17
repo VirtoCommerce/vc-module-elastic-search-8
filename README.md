@@ -369,6 +369,12 @@ Example (appsettings.Development.json):
 }
 ```
 
+Virto Cloud Environment Variable:
+
+```yml
+Serilog__MinimumLevel__Override__VirtoCommerce__ElasticSearch8__Data__Services__ElasticSearch8Provider: "Debug"
+```
+
 ### Warning
 Debug mode increases log verbosity and may expose sensitive data. Use it only during development or troubleshooting.
 
