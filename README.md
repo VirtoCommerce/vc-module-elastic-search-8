@@ -1,21 +1,19 @@
 # Virto Commerce Elastic Search 8 Module
 
-## Overview
-
 The Virto Commerce Elastic Search module implements the ISearchProvider defined in the VirtoCommerce Search module. It leverages the Elasticsearch engine to store indexed documents.
 
 The module supports the following Elasticsearch deployment options:
 * Elastic Cloud 8.x
 * Standalone Elasticsearch 8.x
 
-## Features
+## Key features
 * Full-text search with new .NET client for Elasticsearch.
 * Semantic Search.
 * Hybrid Mode Search - combine the best search results from full-text and semantic queries.
 * Third-party ML models support.
 
 
-## Know Limitations & Issues
+## Known limitations & issues
 * Catalog object serialization via "Store serialized catalog objects in the index" platform settings is not implemented. Document field "__object" will not be indexed.
 * Partial indexation is not implemented.
 
@@ -86,22 +84,22 @@ Elasticsearch offers the usage of a wide range of NLP models, including both den
 
 By default, we recommend using the ELSER model. Elastic Learned Sparse EncodeR (ELSER) - is an NLP model trained by Elastic that enables you to perform a semantic search by using sparse vector representation.
 
-### Enjoy Semantic Search
+### Enjoy semantic search
 Examples below demonstrate a comparison between classic and semantic search for the same query: "Quench Your Thirst".
 
-#### Classic Search 
+#### Classic search 
 ![Classic Search](./docs/media/classic-search.png)
 
-#### Semantic Search
+#### Semantic search
 ![Semantic Search](./docs/media/semantic-search.png)
 
-## Semantic Search and ELSER Model Setup
+## Semantic search and ELSER model setup
 
 ### Prerequisites
 
 Elastic Cloud 8.9 or higher should be deployed and configured.
 
-### Enable Machine Learning Instances
+### Enable machine learning instances
 After creating an Elastic Cloud deployment, you'll need to enable Machine Learning capabilities:
 
 1. Navigate to [deployments page](https://cloud.elastic.co/home)
@@ -112,7 +110,7 @@ After creating an Elastic Cloud deployment, you'll need to enable Machine Learni
 
 ![Activate ML](./docs/media/ml.png)
 
-### Activate Machine Learning Model
+### Activate machine learning model
 After enabling Machine Learning instances, you'll need to activate Machine Trained model:
 
 1. Navigate to Kibana
@@ -126,7 +124,7 @@ After enabling Machine Learning instances, you'll need to activate Machine Train
 
 ![Start elser deployment](./docs/media/start-elser.png)
 
-### Configure Pipeline Ingester
+### Configure pipeline ingester
 For the ELSER v2 model implementation.
 
 1. Navigate to Management - Dev Tools
@@ -208,13 +206,13 @@ PUT _ingest/pipeline/elser-v2-pipeline
 
 ![Settings](./docs/media/settings.png)
 
-## Semantic Search and Third-Party ML Model Setup
+## Semantic search and third-party ML model setup
 
-### Select Text Embedding Model
+### Select text embedding model
 
 Select a **text embedding model** from the [third-party model reference list](https://www.elastic.co/guide/en/machine-learning/8.12/ml-nlp-model-ref.html).
 
-### Add Trained Model
+### Add trained model
 
 1. Install the Eland Python Client. Eland can be installed with [pip](https://pypi.org/project/pip/):
   ```cmd
@@ -230,11 +228,11 @@ Select a **text embedding model** from the [third-party model reference list](ht
 
 > **Note:** You can find more information in [Import models with Eland](https://www.elastic.co/guide/en/machine-learning/8.12/ml-nlp-import-model.html)
 
-### Deploy Trained Model
+### Deploy trained model
 
 Navigate to the Machine Learning - Model Management - Trained Models section, and click `Start deployment` in the table row containing your new model to deploy and use it.
 
-### Configure Pipeline Ingester
+### Configure pipeline ingester
 Create the pipeline similar to the ELSER model (`__ml` property is predefined in Elastic8 Provider now):
   ```
   PUT _ingest/pipeline/my-text-embeddings-pipeline
@@ -254,7 +252,7 @@ Create the pipeline similar to the ELSER model (`__ml` property is predefined in
   }
   ```
 
-### Reindex and Query Data
+### Reindex and query data
 1. Navigate to Virto Commerce Settings - Search - ElasticSearch8
 1. Enable Semantic Search
 1. Select Third Party model type in platform settings.
@@ -266,7 +264,7 @@ Create the pipeline similar to the ELSER model (`__ml` property is predefined in
 
 > **Note:** Depending on the number of dimensions of your model you might need to adjust Semantic Vector Model Dimensions settings.
 
-## How to Explain?
+## How to explain?
 The Elastic provides an explain API that computes a score explanation for a query and a specific document. This can give useful feedback on whether a document matches or doesn’t match a specific query.
 
 This provided script serves as a versatile tool for testing and exploring the capabilities of Elasticsearch, specifically tailored for a Virto Commerce Elastic Search 8 release. It combines several features to demonstrate querying and scoring mechanisms.
@@ -323,16 +321,16 @@ POST default-product/_search
 
 ```
 
-## Optimizing performance
+## Optimize performance
 The tokens generated by ELSER must be indexed for use in the text_expansion query. However, it is not necessary to retain those terms in the document source.
 You can save disk space by using the source exclude mapping to remove the ELSER terms from the document source.
 
 The following links provide more information about source filtering: [Saving disk space by excluding the ELSER tokens from document source](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search-elser.html#optimization)
 
-## Enable Debug Mode
+## Enable debug mode
 To facilitate debugging and troubleshooting within the Elasticsearch 8 module for Virto Commerce, you can enable debug mode. This mode configures Elasticsearch to provide detailed request/response logging and enhanced error information.
 
-### Enable Debug Mode in Elasticsearch Options
+### Enable debug mode in Elasticsearch options
 Set the ElasticSearch8Options::EnableDebugMode property to true in your application configuration.
 This will:
 1. Disable direct streaming of requests/responses (DisableDirectStreaming()),
@@ -347,7 +345,7 @@ Example (appsettings.json):
   }
 ```
 
-### Adjust Logging Levels
+### Adjust logging levels
 Configure the logger for the Elasticsearch provider service to include debug or error details.
 
 Add the following to your logging configuration with either Debug or Error level.
@@ -378,15 +376,22 @@ Serilog__MinimumLevel__Override__VirtoCommerce__ElasticSearch8__Data__Services__
 ### Warning
 Debug mode increases log verbosity and may expose sensitive data. Use it only during development or troubleshooting.
 
+## Documentation
+
+* [Elastic Search 8 module user documentation](https://docs.virtocommerce.org/platform/user-guide/elastic-search-8/overview/)
+* [Elastic Search 8 module developer documentation](https://docs.virtocommerce.org/platform/developer-guide/Fundamentals/Indexed-Search/integration/elastic-search-8/)
+* [REST API](https://virtostart-demo-admin.govirto.com/docs/index.html?urls.primaryName=VirtoCommerce.ElasticSearch8)
+* [Search providers configuration](https://docs.virtocommerce.org/platform/developer-guide/Configuration-Reference/appsettingsjson/#search)
+* [View on GitHub](https://github.com/VirtoCommerce/vc-module-elastic-search-8)
+
 
 ## References
-* [Documentation](https://docs.virtocommerce.org/platform/developer-guide/Fundamentals/Indexed-Search/integration/elastic-search-8/)
-* [Virto Commerce Home](https://virtocommerce.com)
-* [Community](https://www.virtocommerce.org)
-* [Search Fundamentals](https://virtocommerce.com/docs/fundamentals/search/)
-* [Elastic.NET Client](https://www.elastic.co/guide/en/elasticsearch/client/net-api/master/introduction.html)
-* [Semantic Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search.html)
 
+* [Deployment](https://docs.virtocommerce.org/platform/developer-guide/Tutorials-and-How-tos/Tutorials/deploy-module-from-source-code/)
+* [Installation](https://docs.virtocommerce.org/platform/user-guide/modules-installation/)
+* [Home](https://virtocommerce.com)
+* [Community](https://www.virtocommerce.org)
+* [Download latest release](https://github.com/VirtoCommerce/vc-module-elastic-search-8/releases/latest)
 
 ## License
 
