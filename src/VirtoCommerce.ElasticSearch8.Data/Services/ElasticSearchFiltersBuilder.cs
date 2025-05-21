@@ -93,8 +93,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return new TermsQuery
             {
                 Field = termFilter.FieldName.ToElasticFieldName(),
-                Term = new TermsQueryField(termValues),
-                //Terms = new TermsQueryField(termValues)
+                Terms = new TermsQueryField(termValues),
             };
         }
 

@@ -381,7 +381,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                                             {
                                                 Index = true,
                                                 Dims = _settingsManager.GetVectorModelDimensionsCount(),
-                                                Similarity = "cosine",
+                                                Similarity = DenseVectorSimilarity.Cosine,
                                             }
                             }
                         };

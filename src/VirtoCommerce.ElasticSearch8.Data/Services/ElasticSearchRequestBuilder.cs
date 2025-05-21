@@ -106,14 +106,16 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
             {
-                var textExpansionQuery = GetTextExpansionKeywordSearchQuery(request);
+                var sparceVectorQuery = GetSparseVectorQuery(request);
 
                 // configure boost
-                textExpansionQuery.Boost = _settingsManager.GetSemanticBoost();
+                sparceVectorQuery.Boost = _settingsManager.GetSemanticBoost();
                 multiMatchQuery.Boost = _settingsManager.GetKeywordBoost();
 
-                var queries = new Query[] { textExpansionQuery, multiMatchQuery };
+                var multiMatchQueryWrapper = Query.MultiMatch(multiMatchQuery);
+                var sparceVectorQueryWrapper = Query.SparseVector(sparceVectorQuery);
 
+                var queries = new Query[] { sparceVectorQueryWrapper, multiMatchQueryWrapper };
                 var boolQuery = new BoolQuery { Should = queries };
 
                 result = Query.Bool(boolQuery);
@@ -126,21 +128,19 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        private TextExpansionQuery GetTextExpansionKeywordSearchQuery(VirtoCommerceSearchRequest request)
+        private SparseVectorQuery GetSparseVectorQuery(VirtoCommerceSearchRequest request)
         {
-            var testExpansionQuery = new TextExpansionQuery(ModuleConstants.TokensPropertyName)
-            {
-                ModelId = _settingsManager.GetModelId(),
-                ModelText = request.SearchKeywords,
-            };
+            var sparseVectorQuery = SparseVectorQuery.InferenceId(_settingsManager.GetModelId());
+            sparseVectorQuery.Field = ModuleConstants.TokensPropertyName;
+            sparseVectorQuery.Query = request.SearchKeywords;
 
-            return testExpansionQuery;
+            return sparseVectorQuery;
         }
 
         private static MultiMatchQuery GetMultimatchKeywordSearchQuery(VirtoCommerceSearchRequest request)
         {
             var keywords = request.SearchKeywords;
-            var fields = request.SearchFields?.Select(x => x.ToElasticFieldName()).ToArray() ?? new[] { "_all" };
+            var fields = request.SearchFields?.Select(x => x.ToElasticFieldName()).ToArray() ?? ["_all"];
 
             var multiMatch = new MultiMatchQuery
             {
