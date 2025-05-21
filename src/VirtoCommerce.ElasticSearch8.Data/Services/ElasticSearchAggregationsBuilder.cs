@@ -20,7 +20,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _searchFiltersBuilder = searchFiltersBuilder;
         }
 
-        public virtual AggregationDictionary GetAggregations(IList<AggregationRequest> aggregations, IDictionary<PropertyName, IProperty> availableFields)
+        public virtual Dictionary<string, Aggregation> GetAggregations(IList<AggregationRequest> aggregations, IDictionary<PropertyName, IProperty> availableFields)
         {
             var result = new Dictionary<string, Aggregation>();
 
@@ -51,7 +51,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 }
             }
 
-            return new AggregationDictionary(result);
+            return result;
         }
 
         protected static bool IsRawKeywordField(string fieldName, IDictionary<PropertyName, IProperty> availableFields)
@@ -79,7 +79,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (!string.IsNullOrEmpty(field))
             {
-                termsAggregation = new TermsAggregation(aggregationId)
+                termsAggregation = new TermsAggregation()
                 {
                     Field = field,
                     Size = facetSize,
@@ -100,14 +100,25 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
             else
             {
-                var filterAggregation = new FiltersAggregation(aggregationId) { Filters = new Buckets<Query>(new[] { query }) };
+                var filterAggregation = new FiltersAggregation()
+                {
+                    Filters = new Buckets<Query>(new[] { query })
+                };
 
                 if (termsAggregation != null)
                 {
-                    filterAggregation.Aggregations = termsAggregation;
-                }
+                    var filters = Aggregation.Filters(filterAggregation);
+                    filters.Aggregations = new Dictionary<string, Aggregation>
+                    {
+                        { aggregationId, Aggregation.Terms(termsAggregation) }
+                    };
 
-                container.Add(aggregationId, filterAggregation);
+                    container.Add(aggregationId, filters);
+                }
+                else
+                {
+                    container.Add(aggregationId, filterAggregation);
+                }
             }
         }
 
@@ -140,7 +151,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 var buckets = new List<Query> { mustQuery }.ToArray();
 
-                var filterAggregation = new FiltersAggregation(aggregationValueId)
+                var filterAggregation = new FiltersAggregation()
                 {
                     Filters = new Buckets<Query>(buckets),
                 };

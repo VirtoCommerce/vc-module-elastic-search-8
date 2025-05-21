@@ -22,7 +22,6 @@ using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Exceptions;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerce.SearchModule.Core.Services;
-using Action = Elastic.Clients.Elasticsearch.IndexManagement.Action;
 
 namespace VirtoCommerce.ElasticSearch8.Data.Services
 {
@@ -227,7 +226,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 return;
             }
 
-            var bulkAliasDescriptorActions = new List<Action>
+            var bulkAliasDescriptorActions = new List<IndexUpdateAliasesAction>
             {
                 new RemoveAction { Index = activeIndexName, Alias = activeIndexAlias }
             };
@@ -563,7 +562,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             var response = await Client.Indices.CreateAsync(indexName, i => i
                 .Settings(x => ConfigureIndexSettings(x))
-                .Aliases(x => x.Add(alias, new Alias())
+                .Aliases(x => x.Add(alias, new AliasDescriptor())
             ));
 
             if (!response.ApiCallDetails.HasSuccessfulStatusCode)

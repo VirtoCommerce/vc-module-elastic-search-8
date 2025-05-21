@@ -8,6 +8,8 @@ namespace VirtoCommerce.ElasticSearch8.Core.Services
 {
     public interface IElasticSearchAggregationsBuilder
     {
-        AggregationDictionary GetAggregations(IList<AggregationRequest> aggregations, IDictionary<PropertyName, IProperty> availableFields);
+        Dictionary<string, Aggregation> GetAggregations(IList<AggregationRequest> aggregations, IDictionary<PropertyName, IProperty> availableFields);
     }
 }
+
+
