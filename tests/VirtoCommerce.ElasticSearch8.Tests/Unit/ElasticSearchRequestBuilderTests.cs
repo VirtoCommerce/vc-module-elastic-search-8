@@ -48,7 +48,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
             // Assert
             result.TryGet(out TermsQuery termsQuery);
 
-            termsQuery.Terms.Match(x =>
+            termsQuery.Term.Match(x =>
             {
                 var termsValue = x.FirstOrDefault();
                 termsValue.Value.Should().Be(convertedValue);

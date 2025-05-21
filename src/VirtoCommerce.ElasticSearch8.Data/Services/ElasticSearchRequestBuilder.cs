@@ -74,7 +74,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var numCandidates = request.Take * 2;
                 numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
 
-                var knn = new KnnQuery
+                var knn = new KnnSearch
                 {
                     k = request.Take,
                     NumCandidates = numCandidates,
@@ -86,7 +86,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     }),
                 };
 
-                result.Knn = new KnnQuery[] { knn };
+                result.Knn = new List<KnnSearch> { knn };
             }
 
             return result;
