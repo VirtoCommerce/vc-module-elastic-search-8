@@ -107,10 +107,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 if (termsAggregation != null)
                 {
-                    var filters = Aggregation.Filters(filterAggregation);
-                    filters.Aggregations = new Dictionary<string, Aggregation>
+                    var filters = new Aggregation
                     {
-                        { aggregationId, Aggregation.Terms(termsAggregation) }
+                        Filters = filterAggregation,
+                        Aggregations = new Dictionary<string, Aggregation>
+                        {
+                            { aggregationId, new Aggregation { Terms = termsAggregation } }
+                        }
                     };
 
                     container.Add(aggregationId, filters);

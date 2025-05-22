@@ -67,7 +67,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 MinScore = !string.IsNullOrEmpty(request?.SearchKeywords) ? _settingsManager.GetMinScore(documentType, _logger) : null,
             };
 
-            // use knn search and rank feature
+            // use Knn search and rank feature
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel
                 && !string.IsNullOrEmpty(request?.SearchKeywords))
             {
@@ -76,14 +76,17 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 var knn = new KnnSearch
                 {
-                    k = request.Take,
+                    K = request.Take,
                     NumCandidates = numCandidates,
                     Field = ModuleConstants.VectorPropertyName,
-                    QueryVectorBuilder = QueryVectorBuilder.TextEmbedding(new TextEmbedding()
+                    QueryVectorBuilder = new QueryVectorBuilder
                     {
-                        ModelId = _settingsManager.GetModelId(),
-                        ModelText = request.SearchKeywords,
-                    }),
+                        TextEmbedding = new TextEmbedding
+                        {
+                            ModelId = _settingsManager.GetModelId(),
+                            ModelText = request.SearchKeywords,
+                        },
+                    },
                 };
 
                 result.Knn = new List<KnnSearch> { knn };
@@ -112,13 +115,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 sparceVectorQuery.Boost = _settingsManager.GetSemanticBoost();
                 multiMatchQuery.Boost = _settingsManager.GetKeywordBoost();
 
-                var multiMatchQueryWrapper = Query.MultiMatch(multiMatchQuery);
-                var sparceVectorQueryWrapper = Query.SparseVector(sparceVectorQuery);
+                var multiMatchQueryWrapper = new Query { MultiMatch = multiMatchQuery };
+                var sparceVectorQueryWrapper = new Query { SparseVector = sparceVectorQuery };
 
                 var queries = new Query[] { sparceVectorQueryWrapper, multiMatchQueryWrapper };
                 var boolQuery = new BoolQuery { Should = queries };
 
-                result = Query.Bool(boolQuery);
+                result = new Query { Bool = boolQuery };
             }
             else
             {
@@ -130,9 +133,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         private SparseVectorQuery GetSparseVectorQuery(VirtoCommerceSearchRequest request)
         {
-            var sparseVectorQuery = SparseVectorQuery.InferenceId(_settingsManager.GetModelId());
-            sparseVectorQuery.Field = ModuleConstants.TokensPropertyName;
-            sparseVectorQuery.Query = request.SearchKeywords;
+            var sparseVectorQuery = new SparseVectorQuery(ModuleConstants.TokensPropertyName)
+            {
+                InferenceId = _settingsManager.GetModelId(),
+                Query = request.SearchKeywords
+            };
 
             return sparseVectorQuery;
         }
@@ -169,28 +174,37 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (field is GeoDistanceSortingField geoSorting)
             {
-                result = ElasticSearchSortOptions.GeoDistance(new GeoDistanceSort
+                result = new ElasticSearchSortOptions
                 {
-                    Field = field.FieldName.ToElasticFieldName(),
-                    Location = new[] { geoSorting.Location.ToGeoLocation() },
-                    Order = geoSorting.IsDescending ? SortOrder.Desc : SortOrder.Asc,
-                });
+                    GeoDistance = new GeoDistanceSort
+                    {
+                        Field = field.FieldName.ToElasticFieldName(),
+                        Location = new[] { geoSorting.Location.ToGeoLocation() },
+                        Order = geoSorting.IsDescending ? SortOrder.Desc : SortOrder.Asc,
+                    },
+                };
             }
             else if (IsScoreField(field))
             {
-                result = ElasticSearchSortOptions.Field(Field.ScoreField, new FieldSort
+                result = new ElasticSearchSortOptions
                 {
-                    Order = field.IsDescending ? SortOrder.Desc : SortOrder.Asc
-                });
+                    Field = new FieldSort(Field.ScoreField)
+                    {
+                        Order = field.IsDescending ? SortOrder.Desc : SortOrder.Asc
+                    },
+                };
             }
             else
             {
-                result = ElasticSearchSortOptions.Field(field.FieldName.ToElasticFieldName(), new FieldSort
+                result = new ElasticSearchSortOptions
                 {
-                    Order = field.IsDescending ? SortOrder.Desc : SortOrder.Asc,
-                    Missing = "_last",
-                    UnmappedType = FieldType.Long
-                });
+                    Field = new FieldSort(field.FieldName.ToElasticFieldName())
+                    {
+                        Order = field.IsDescending ? SortOrder.Desc : SortOrder.Asc,
+                        Missing = "_last",
+                        UnmappedType = FieldType.Long
+                    },
+                };
             }
 
             return result;

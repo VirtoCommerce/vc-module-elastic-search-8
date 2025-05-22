@@ -406,7 +406,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
         {
             descriptor
-                .Index(indexName)
+                .Index((IndexName)indexName) // do not remove casting, it's required for the index name to be set, workaround for the bug in the library
                 .IndexMany(documents);
 
             foreach (var pipeline in pipelines)
@@ -659,8 +659,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             var mappingResponse = await Client.Indices.GetMappingAsync(new GetMappingRequest(indexName));
 
-            var mapping = mappingResponse.GetMappingFor(indexName) ??
-                          mappingResponse.Indices.Values.FirstOrDefault()?.Mappings;
+            var mapping = mappingResponse.GetMappingFor(indexName)
+                ?? mappingResponse.Mappings.Values.FirstOrDefault()?.Mappings;
 
             return mapping?.Properties;
         }
@@ -702,7 +702,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 throw new SearchException(activeIndexResponse.DebugInformation);
             }
 
-            return activeIndexResponse.Indices.Keys.FirstOrDefault();
+            return activeIndexResponse.Indices?.Keys?.FirstOrDefault();
         }
 
         protected virtual string GetIndexName(string documentType)
