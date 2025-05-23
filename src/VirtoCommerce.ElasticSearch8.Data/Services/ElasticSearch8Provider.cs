@@ -371,7 +371,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     case ModuleConstants.ElserModel:
                         properties = new Properties
                         {
-                            { ModuleConstants.TokensPropertyName, new RankFeaturesProperty() }
+                            { ModuleConstants.TokensPropertyName, new SparseVectorProperty() }
                         };
                         break;
                     case ModuleConstants.ThirdPartyModel:
