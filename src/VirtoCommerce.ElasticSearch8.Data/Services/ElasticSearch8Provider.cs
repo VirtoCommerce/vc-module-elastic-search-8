@@ -308,7 +308,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var pipelineName = _settingsManager.GetPipelineName();
 
                 // Check if ML pipeline created
-                await CheckMLPipeline(pipelineName);
+                var pipelineCreated = await CheckMLPipeline(pipelineName);
+                if (!pipelineCreated)
+                {
+                    await CreateMLPipeline(pipelineName);
+                }
 
                 pipelines.Add(pipelineName);
             }
@@ -342,7 +346,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        private async Task CheckMLPipeline(string pipelineName)
+        private async Task<bool> CheckMLPipeline(string pipelineName)
         {
             var getPipelineRequest = new GetPipelineRequest(pipelineName)
             {
@@ -351,9 +355,35 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             var pipelineResult = await Client.Ingest.GetPipelineAsync(getPipelineRequest);
 
-            if (pipelineResult.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            return pipelineResult.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound;
+        }
+
+        private async Task CreateMLPipeline(string pipelineName)
+        {
+            var putPipelineRequest = new PutPipelineRequest(pipelineName)
             {
-                throw new SearchException($"ML pipeline is not found: {pipelineName}. Please create the pipeline first.");
+                Processors = new List<Processor>
+                {
+                    new ScriptProcessor
+                    {
+                        Source = $@"ctx['__content'] = ctx['__content'].join('. ')",
+                    },
+                    new InferenceProcessor( _settingsManager.GetModelId())
+                    {
+                        IgnoreFailure = false,
+                        InputOutput = new List<InputConfig>
+                        {
+                            new("__content", ModuleConstants.TokensPropertyName)
+                        }
+                    }
+                }
+            };
+
+            var pipelineResult = await Client.Ingest.PutPipelineAsync(putPipelineRequest);
+
+            if (!pipelineResult.IsSuccess())
+            {
+                throw new SearchException($"ML pipeline {pipelineName} can't be created. You can create the pipeline manually.");
             }
         }
 
