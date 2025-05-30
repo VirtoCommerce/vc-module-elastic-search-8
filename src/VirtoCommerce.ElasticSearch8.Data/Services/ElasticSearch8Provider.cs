@@ -371,7 +371,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     case ModuleConstants.ElserModel:
                         properties = new Properties
                         {
-                            { ModuleConstants.TokensPropertyName, new RankFeaturesProperty() }
+                            { ModuleConstants.TokensPropertyName, new SparseVectorProperty() }
                         };
                         break;
                     case ModuleConstants.ThirdPartyModel:
@@ -406,7 +406,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
         {
             descriptor
-                .Index(indexName)
+                .Index((IndexName)indexName)
                 .IndexMany(documents);
 
             foreach (var pipeline in pipelines)
