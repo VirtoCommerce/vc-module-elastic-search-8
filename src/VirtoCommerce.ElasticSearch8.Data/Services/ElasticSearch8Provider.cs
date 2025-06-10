@@ -22,7 +22,6 @@ using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Exceptions;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerce.SearchModule.Core.Services;
-using Action = Elastic.Clients.Elasticsearch.IndexManagement.Action;
 
 namespace VirtoCommerce.ElasticSearch8.Data.Services
 {
@@ -227,7 +226,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 return;
             }
 
-            var bulkAliasDescriptorActions = new List<Action>
+            var bulkAliasDescriptorActions = new List<IndexUpdateAliasesAction>
             {
                 new RemoveAction { Index = activeIndexName, Alias = activeIndexAlias }
             };
@@ -372,7 +371,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     case ModuleConstants.ElserModel:
                         properties = new Properties
                         {
-                            { ModuleConstants.TokensPropertyName, new RankFeaturesProperty() }
+                            { ModuleConstants.TokensPropertyName, new SparseVectorProperty() }
                         };
                         break;
                     case ModuleConstants.ThirdPartyModel:
@@ -382,7 +381,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                                             {
                                                 Index = true,
                                                 Dims = _settingsManager.GetVectorModelDimensionsCount(),
-                                                Similarity = "cosine",
+                                                Similarity = DenseVectorSimilarity.Cosine,
                                             }
                             }
                         };
@@ -407,7 +406,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
         {
             descriptor
-                .Index(indexName)
+                .Index((IndexName)indexName)
                 .IndexMany(documents);
 
             foreach (var pipeline in pipelines)
@@ -563,7 +562,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             var response = await Client.Indices.CreateAsync(indexName, i => i
                 .Settings(x => ConfigureIndexSettings(x))
-                .Aliases(x => x.Add(alias, new Alias())
+                .Aliases(x => x.Add(alias, new AliasDescriptor())
             ));
 
             if (!response.ApiCallDetails.HasSuccessfulStatusCode)

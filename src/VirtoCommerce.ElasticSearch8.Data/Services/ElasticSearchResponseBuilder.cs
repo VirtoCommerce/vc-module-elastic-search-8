@@ -170,7 +170,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 case FiltersAggregate filtersAggregate:
                     foreach (var bucket in filtersAggregate.Buckets.Where(x => x.DocCount > 0))
                     {
-                        if (bucket.TryGetValue(responseKey, out var bucketValues))
+                        if (bucket.Aggregations.TryGetValue(responseKey, out var bucketValues))
                         {
                             ConvertAggregate(aggregation, responseKey, valueId, bucketValues);
                         }
