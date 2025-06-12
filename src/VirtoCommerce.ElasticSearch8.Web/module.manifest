@@ -25,5 +25,8 @@
   <releaseNotes>First version.</releaseNotes>
   <copyright>Copyright © 2011-2025 Virto Commerce. All rights reserved</copyright>
   <tags>extension module</tags>
+  <groups>
+    <group>commerce</group>
+  </groups>
   <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
 </module>
