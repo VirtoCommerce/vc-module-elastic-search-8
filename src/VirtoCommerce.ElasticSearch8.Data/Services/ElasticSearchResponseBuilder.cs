@@ -23,8 +23,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 result.TotalCount = response.Total;
                 result.Documents = response.Hits.Select(ToSearchDocument).ToArray();
-                result.Aggregations = GetAggregations(response.Aggregations, request);
             }
+
+            result.Aggregations = GetAggregations(response.Aggregations, request);
 
             return result;
         }
@@ -197,6 +198,22 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 var responseValueId = $"{aggregationResponse.Id}-{queryValueId}";
                 AddAggregationValues(aggregationResponse, responseValueId, queryValueId, searchResponseAggregations);
+            }
+
+            TryAddAggregatioStatistics(searchResponseAggregations, aggregationResponse);
+        }
+
+        private static void TryAddAggregatioStatistics(AggregateDictionary searchResponseAggregations, AggregationResponse aggregationResponse)
+        {
+            var statsId = $"{aggregationResponse.Id}-stats";
+            if (searchResponseAggregations.GetValueOrDefault(statsId) is FilterAggregate filterAggregate &&
+                filterAggregate.Aggregations.GetValueOrDefault("stats") is StatsAggregate stats)
+            {
+                aggregationResponse.Statistics = new AggregationStatistics
+                {
+                    Min = stats.Min,
+                    Max = stats.Max,
+                };
             }
         }
     }

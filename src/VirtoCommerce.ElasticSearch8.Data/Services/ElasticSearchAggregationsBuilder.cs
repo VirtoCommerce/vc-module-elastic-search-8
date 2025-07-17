@@ -151,13 +151,32 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 var buckets = new List<Query> { mustQuery }.ToArray();
 
-                var filterAggregation = new FiltersAggregation()
+                var filtersAggregation = new FiltersAggregation()
                 {
                     Filters = new Buckets<Query>(buckets),
                 };
 
-                container.Add(aggregationValueId, filterAggregation);
+                container.Add(aggregationValueId, filtersAggregation);
             }
+
+            // Add stats aggregation for the field
+            var aggregationQuery = new BoolQuery
+            {
+                Must = new List<Query> { filter }
+            };
+            var filterAggregation = Aggregation.Filter(aggregationQuery);
+
+            var statsAggregation = new StatsAggregation
+            {
+                Field = fieldName,
+            };
+
+            filterAggregation.Aggregations = new Dictionary<string, Aggregation>
+            {
+                { "stats", statsAggregation }
+            };
+
+            container.Add($"{aggregationId}-stats", filterAggregation);
         }
     }
 }
