@@ -200,10 +200,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 AddAggregationValues(aggregationResponse, responseValueId, queryValueId, searchResponseAggregations);
             }
 
-            TryAddAggregatioStatistics(searchResponseAggregations, aggregationResponse);
+            TryAddAggregationStatistics(searchResponseAggregations, aggregationResponse);
         }
 
-        private static void TryAddAggregatioStatistics(AggregateDictionary searchResponseAggregations, AggregationResponse aggregationResponse)
+        private static void TryAddAggregationStatistics(AggregateDictionary searchResponseAggregations, AggregationResponse aggregationResponse)
         {
             var statsId = $"{aggregationResponse.Id}-stats";
             if (searchResponseAggregations.GetValueOrDefault(statsId) is FilterAggregate filterAggregate &&
