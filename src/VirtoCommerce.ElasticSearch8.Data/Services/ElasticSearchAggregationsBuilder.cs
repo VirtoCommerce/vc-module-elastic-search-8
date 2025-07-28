@@ -164,6 +164,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 Must = new List<Query> { filter }
             };
+
             var filterAggregation = Aggregation.Filter(aggregationQuery);
 
             var statsAggregation = new StatsAggregation

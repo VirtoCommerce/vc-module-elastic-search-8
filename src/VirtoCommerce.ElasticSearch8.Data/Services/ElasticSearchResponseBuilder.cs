@@ -206,6 +206,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private static void TryAddAggregationStatistics(AggregateDictionary searchResponseAggregations, AggregationResponse aggregationResponse)
         {
             var statsId = $"{aggregationResponse.Id}-stats";
+
             if (searchResponseAggregations.GetValueOrDefault(statsId) is FilterAggregate filterAggregate &&
                 filterAggregate.Aggregations.GetValueOrDefault("stats") is StatsAggregate stats)
             {
