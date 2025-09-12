@@ -69,19 +69,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 termFilter.Values.Any(v => v.Contains('*') || v.Contains('?'));
         }
 
-        protected virtual Query CreateWildcardTermFilter(TermFilter termFilter, IDictionary<PropertyName, IProperty> availableFields)
-        {
-            var wildcardValues = termFilter.Values.First();
-
-            var wildcardTermFilter = new WildCardTermFilter
-            {
-                FieldName = termFilter.FieldName,
-                Value = wildcardValues
-            };
-
-            return CreateWildcardTermFilter(wildcardTermFilter);
-        }
-
         protected virtual IdsQuery CreateIdsFilter(IdsFilter idsFilter)
         {
             IdsQuery result = null;
@@ -231,6 +218,19 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Location = geoDistanceFilter.Location.ToGeoLocation(),
                 Distance = $"{geoDistanceFilter.Distance}km", //example: "200km"
             };
+        }
+
+        protected virtual Query CreateWildcardTermFilter(TermFilter termFilter, IDictionary<PropertyName, IProperty> availableFields)
+        {
+            var wildcardValues = termFilter.Values.First();
+
+            var wildcardTermFilter = new WildCardTermFilter
+            {
+                FieldName = termFilter.FieldName,
+                Value = wildcardValues
+            };
+
+            return CreateWildcardTermFilter(wildcardTermFilter);
         }
 
         protected virtual Query CreateWildcardTermFilter(WildCardTermFilter wildcardTermFilter)
