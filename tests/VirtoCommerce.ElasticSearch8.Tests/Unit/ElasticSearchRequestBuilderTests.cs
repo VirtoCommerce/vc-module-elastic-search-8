@@ -3,7 +3,6 @@ using System.Linq;
 using AutoFixture;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Mapping;
-using Elastic.Clients.Elasticsearch.QueryDsl;
 using FluentAssertions;
 using VirtoCommerce.ElasticSearch8.Data.Services;
 using VirtoCommerce.SearchModule.Core.Model;
@@ -46,7 +45,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
             var result = Target.GetFilterQuery(termFilter, availableFields);
 
             // Assert
-            result.TryGet(out TermsQuery termsQuery);
+            var termsQuery = result.Terms;
 
             termsQuery.Terms.Match(x =>
             {
