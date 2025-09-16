@@ -662,8 +662,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             var mappingResponse = await Client.Indices.GetMappingAsync(new GetMappingRequest(indexName));
 
-            var mapping = mappingResponse.GetMappingFor(indexName)
-                ?? mappingResponse.Mappings.Values.FirstOrDefault()?.Mappings;
+            var mapping = mappingResponse.GetMappingFor(indexName) ??
+                          mappingResponse.Mappings.Values.FirstOrDefault()?.Mappings;
 
             return mapping?.Properties;
         }
