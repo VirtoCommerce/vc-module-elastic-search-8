@@ -705,7 +705,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 throw new SearchException(activeIndexResponse.DebugInformation);
             }
 
-            return activeIndexResponse.Indices.Keys.FirstOrDefault();
+            return activeIndexResponse.Indices?.Keys?.FirstOrDefault();
         }
 
         protected virtual string GetIndexName(string documentType)
