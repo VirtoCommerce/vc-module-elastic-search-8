@@ -663,7 +663,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             var mappingResponse = await Client.Indices.GetMappingAsync(new GetMappingRequest(indexName));
 
             var mapping = mappingResponse.GetMappingFor(indexName) ??
-                          mappingResponse.Indices.Values.FirstOrDefault()?.Mappings;
+                          mappingResponse.Mappings.Values.FirstOrDefault()?.Mappings;
 
             return mapping?.Properties;
         }
@@ -705,7 +705,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 throw new SearchException(activeIndexResponse.DebugInformation);
             }
 
-            return activeIndexResponse.Indices.Keys.FirstOrDefault();
+            return activeIndexResponse.Indices?.Keys?.FirstOrDefault();
         }
 
         protected virtual string GetIndexName(string documentType)
