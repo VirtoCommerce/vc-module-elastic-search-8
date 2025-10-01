@@ -67,7 +67,7 @@ public static class ModuleConstants
                 Name = "VirtoCommerce.Search.ElasticSearch8.NGramTokenFilter.MaxGram",
                 GroupName = "Search|ElasticSearch8|General",
                 ValueType = SettingValueType.Integer,
-                DefaultValue = 20,
+                DefaultValue = 50,
             };
 
             public static SettingDescriptor MinScore { get; } = new()
