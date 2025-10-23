@@ -294,7 +294,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             RemoveMappingFromCache(activeIndexAlias);
         }
 
-        protected async Task InternalAddActiveAlias(IEnumerable<string> documentTypes)
+        protected virtual async Task InternalAddActiveAlias(IEnumerable<string> documentTypes)
         {
             try
             {
