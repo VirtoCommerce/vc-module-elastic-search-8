@@ -40,11 +40,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected Uri ServerUrl { get; }
 
         [GeneratedRegex("[/+_=]", RegexOptions.Compiled)]
-        private static partial Regex SpecialSymbols();
+        protected static partial Regex SpecialSymbols();
 
         // prefixes for index aliases
-        public string ActiveIndexAlias => GetActiveIndexAlias();
-        public string BackupIndexAlias => GetBackupIndexAlias();
+        public virtual string ActiveIndexAlias { get => "active"; }
+        public virtual string BackupIndexAlias { get => "backup"; }
 
         public ElasticSearch8Provider(
             IOptions<SearchOptions> searchOptions,
@@ -376,7 +376,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        private async Task CheckMLPipeline(string pipelineName)
+        protected async Task CheckMLPipeline(string pipelineName)
         {
             var getPipelineRequest = new GetPipelineRequest(pipelineName)
             {
@@ -391,7 +391,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        private async Task CreateMLField(string indexName)
+        protected async Task CreateMLField(string indexName)
         {
             var indexMappings = await GetMappingAsync(indexName);
 
@@ -437,7 +437,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        private static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
+        protected static void CreateBulkIndexRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor, List<string> pipelines)
         {
             descriptor
                 .Index((IndexName)indexName)
@@ -569,7 +569,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        private static object GetFieldValue(IProperty property, IndexDocumentField field)
+        protected static object GetFieldValue(IProperty property, IndexDocumentField field)
         {
             var isCollection = field.IsCollection || field.Values.Count > 1;
             object result;
@@ -642,12 +642,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             descriptor.Custom("lowercase", ConfigureLowerCaseNormalizer);
         }
 
-        private void ConfigureNGramFilter(NGramTokenFilterDescriptor descriptor)
+        protected void ConfigureNGramFilter(NGramTokenFilterDescriptor descriptor)
         {
             descriptor.MinGram(_settingsManager.GetMinGram()).MaxGram(_settingsManager.GetMaxGram());
         }
 
-        private void ConfigureEdgeNGramFilter(EdgeNGramTokenFilterDescriptor descriptor)
+        protected void ConfigureEdgeNGramFilter(EdgeNGramTokenFilterDescriptor descriptor)
         {
             descriptor.MinGram(_settingsManager.GetMinGram()).MaxGram(_settingsManager.GetMaxGram());
         }
@@ -721,24 +721,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             throw new SearchException($"{message}. URL:{ServerUrl}, Scope: {_searchOptions.Scope}", innerException);
         }
 
-        protected virtual string GetActiveIndexAlias()
-        {
-            return "active";
-        }
-
-        protected virtual string GetBackupIndexAlias()
-        {
-            return "backup";
-        }
-
-        private static void CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
+        protected static void CreateBulkDeleteRequest(string indexName, IList<SearchDocument> documents, BulkRequestDescriptor descriptor)
         {
             var ids = documents.Select(x => new Id(x.Id));
 
             descriptor.DeleteMany(indexName, ids);
         }
 
-        private async Task<IndexName> GetIndexNameAsync(string indexAlias)
+        protected async Task<IndexName> GetIndexNameAsync(string indexAlias)
         {
             var activeIndexResponse = await Client.Indices.GetAsync(new GetIndexRequest(indexAlias));
             if (!activeIndexResponse.IsValidResponse && activeIndexResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
@@ -792,7 +782,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _mappings.TryRemove(indexName, out _);
         }
 
-        private void CheckClientCreated()
+        protected void CheckClientCreated()
         {
             if (Client == null)
             {
