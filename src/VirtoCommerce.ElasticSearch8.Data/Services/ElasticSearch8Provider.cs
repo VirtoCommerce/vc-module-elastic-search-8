@@ -43,8 +43,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected static partial Regex SpecialSymbols();
 
         // prefixes for index aliases
-        public virtual string ActiveIndexAlias { get => "active"; }
-        public virtual string BackupIndexAlias { get => "backup"; }
+        public virtual string ActiveIndexAlias => "active";
+        public virtual string BackupIndexAlias => "backup";
 
         public ElasticSearch8Provider(
             IOptions<SearchOptions> searchOptions,
@@ -100,69 +100,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        public Task<SearchResponse> SearchAsync(string documentType, SearchModule.Core.Model.SearchRequest request)
+        public virtual async Task<SearchResponse> SearchAsync(string documentType, SearchModule.Core.Model.SearchRequest request)
         {
             CheckClientCreated();
 
-            return InternalSearchAsync(documentType, request);
-        }
-
-        public Task<IndexingResult> IndexAsync(string documentType, IList<IndexDocument> documents)
-        {
-            CheckClientCreated();
-
-            return InternalIndexAsync(documentType, documents, new IndexingParameters());
-        }
-
-        public Task DeleteIndexAsync(string documentType)
-        {
-            CheckClientCreated();
-
-            return InternalDeleteIndexAsync(documentType);
-        }
-
-        public Task<IndexingResult> RemoveAsync(string documentType, IList<IndexDocument> documents)
-        {
-            CheckClientCreated();
-
-            return InternalRemoveAsync(documentType, documents);
-        }
-
-        public Task<IndexingResult> IndexWithBackupAsync(string documentType, IList<IndexDocument> documents)
-        {
-            CheckClientCreated();
-
-            return InternalIndexAsync(documentType, documents, new IndexingParameters() { Reindex = true });
-        }
-
-        public Task SwapIndexAsync(string documentType)
-        {
-            ArgumentNullException.ThrowIfNull(documentType);
-
-            CheckClientCreated();
-
-            return InternalSwapIndexAsync(documentType);
-        }
-
-        /// <summary>
-        /// Puts an active alias on a default index (if exists)
-        /// </summary>
-        public Task AddActiveAlias(IEnumerable<string> documentTypes)
-        {
-            CheckClientCreated();
-
-            return InternalAddActiveAlias(documentTypes);
-        }
-
-        public Task CreateIndexAsync(string documentType, IndexDocument schema)
-        {
-            CheckClientCreated();
-
-            return InternalCreateIndexAsync(documentType, [schema], new IndexingParameters { Reindex = true });
-        }
-
-        protected virtual async Task<SearchResponse> InternalSearchAsync(string documentType, SearchModule.Core.Model.SearchRequest request)
-        {
             var indexName = GetIndexName(request.UseBackupIndex, documentType);
             SearchResponse<SearchDocument> providerResponse;
 
@@ -183,11 +124,21 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
 
             var result = _searchResponseBuilder.ToSearchResponse(providerResponse, request);
+
             return result;
         }
 
-        protected virtual async Task InternalDeleteIndexAsync(string documentType)
+        public Task<IndexingResult> IndexAsync(string documentType, IList<IndexDocument> documents)
         {
+            CheckClientCreated();
+
+            return InternalIndexAsync(documentType, documents, new IndexingParameters());
+        }
+
+        public virtual async Task DeleteIndexAsync(string documentType)
+        {
+            CheckClientCreated();
+
             try
             {
                 //get backup index by alias and delete if present
@@ -211,8 +162,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        protected virtual async Task<IndexingResult> InternalRemoveAsync(string documentType, IList<IndexDocument> documents)
+        public virtual async Task<IndexingResult> RemoveAsync(string documentType, IList<IndexDocument> documents)
         {
+            CheckClientCreated();
+
             var indexName = GetIndexAlias(ActiveIndexAlias, documentType);
 
             var providerDocuments = documents.Select(d => new SearchDocument { Id = d.Id }).ToArray();
@@ -234,8 +187,19 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        protected virtual async Task InternalSwapIndexAsync(string documentType)
+        public Task<IndexingResult> IndexWithBackupAsync(string documentType, IList<IndexDocument> documents)
         {
+            CheckClientCreated();
+
+            return InternalIndexAsync(documentType, documents, new IndexingParameters() { Reindex = true });
+        }
+
+        public virtual async Task SwapIndexAsync(string documentType)
+        {
+            ArgumentNullException.ThrowIfNull(documentType);
+
+            CheckClientCreated();
+
             // get active index and alias
             var activeIndexAlias = GetIndexAlias(ActiveIndexAlias, documentType);
 
@@ -294,8 +258,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             RemoveMappingFromCache(activeIndexAlias);
         }
 
-        protected virtual async Task InternalAddActiveAlias(IEnumerable<string> documentTypes)
+        /// <summary>
+        /// Puts an active alias on a default index (if exists)
+        /// </summary>
+        public virtual async Task AddActiveAlias(IEnumerable<string> documentTypes)
         {
+            CheckClientCreated();
+
             try
             {
                 foreach (var documentType in documentTypes)
@@ -323,6 +292,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 _logger.LogError(ex, $"Error while putting an active alias on a default index at {nameof(AddActiveAlias)}. Possible fail on Elastic server side at IndexExists check.");
             }
+        }
+
+        public Task CreateIndexAsync(string documentType, IndexDocument schema)
+        {
+            CheckClientCreated();
+
+            return InternalCreateIndexAsync(documentType, [schema], new IndexingParameters { Reindex = true });
         }
 
         protected virtual async Task<IndexingResult> InternalIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
