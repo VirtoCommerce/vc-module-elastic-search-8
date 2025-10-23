@@ -137,6 +137,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public Task SwapIndexAsync(string documentType)
         {
+            ArgumentNullException.ThrowIfNull(documentType);
+
             CheckClientCreated();
 
             return InternalSwapIndexAsync(documentType);
@@ -234,8 +236,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual async Task InternalSwapIndexAsync(string documentType)
         {
-            ArgumentNullException.ThrowIfNull(documentType);
-
             // get active index and alias
             var activeIndexAlias = GetIndexAlias(ActiveIndexAlias, documentType);
 
