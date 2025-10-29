@@ -6,6 +6,7 @@ using Elastic.Clients.Elasticsearch.Aggregations;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using VirtoCommerce.ElasticSearch8.Core.Services;
 using VirtoCommerce.ElasticSearch8.Data.Extensions;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.SearchModule.Core.Extensions;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerceSearchRequest = VirtoCommerce.SearchModule.Core.Model.SearchRequest;
@@ -17,7 +18,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
     {
         public virtual SearchResponse ToSearchResponse(SearchResponse<SearchDocument> response, VirtoCommerceSearchRequest request)
         {
-            var result = new SearchResponse();
+            var result = AbstractTypeFactory<SearchResponse>.TryCreateInstance();
 
             if (response.Total > 0)
             {
