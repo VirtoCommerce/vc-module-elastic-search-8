@@ -128,7 +128,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        public Task<IndexingResult> IndexAsync(string documentType, IList<IndexDocument> documents)
+        public virtual Task<IndexingResult> IndexAsync(string documentType, IList<IndexDocument> documents)
         {
             CheckClientCreated();
 
@@ -187,7 +187,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        public Task<IndexingResult> IndexWithBackupAsync(string documentType, IList<IndexDocument> documents)
+        public virtual Task<IndexingResult> IndexWithBackupAsync(string documentType, IList<IndexDocument> documents)
         {
             CheckClientCreated();
 
@@ -294,7 +294,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        public Task CreateIndexAsync(string documentType, IndexDocument schema)
+        public virtual Task CreateIndexAsync(string documentType, IndexDocument schema)
         {
             CheckClientCreated();
 
