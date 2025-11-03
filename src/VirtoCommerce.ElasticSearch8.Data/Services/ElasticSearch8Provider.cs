@@ -212,7 +212,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 if (!indexExits)
                 {
                     // create new index with alias
-                    await CreateIndexAsync(indexName, activeIndexAlias);
+                    await CreateIndexAsync(documentType, indexName, activeIndexAlias);
                 }
                 else
                 {
@@ -442,12 +442,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             if (!indexExists)
             {
                 var newIndexName = GetIndexName(documentType, GetRandomIndexSuffix());
-                await CreateIndexAsync(newIndexName, alias: indexName);
+                await CreateIndexAsync(documentType, newIndexName, alias: indexName);
             }
 
             if (!indexExists || updateMapping)
             {
-                await UpdateMappingAsync(indexName, providerFields);
+                await UpdateMappingAsync(documentType, indexName, providerFields);
             }
 
             return new CreateIndexResult
@@ -457,8 +457,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             };
         }
 
-        protected virtual async Task UpdateMappingAsync(string indexName, Properties properties)
+        protected virtual async Task UpdateMappingAsync(string documentType, string indexName, Properties properties)
         {
+            //!!!DO NOT REMOVE
+            //documentType parameter can be used in derived classes to customize mapping per document type
+
             Properties newProperties;
             Properties allProperties;
 
@@ -568,10 +571,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         #region CreateIndex (move to index create service)
 
-        protected virtual async Task CreateIndexAsync(string indexName, string alias)
+        protected virtual async Task CreateIndexAsync(string documentType, string indexName, string alias)
         {
+            //!!!DO NOT REMOVE
+            //documentType parameter can be used in derived classes to customize index settings per document type
+
             var response = await Client.Indices.CreateAsync(indexName, i => i
-                .Settings(x => ConfigureIndexSettings(x))
+                .Settings(x => ConfigureIndexSettings(x, documentType))
                 .Aliases(x => x.Add(alias, new AliasDescriptor())
             ));
 
@@ -581,7 +587,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
-        protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings)
+        protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings, string documentType)
         {
             var fieldsLimit = _settingsManager.GetFieldsLimit();
             var ngramDiff = _settingsManager.GetMaxGram() - _settingsManager.GetMinGram();
