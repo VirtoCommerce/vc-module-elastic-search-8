@@ -32,7 +32,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly ISettingsManager _settingsManager;
         private readonly IElasticSearchRequestBuilder _searchRequestBuilder;
         private readonly IElasticSearchResponseBuilder _searchResponseBuilder;
-        private readonly IElasticSearchPropertyService _propertyService;
+        private readonly IElasticSearchDocumentConverter _documentConverter;
         private readonly ILogger<ElasticSearch8Provider> _logger;
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
@@ -53,15 +53,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             ISettingsManager settingsManager,
             IElasticSearchRequestBuilder searchRequestBuilder,
             IElasticSearchResponseBuilder searchResponseBuilder,
-            IElasticSearchPropertyService propertyService,
-            ILogger<ElasticSearch8Provider> logger
-            )
+            IElasticSearchDocumentConverter documentConverter,
+            ILogger<ElasticSearch8Provider> logger)
         {
             _searchOptions = searchOptions.Value;
             _settingsManager = settingsManager;
             _searchRequestBuilder = searchRequestBuilder;
             _searchResponseBuilder = searchResponseBuilder;
-            _propertyService = propertyService;
+            _documentConverter = documentConverter;
             _logger = logger;
 
             if (!string.IsNullOrEmpty(elasticOptions.Value.Server))
@@ -505,7 +504,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             var providerFields = new Properties(mapping);
             var oldFieldsCount = providerFields.Count();
 
-            var providerDocuments = documents.Select(document => ConvertToProviderDocument(document, providerFields)).ToList();
+            var providerDocuments = documents.Select(document => _documentConverter.ToProviderDocument(documentType, document, providerFields)).ToList();
 
             var updateMapping = providerFields.Count() != oldFieldsCount;
 
@@ -573,72 +572,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             AddMappingToCache(indexName, allProperties);
             await Client.Indices.RefreshAsync(indexName);
-        }
-
-        protected virtual SearchDocument ConvertToProviderDocument(IndexDocument document, IDictionary<PropertyName, IProperty> properties)
-        {
-            var result = new SearchDocument { Id = document.Id };
-
-            foreach (var field in document.Fields.OrderBy(f => f.Name))
-            {
-                var fieldName = field.Name.ToElasticFieldName();
-
-                if (result.ContainsKey(fieldName))
-                {
-                    var newValues = new List<object>();
-                    var currentValue = result[fieldName];
-
-                    if (currentValue is object[] currentValues)
-                    {
-                        newValues.AddRange(currentValues);
-                    }
-                    else
-                    {
-                        newValues.Add(currentValue);
-                    }
-
-                    newValues.AddRange(field.Values);
-                    result[fieldName] = newValues.ToArray();
-                }
-                else
-                {
-                    if (!properties.TryGetValue(fieldName, out var providerField))
-                    {
-                        providerField = _propertyService.CreateProperty(field);
-                        _propertyService.ConfigureProperty(providerField, field);
-                        properties.Add(fieldName, providerField);
-                    }
-
-                    if (field.Name != "__object")
-                    {
-                        var value = GetFieldValue(providerField, field);
-                        result.Add(fieldName, value);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        protected static object GetFieldValue(IProperty property, IndexDocumentField field)
-        {
-            object result;
-            var isCollection = field.IsCollection || field.Values?.Count > 1;
-
-            if (property is GeoPointProperty)
-            {
-                result = isCollection
-                    ? field.Values.OfType<GeoPoint>().Select(x => x.ToElasticValue()).ToArray()
-                    : (field.Value as GeoPoint)?.ToElasticValue();
-            }
-            else
-            {
-                result = isCollection
-                    ? field.Values
-                    : field.Value;
-            }
-
-            return result;
         }
 
         #region CreateIndex (move to index create service)

@@ -31,6 +31,7 @@ public class Module : IModule, IHasConfiguration
             serviceCollection.AddSingleton<IElasticSearchResponseBuilder, ElasticSearchResponseBuilder>();
 
             serviceCollection.AddSingleton<IElasticSearchPropertyService, ElasticSearchPropertyService>();
+            serviceCollection.AddSingleton<IElasticSearchDocumentConverter, ElasticSearchDocumentConverter>();
         }
     }
 
