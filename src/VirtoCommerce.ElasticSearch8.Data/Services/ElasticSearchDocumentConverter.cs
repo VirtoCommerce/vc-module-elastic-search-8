@@ -15,7 +15,7 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
         var document = new SearchDocument { Id = indexDocument.Id };
 
         var fieldsByNames = indexDocument.Fields
-            .Select(field => (FieldName: field.Name.ToElasticFieldName(), Field: field))
+            .Select(field => (FieldName: GetFieldName(documentType, field), Field: field))
             .OrderBy(x => x.FieldName)
             .ToArray();
 
@@ -44,7 +44,7 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
                     providerField = CreateProperty(documentType, field);
                     if (providerField != null)
                     {
-                        ConfigureProperty(providerField, documentType, field);
+                        ConfigureProperty(documentType, providerField, field);
                         properties.Add(fieldName, providerField);
                     }
                 }
@@ -60,14 +60,9 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
         return document;
     }
 
-    protected virtual IProperty CreateProperty(string documentType, IndexDocumentField field)
+    protected virtual string GetFieldName(string documentType, IndexDocumentField field)
     {
-        return propertyService.CreateProperty(field);
-    }
-
-    protected virtual void ConfigureProperty(IProperty providerField, string documentType, IndexDocumentField field)
-    {
-        propertyService.ConfigureProperty(providerField, field);
+        return field.Name.ToElasticFieldName();
     }
 
     protected virtual object GetFieldValue(string documentType, string fieldName, IndexDocumentField field, IProperty property)
@@ -92,5 +87,15 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
         }
 
         return result;
+    }
+
+    protected virtual IProperty CreateProperty(string documentType, IndexDocumentField field)
+    {
+        return propertyService.CreateProperty(field);
+    }
+
+    protected virtual void ConfigureProperty(string documentType, IProperty providerField, IndexDocumentField field)
+    {
+        propertyService.ConfigureProperty(providerField, field);
     }
 }
