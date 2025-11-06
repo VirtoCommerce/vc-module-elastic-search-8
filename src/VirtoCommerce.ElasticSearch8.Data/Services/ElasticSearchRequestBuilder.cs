@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.Mapping;
@@ -14,13 +15,13 @@ using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Model;
 using ElasticSearchRequest = Elastic.Clients.Elasticsearch.SearchRequest;
 using ElasticSearchSortOptions = Elastic.Clients.Elasticsearch.SortOptions;
+using RegexOptions = System.Text.RegularExpressions.RegexOptions;
 using VirtoCommerceSearchRequest = VirtoCommerce.SearchModule.Core.Model.SearchRequest;
 using VirtoCommerceSortingField = VirtoCommerce.SearchModule.Core.Model.SortingField;
 
-
 namespace VirtoCommerce.ElasticSearch8.Data.Services
 {
-    public class ElasticSearchRequestBuilder : IElasticSearchRequestBuilder
+    public partial class ElasticSearchRequestBuilder : IElasticSearchRequestBuilder
     {
         private readonly IElasticSearchFiltersBuilder _searchFiltersBuilder;
         private readonly IElasticSearchAggregationsBuilder _searchAggregationsBuilder;
@@ -28,6 +29,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly ILogger<ElasticSearchRequestBuilder> _logger;
 
         private const int NearestNeighborMaxCandidates = 10000;
+
+        [GeneratedRegex(@"\W", RegexOptions.Compiled | RegexOptions.Singleline)]
+        private static partial Regex NonWordSymbols();
 
         public ElasticSearchRequestBuilder(
             IElasticSearchFiltersBuilder searchFiltersBuilder,
@@ -60,7 +64,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Sort = GetSorting(request?.Sorting),
                 From = request?.Skip,
                 Size = request?.Take,
-                TrackScores = request?.Sorting?.Any(x => IsScoreField(x)),
+                TrackScores = request?.Sorting?.Any(IsScoreField),
                 Source = GetSourceFilters(request?.IncludeFields),
                 TrackTotalHits = new TrackHits(true),
                 // Apply MinScore for Search by Keywords Only
@@ -95,6 +99,39 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
+        public ElasticSearchRequest BuildSuggestionRequest(SuggestionRequest request, string indexName, string documentType, IDictionary<PropertyName, IProperty> availableFields)
+        {
+            var result = new ElasticSearchRequest(indexName)
+            {
+                Source = true,
+                SourceIncludes = request.Fields.Select(x => x.ToElasticFieldName()).ToArray(),
+                Suggest = new Suggester
+                {
+                    Suggesters = request.Fields.ToDictionary(GetSuggesterName,
+                        field => new FieldSuggester
+                        {
+                            Prefix = request.Query,
+                            Completion = new CompletionSuggester
+                            {
+                                Field = field.ToElasticFieldName(),
+                                Size = request.Size,
+                                SkipDuplicates = true,
+                                Contexts = request.QueryContext?.ToDictionary<KeyValuePair<string, object>, Field, ICollection<CompletionContext>>(
+                                    ctx => ctx.Key,
+                                    ctx => new List<CompletionContext>{ new(Convert.ToString(ctx.Value)) }),
+                            },
+                        }),
+                },
+            };
+
+            return result;
+        }
+
+        protected static string GetSuggesterName(string fieldName)
+        {
+            return $"{NonWordSymbols().Replace(fieldName, "-").ToLowerInvariant()}-suggest";
+        }
+
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)
         {
             if (string.IsNullOrEmpty(request?.SearchKeywords))
@@ -104,7 +141,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             Query result;
 
-            // basic search query 
+            // basic search query
             var multiMatchQuery = GetMultimatchKeywordSearchQuery(request);
 
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
@@ -118,7 +155,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var multiMatchQueryWrapper = new Query { MultiMatch = multiMatchQuery };
                 var sparceVectorQueryWrapper = new Query { SparseVector = sparceVectorQuery };
 
-                var queries = new Query[] { sparceVectorQueryWrapper, multiMatchQueryWrapper };
+                var queries = new[] { sparceVectorQueryWrapper, multiMatchQueryWrapper };
                 var boolQuery = new BoolQuery { Should = queries };
 
                 result = new Query { Bool = boolQuery };
@@ -131,18 +168,18 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        private SparseVectorQuery GetSparseVectorQuery(VirtoCommerceSearchRequest request)
+        protected SparseVectorQuery GetSparseVectorQuery(VirtoCommerceSearchRequest request)
         {
             var sparseVectorQuery = new SparseVectorQuery(ModuleConstants.TokensPropertyName)
             {
                 InferenceId = _settingsManager.GetModelId(),
-                Query = request.SearchKeywords
+                Query = request.SearchKeywords,
             };
 
             return sparseVectorQuery;
         }
 
-        private static MultiMatchQuery GetMultimatchKeywordSearchQuery(VirtoCommerceSearchRequest request)
+        protected static MultiMatchQuery GetMultimatchKeywordSearchQuery(VirtoCommerceSearchRequest request)
         {
             var keywords = request.SearchKeywords;
             var fields = request.SearchFields?.Select(x => x.ToElasticFieldName()).ToArray() ?? ["_all"];
@@ -152,7 +189,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 Fields = fields,
                 Query = keywords,
                 Analyzer = "standard",
-                Operator = Operator.And
+                Operator = Operator.And,
             };
 
             if (request.IsFuzzySearch)
@@ -179,7 +216,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     GeoDistance = new GeoDistanceSort
                     {
                         Field = field.FieldName.ToElasticFieldName(),
-                        Location = new[] { geoSorting.Location.ToGeoLocation() },
+                        Location = [geoSorting.Location.ToGeoLocation()],
                         Order = geoSorting.IsDescending ? SortOrder.Desc : SortOrder.Asc,
                     },
                 };
@@ -190,7 +227,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 {
                     Field = new FieldSort(Field.ScoreField)
                     {
-                        Order = field.IsDescending ? SortOrder.Desc : SortOrder.Asc
+                        Order = field.IsDescending ? SortOrder.Desc : SortOrder.Asc,
                     },
                 };
             }
@@ -202,7 +239,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     {
                         Order = field.IsDescending ? SortOrder.Desc : SortOrder.Asc,
                         Missing = "_last",
-                        UnmappedType = FieldType.Long
+                        UnmappedType = FieldType.Long,
                     },
                 };
             }
@@ -213,7 +250,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected virtual bool IsScoreField(VirtoCommerceSortingField field)
         {
             return field.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName) ||
-                            field.FieldName.EqualsInvariant(ModuleConstants.ElasticScoreFieldName);
+                   field.FieldName.EqualsInvariant(ModuleConstants.ElasticScoreFieldName);
         }
 
         protected virtual SourceConfig GetSourceFilters(IList<string> includeFields)
