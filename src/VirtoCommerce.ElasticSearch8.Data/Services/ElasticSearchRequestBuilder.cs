@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Elastic.Clients.Elasticsearch;
@@ -21,7 +22,7 @@ using VirtoCommerceSortingField = VirtoCommerce.SearchModule.Core.Model.SortingF
 
 namespace VirtoCommerce.ElasticSearch8.Data.Services
 {
-    public partial class ElasticSearchRequestBuilder : IElasticSearchRequestBuilder
+    public class ElasticSearchRequestBuilder : IElasticSearchRequestBuilder
     {
         private readonly IElasticSearchFiltersBuilder _searchFiltersBuilder;
         private readonly IElasticSearchAggregationsBuilder _searchAggregationsBuilder;
@@ -29,9 +30,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly ILogger<ElasticSearchRequestBuilder> _logger;
 
         private const int NearestNeighborMaxCandidates = 10000;
-
-        [GeneratedRegex(@"\W", RegexOptions.Compiled | RegexOptions.Singleline)]
-        private static partial Regex NonWordSymbols();
 
         public ElasticSearchRequestBuilder(
             IElasticSearchFiltersBuilder searchFiltersBuilder,
@@ -101,35 +99,94 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public ElasticSearchRequest BuildSuggestionRequest(SuggestionRequest request, string indexName, string documentType, IDictionary<PropertyName, IProperty> availableFields)
         {
+            var fieldNames = request.Fields.Select(x => x.ToElasticFieldName()).ToArray();
             var result = new ElasticSearchRequest(indexName)
             {
                 Source = true,
-                SourceIncludes = request.Fields.Select(x => x.ToElasticFieldName()).ToArray(),
-                Suggest = new Suggester
-                {
-                    Suggesters = request.Fields.ToDictionary(GetSuggesterName,
-                        field => new FieldSuggester
+                SourceIncludes = fieldNames,
+            };
+
+            var completionFields = fieldNames.Select(GetCompletionProperty).Where(x => x.Completion != null).ToArray();
+            if (completionFields.Length == 0)
+            {
+                return result;
+            }
+
+            result.Suggest = new Suggester
+            {
+                Suggesters = completionFields.ToDictionary(x => GetSuggesterName(x.PropertyName),
+                    x => new FieldSuggester
+                    {
+                        Prefix = request.Query,
+                        Completion = new CompletionSuggester
                         {
-                            Prefix = request.Query,
-                            Completion = new CompletionSuggester
-                            {
-                                Field = field.ToElasticFieldName(),
-                                Size = request.Size,
-                                SkipDuplicates = true,
-                                Contexts = request.QueryContext?.ToDictionary<KeyValuePair<string, object>, Field, ICollection<CompletionContext>>(
-                                    ctx => ctx.Key,
-                                    ctx => new List<CompletionContext>{ new(Convert.ToString(ctx.Value)) }),
-                            },
-                        }),
-                },
+                            Field = GetCompletionFieldName(x.PropertyName),
+                            Size = request.Size,
+                            SkipDuplicates = true,
+                            Contexts = GetContexts(x.Completion, request.QueryContext),
+                        },
+                    }),
             };
 
             return result;
+
+            (string PropertyName, CompletionProperty Completion) GetCompletionProperty(string field)
+            {
+                if (!availableFields.TryGetValue(field, out var property))
+                {
+                    return default;
+                }
+
+                var fields = property switch
+                {
+                    TextProperty { Fields: null } textProperty => textProperty.Fields,
+                    KeywordProperty { Fields: null } keywordProperty => keywordProperty.Fields,
+                    _ => null,
+                };
+
+                return fields != null && fields.TryGetProperty(ModuleConstants.CompletionSubFieldName, out var completionProperty) && completionProperty is CompletionProperty completion
+                    ? (field, completion)
+                    : default;
+            }
+
+            IDictionary<Field, ICollection<CompletionContext>> GetContexts(CompletionProperty completion, IDictionary<string, object> queryContext)
+            {
+                if (!(completion.Contexts?.Count > 0) || !(queryContext?.Count > 0))
+                {
+                    return null;
+                }
+
+                var contexts = new Dictionary<Field, ICollection<CompletionContext>>();
+
+                foreach (var context in completion.Contexts)
+                {
+                    var name = context.Name.ToString();
+                    if (!queryContext.TryGetValue(name, out var value))
+                    {
+                        continue;
+                    }
+
+                    if (value is not IEnumerable<object> values)
+                    {
+                        values = [value];
+                    }
+
+                    contexts[name] = values.Select(x => Convert.ToString(x, CultureInfo.InvariantCulture))
+                        .Where(x => x != null).Select(x => new CompletionContext(x)).ToArray();
+                }
+
+                return contexts;
+            }
         }
 
         protected static string GetSuggesterName(string fieldName)
         {
-            return $"{NonWordSymbols().Replace(fieldName, "-").ToLowerInvariant()}-suggest";
+            return $"{fieldName}-{ModuleConstants.CompletionSubFieldName}-suggest";
+        }
+
+        protected static string GetCompletionFieldName(string fieldName)
+        {
+            return $"{fieldName}.{ModuleConstants.CompletionSubFieldName}";
         }
 
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)

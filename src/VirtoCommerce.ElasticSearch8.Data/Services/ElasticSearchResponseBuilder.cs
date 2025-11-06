@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -220,7 +221,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 return [];
             }
 
-            var result = new HashSet<string>();
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var key in responseSuggest.Keys)
             {

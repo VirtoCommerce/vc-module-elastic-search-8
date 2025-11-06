@@ -345,8 +345,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var availableFields = await GetMappingAsync(indexName);
 
                 var providerRequest = _searchRequestBuilder.BuildSuggestionRequest(request, indexName, documentType, availableFields);
-                var providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
+                if (providerRequest.Suggest is null)
+                {
+                    return new SuggestionResponse();
+                }
 
+                var providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
                 if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
                 {
                     ThrowException($"Get suggestions failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
@@ -437,7 +441,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected async Task CreateMLField(string indexName)
         {
             var indexMappings = await GetMappingAsync(indexName);
-
             if (!indexMappings.ContainsKey(ModuleConstants.ModelPropertyName))
             {
                 var semanticSearchModelType = _settingsManager.GetSemanticSearchType();
@@ -457,7 +460,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                                 Dims = _settingsManager.GetVectorModelDimensionsCount(),
                                 Similarity = DenseVectorSimilarity.Cosine,
                             }
-                        }
+                        },
                     },
                     _ => null,
                 };
@@ -469,11 +472,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 properties = new Properties
                 {
-                    { ModuleConstants.ModelPropertyName, new ObjectProperty
-                        {
-                            Properties = properties,
-                        }
-                    },
+                    { ModuleConstants.ModelPropertyName, new ObjectProperty { Properties = properties } },
                 };
 
                 var response = await Client.Indices.PutMappingAsync(indexName, descriptor => descriptor.Properties(properties));
@@ -482,8 +481,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     ThrowException($"Failed to create {ModuleConstants.ModelPropertyName} field. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
                 }
 
-                indexMappings.AddRange(properties);
-                AddMappingToCache(indexName, indexMappings);
+                var newMappings = new Properties(indexMappings);
+                newMappings.AddRange(properties);
+                AddMappingToCache(indexName, newMappings);
             }
         }
 
