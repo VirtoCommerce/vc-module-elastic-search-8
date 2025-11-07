@@ -306,14 +306,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual bool IsScoreField(VirtoCommerceSortingField field)
         {
-            return field.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName) ||
-                   field.FieldName.EqualsInvariant(ModuleConstants.ElasticScoreFieldName);
+            return field.FieldName.EqualsIgnoreCase(ModuleConstants.ScoreFieldName) ||
+                   field.FieldName.EqualsIgnoreCase(ModuleConstants.ElasticScoreFieldName);
         }
 
         protected virtual SourceConfig GetSourceFilters(IList<string> includeFields)
         {
             return includeFields != null
-                ? new SourceConfig(new SourceFilter { Includes = includeFields.ToArray() })
+                ? new SourceConfig(new SourceFilter { Includes = includeFields.Select(x => x.ToElasticFieldName()).ToArray() })
                 : null;
         }
     }

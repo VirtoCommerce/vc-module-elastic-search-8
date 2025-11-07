@@ -533,37 +533,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             //!!!DO NOT REMOVE
             //documentType parameter can be used in derived classes to customize mapping per document type
 
-            Properties newProperties;
-            Properties allProperties;
-
             var mapping = await LoadMappingAsync(indexName);
-            var existingProperties = new Properties(mapping);
-
-            if (mapping.IsNullOrEmpty())
-            {
-                newProperties = properties;
-                allProperties = properties;
-            }
-            else
-            {
-                newProperties = new Properties();
-                allProperties = existingProperties;
-
-                foreach (var (name, value) in properties)
-                {
-                    if (!existingProperties.TryGetProperty(name.Name, out _))
-                    {
-                        newProperties.Add(name, value);
-                        allProperties.Add(name, value);
-                    }
-                }
-            }
+            var (newProperties, allProperties) = MergeProperties(documentType, new Properties(mapping), properties);
 
             if (newProperties.Any())
             {
-                var request = new PutMappingRequest(indexName) { Properties = newProperties };
-                var response = await Client.Indices.PutMappingAsync(request);
-
+                var response = await Client.Indices.PutMappingAsync(indexName, descriptor => descriptor.Properties(newProperties));
                 if (!response.IsValidResponse)
                 {
                     ThrowException("Failed to submit mapping. " + response.DebugInformation, response.ApiCallDetails.OriginalException);
@@ -572,6 +547,28 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             AddMappingToCache(indexName, allProperties);
             await Client.Indices.RefreshAsync(indexName);
+        }
+
+        protected virtual (Properties NewProperties, Properties AllProperties) MergeProperties(string documentType, Properties existingProperties, Properties properties)
+        {
+            if (!existingProperties.Any())
+            {
+                return (properties, properties);
+            }
+
+            var newProperties = new Properties();
+            var allProperties = existingProperties;
+
+            foreach (var (name, value) in properties)
+            {
+                if (!existingProperties.TryGetProperty(name, out _))
+                {
+                    newProperties.Add(name, value);
+                    allProperties.Add(name, value);
+                }
+            }
+
+            return (newProperties, allProperties);
         }
 
         #region CreateIndex (move to index create service)
