@@ -120,7 +120,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         Prefix = request.Query,
                         Completion = new CompletionSuggester
                         {
-                            Field = GetCompletionFieldName(x.PropertyName),
+                            Field = x.PropertyName,
                             Size = request.Size,
                             SkipDuplicates = true,
                             Contexts = GetContexts(x.Completion, request.QueryContext),
@@ -132,21 +132,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             (string PropertyName, CompletionProperty Completion) GetCompletionProperty(string field)
             {
-                if (!availableFields.TryGetValue(field, out var property))
+                var suggestionFieldName = field.ToSuggestionFieldName();
+                if (availableFields.TryGetValue(suggestionFieldName, out var property) && property is CompletionProperty completion)
                 {
-                    return default;
+                    return (suggestionFieldName, completion);
                 }
 
-                var fields = property switch
-                {
-                    TextProperty { Fields: null } textProperty => textProperty.Fields,
-                    KeywordProperty { Fields: null } keywordProperty => keywordProperty.Fields,
-                    _ => null,
-                };
-
-                return fields != null && fields.TryGetProperty(ModuleConstants.CompletionSubFieldName, out var completionProperty) && completionProperty is CompletionProperty completion
-                    ? (field, completion)
-                    : default;
+                return default;
             }
 
             IDictionary<Field, ICollection<CompletionContext>> GetContexts(CompletionProperty completion, IDictionary<string, object> queryContext)
@@ -181,12 +173,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected static string GetSuggesterName(string fieldName)
         {
-            return $"{fieldName}-{ModuleConstants.CompletionSubFieldName}-suggest";
-        }
-
-        protected static string GetCompletionFieldName(string fieldName)
-        {
-            return $"{fieldName}.{ModuleConstants.CompletionSubFieldName}";
+            return $"{fieldName.ToLowerInvariant()}_suggest";
         }
 
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)

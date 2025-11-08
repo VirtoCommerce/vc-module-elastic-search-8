@@ -1,4 +1,5 @@
 using System.Globalization;
+using VirtoCommerce.ElasticSearch8.Core;
 
 namespace VirtoCommerce.ElasticSearch8.Data.Extensions
 {
@@ -8,6 +9,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
         {
             return originalName?.ToLowerInvariant();
         }
+
+        public static string ToSuggestionFieldName(this string originalName)
+        {
+            return originalName is null ? null : $"{originalName.ToElasticFieldName()}_{ModuleConstants.SuggestionFieldName}";
+        }
+
 
         public static string ToStringInvariant(this object value)
         {
