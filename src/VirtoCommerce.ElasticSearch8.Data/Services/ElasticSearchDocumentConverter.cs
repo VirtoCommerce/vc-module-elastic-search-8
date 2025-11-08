@@ -160,7 +160,7 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
                     continue;
                 }
 
-                var text = Convert.ToString(item, CultureInfo.InvariantCulture);
+                var text = Convert.ToString(item, CultureInfo.InvariantCulture)?.ToLowerInvariant();
                 foreach (var token in GetTokens(text, maxLength, maxTokens))
                 {
                     inputs.Add(token);
@@ -169,7 +169,7 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
         }
         else
         {
-            var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+            var text = Convert.ToString(value, CultureInfo.InvariantCulture)?.ToLowerInvariant();
             foreach (var token in GetTokens(text, maxLength, maxTokens))
             {
                 inputs.Add(token);
