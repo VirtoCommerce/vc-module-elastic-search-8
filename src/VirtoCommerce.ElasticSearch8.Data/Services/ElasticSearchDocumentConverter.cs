@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Mapping;
+using Microsoft.Extensions.ObjectPool;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Core.Services;
 using VirtoCommerce.ElasticSearch8.Data.Extensions;
@@ -13,6 +15,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services;
 
 public class ElasticSearchDocumentConverter(IElasticSearchPropertyService propertyService) : IElasticSearchDocumentConverter
 {
+    private static readonly char[] _tokenSeparators = [' ', '\t', '\n', '\r'];
+    private static readonly ObjectPool<StringBuilder> _stringBuilderPool = new DefaultObjectPoolProvider().CreateStringBuilderPool();
+
     public SearchDocument ToProviderDocument(string documentType, IndexDocument indexDocument, IDictionary<PropertyName, IProperty> properties)
     {
         var document = new SearchDocument { Id = indexDocument.Id };
@@ -130,50 +135,89 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
 
     protected virtual object GetSuggestionFieldValue(string documentType, string fieldName, IndexDocumentField field, IProperty property, object value)
     {
-        var inputs = value is null ? [] : GetCompletionInputs(value);
+        var input = GetCompletionInputs(value);
 
-        return inputs.Length > 0 ? new Dictionary<string, object> { { "input", inputs } } : null;
+        return input.Length > 0 ? new Dictionary<string, object> { { nameof(input), input } } : null;
     }
 
-    protected static string[] GetCompletionInputs(object value)
+    protected static string[] GetCompletionInputs(object value, int maxLength = ModuleConstants.SuggestionFieldLength, int maxTokens = ModuleConstants.SuggestionFieldTokens)
     {
-        var inputs = new List<string>();
+        if (value is null)
+        {
+            return [];
+        }
+
+        // SortedSet handles both deduplication and sorting in a single pass
+        var inputs = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
         if (value is IEnumerable<object> values)
         {
-            inputs.AddRange(values.Where(x => x != null).SelectMany(item => GetTokens(Convert.ToString(item, CultureInfo.InvariantCulture))));
+            // Direct iteration avoids LINQ overhead
+            foreach (var item in values)
+            {
+                if (item is null)
+                {
+                    continue;
+                }
+
+                var text = Convert.ToString(item, CultureInfo.InvariantCulture);
+                foreach (var token in GetTokens(text, maxLength, maxTokens))
+                {
+                    inputs.Add(token);
+                }
+            }
         }
-        else if (value != null)
+        else
         {
-            inputs.AddRange(GetTokens(Convert.ToString(value, CultureInfo.InvariantCulture)));
+            var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+            foreach (var token in GetTokens(text, maxLength, maxTokens))
+            {
+                inputs.Add(token);
+            }
         }
 
-        return inputs.Count != 0
-            ? inputs.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray()
-            : [];
+        return inputs.Count > 0 ? [.. inputs] : [];
     }
 
-    protected static IEnumerable<string> GetTokens(string text)
+    protected static IEnumerable<string> GetTokens(string text, int maxLength, int maxTokens)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
             yield break;
         }
 
-        var tokens = text.Split([' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var tokens = text.Split(_tokenSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (tokens.Length == 0)
         {
             yield break;
         }
 
-        var maxTokens = Math.Min(tokens.Length, ModuleConstants.SuggestionFieldTokens);
-        for (var length = 1; length <= maxTokens; length++)
+        var tokensCount = Math.Min(tokens.Length, maxTokens);
+        var sb = _stringBuilderPool.Get();
+
+        try
         {
-            var phrase = string.Join(" ", tokens.Take(length));
-            if (phrase.Length <= ModuleConstants.SuggestionFieldLength)
+            for (var token = 0; token < tokensCount; token++)
             {
-                yield return phrase;
+                if (token > 0)
+                {
+                    sb.Append(' ');
+                }
+                sb.Append(tokens[token]);
+
+                if (sb.Length <= maxLength)
+                {
+                    yield return sb.ToString();
+                }
+                else
+                {
+                    yield break;
+                }
             }
+        }
+        finally
+        {
+            _stringBuilderPool.Return(sb);
         }
     }
 
