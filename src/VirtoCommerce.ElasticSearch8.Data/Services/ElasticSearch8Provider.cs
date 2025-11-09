@@ -736,7 +736,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 ThrowException($"Failed to get index name for alias {indexAlias}. {activeIndexResponse.DebugInformation}", activeIndexResponse.ApiCallDetails.OriginalException);
             }
 
-            return activeIndexResponse.Indices.Keys.FirstOrDefault();
+            return activeIndexResponse.Indices?.Keys.FirstOrDefault();
         }
 
         protected virtual string GetIndexName(string documentType)
