@@ -148,16 +148,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 //get backup index by alias and delete if present
                 var indexAlias = GetIndexAlias(BackupIndexAlias, documentType);
-                var indexName = await GetIndexNameAsync(indexAlias);
-
-                if (indexName != null)
-                {
-                    var response = await Client.Indices.DeleteAsync(indexName);
-                    if (!response.IsValidResponse && response.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
-                    {
-                        ThrowException($"Failed to delete index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
-                    }
-                }
+                await InternalDeleteAsync(indexAlias);
 
                 RemoveMappingFromCache(indexAlias);
             }
@@ -527,6 +518,19 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 IndexName = indexName,
                 ProviderDocuments = providerDocuments,
             };
+        }
+
+        protected virtual async Task InternalDeleteAsync(string indexAlias)
+        {
+            var indexName = await GetIndexNameAsync(indexAlias);
+            if (indexName != null)
+            {
+                var response = await Client.Indices.DeleteAsync(indexName);
+                if (!response.IsValidResponse && response.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                {
+                    ThrowException($"Failed to delete index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
+                }
+            }
         }
 
         protected virtual async Task UpdateMappingAsync(string documentType, string indexName, Properties properties)
