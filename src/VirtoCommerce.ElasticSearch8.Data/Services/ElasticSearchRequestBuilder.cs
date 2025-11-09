@@ -106,7 +106,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 SourceIncludes = fieldNames,
             };
 
-            var completionFields = fieldNames.Select(GetCompletionProperty).Where(x => x.Completion != null).ToArray();
+            var completionFields = fieldNames.Select(x => GetCompletionProperty(x, availableFields)).Where(x => x.Completion != null).ToArray();
             if (completionFields.Length == 0)
             {
                 return result;
@@ -123,57 +123,57 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                             Field = x.PropertyName,
                             Size = request.Size,
                             SkipDuplicates = true,
-                            Contexts = GetContexts(x.Completion, request.QueryContext),
+                            Contexts = GetCompletionContexts(x.Completion, request.QueryContext),
                         },
                     }),
             };
 
             return result;
-
-            (string PropertyName, CompletionProperty Completion) GetCompletionProperty(string field)
-            {
-                var suggestionFieldName = field.ToSuggestionFieldName();
-                if (availableFields.TryGetValue(suggestionFieldName, out var property) && property is CompletionProperty completion)
-                {
-                    return (suggestionFieldName, completion);
-                }
-
-                return default;
-            }
-
-            IDictionary<Field, ICollection<CompletionContext>> GetContexts(CompletionProperty completion, IDictionary<string, object> queryContext)
-            {
-                if (!(completion.Contexts?.Count > 0) || !(queryContext?.Count > 0))
-                {
-                    return null;
-                }
-
-                var contexts = new Dictionary<Field, ICollection<CompletionContext>>();
-
-                foreach (var context in completion.Contexts)
-                {
-                    var name = context.Name.ToString();
-                    if (!queryContext.TryGetValue(name, out var value))
-                    {
-                        continue;
-                    }
-
-                    if (value is not IEnumerable<object> values)
-                    {
-                        values = [value];
-                    }
-
-                    contexts[name] = values.Select(x => Convert.ToString(x, CultureInfo.InvariantCulture))
-                        .Where(x => x != null).Select(x => new CompletionContext(x)).ToArray();
-                }
-
-                return contexts;
-            }
         }
 
         protected static string GetSuggesterName(string fieldName)
         {
             return $"{fieldName.ToLowerInvariant()}_suggest";
+        }
+
+        protected static (string PropertyName, CompletionProperty Completion) GetCompletionProperty(string field, IDictionary<PropertyName, IProperty> availableFields)
+        {
+            var suggestionFieldName = field.ToSuggestionFieldName();
+            if (availableFields.TryGetValue(suggestionFieldName, out var property) && property is CompletionProperty completion)
+            {
+                return (suggestionFieldName, completion);
+            }
+
+            return default;
+        }
+
+        protected static IDictionary<Field, ICollection<CompletionContext>> GetCompletionContexts(CompletionProperty completion, IDictionary<string, object> queryContext)
+        {
+            if (!(completion.Contexts?.Count > 0) || !(queryContext?.Count > 0))
+            {
+                return null;
+            }
+
+            var contexts = new Dictionary<Field, ICollection<CompletionContext>>();
+
+            foreach (var context in completion.Contexts)
+            {
+                var name = context.Name.ToString();
+                if (!queryContext.TryGetValue(name, out var value))
+                {
+                    continue;
+                }
+
+                if (value is not IEnumerable<object> values)
+                {
+                    values = [value];
+                }
+
+                contexts[name] = values.Select(x => Convert.ToString(x, CultureInfo.InvariantCulture)).Where(x => x != null)
+                    .Select(x => new CompletionContext(x)).ToArray();
+            }
+
+            return contexts;
         }
 
         protected virtual Query GetQuery(VirtoCommerceSearchRequest request)

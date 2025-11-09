@@ -36,6 +36,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly ILogger<ElasticSearch8Provider> _logger;
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
+        private const int SuffixLength = 10;
 
         protected ElasticsearchClient Client { get; }
         protected Uri ServerUrl { get; }
@@ -767,7 +768,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected static string GetRandomIndexSuffix()
         {
             var result = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            result = SpecialSymbols().Replace(result, string.Empty).Truncate(10, null).ToLowerInvariant();
+            result = SpecialSymbols().Replace(result, string.Empty).Truncate(SuffixLength, null).ToLowerInvariant();
 
             return result;
         }
