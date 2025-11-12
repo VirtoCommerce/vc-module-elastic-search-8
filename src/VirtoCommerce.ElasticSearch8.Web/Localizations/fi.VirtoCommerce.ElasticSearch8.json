@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Indeksin kenttien enimmäismäärä",
+        "description": "Määritä indeksiin sisällytettävien kenttien enimmäismäärä. Tämän rajan ylittäminen voi aiheuttaa suorituskykyongelmia. Lisätietoja Elasticsearch8-dokumentaatiosta: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Token-suodatin",
+        "description": "Valitse token-suodatin, jota käytetään haettavien kenttien indeksoinnissa. Tämä vaatii indeksin uudelleenrakentamisen"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Minimi gram-pituus",
+          "description": "Määritä grammin pienin merkkimäärä. Tämä vaatii indeksin uudelleenrakentamisen"
+        },
+        "MaxGram": {
+          "title": "Maksimi gram-pituus",
+          "description": "Määritä grammin suurin merkkimäärä. Tämä vaatii indeksin uudelleenrakentamisen"
+        }
+      },
+      "MinScore": {
+        "title": "Vähimmäispisteet",
+        "description": "Määritä pienin pistemäärä, joka asiakirjalla on oltava, jotta se katsotaan osumaksi. Tämän kynnyksen alapuolella olevat asiakirjat eivät sisälly tuloksiin. Aseta 0 palauttaaksesi kaikki asiakirjat. Koskee, kun avainsana on määritetty"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Vähimmäispisteet asiakirjatyypille",
+        "description": "Määritä pienin pistemäärä tietylle asiakirjatyypille. Tämän kynnyksen alapuolella olevat asiakirjat eivät sisälly tuloksiin. Aseta 0 palauttaaksesi kaikki asiakirjat. Koskee, kun avainsana on määritetty"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Kaksoiskappaleiden aktiivisten indeksien poistaminen",
+        "description": "Etsi ja poista kaksoiskappaleet aktiivisista indekseistä ennen Poista ja rakenna -toimintoa"
+      },
+      "EnableSemanticSearch": {
+        "title": "Semanttisen haun aktivointi",
+        "description": "Ota käyttöön tai poista käytöstä semanttinen haku"
+      },
+      "SemanticModelId": {
+        "title": "Semanttisen mallin ID",
+        "description": "Varmista, että semanttisen mallin ID on määritetty oikein"
+      },
+      "SemanticPipelineName": {
+        "title": "Semanttisen putkilinjan nimi",
+        "description": "Varmista, että semanttisen mallin putkilinjan nimi on määritetty oikein. Se tuottaa upotukset, jotka on luotu data-indeksointimallilla"
+      },
+      "SemanticFieldName": {
+        "title": "Semanttisen kentän nimi",
+        "description": "Määritä semanttisen mallin kentän nimi. Sisältää semanttisen putkilinjan tuottamat upotukset. X.tokens tai X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Semanttisen mallin tyyppi",
+        "description": "Valitse semanttisen mallin tyyppi luettelosta"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Vektorimallin dimensioiden määrä",
+        "description": "Määritä kolmannen osapuolen vektorimallin dimensioiden määrä. Yleensä löytyy mallin kuvauksesta"
+      },
+      "KeywordBoost": {
+        "title": "Avainsanahaun korostus",
+        "description": "Määritä liukuluku säätääksesi relevanssipisteitä asiakirjoille, jotka vastaavat avainsanahakuja. Suuremmat arvot lisäävät avainsanaosumien merkitystä. Oletusarvo on 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Semanttisen haun korostus",
+        "description": "Määritä liukuluku säätääksesi relevanssipisteitä asiakirjoille, jotka vastaavat semanttisia hakuja. Suuremmat arvot lisäävät semanttisten osumien merkitystä. Oletusarvo on 1.0"
+      }
+    }
+  }
+}

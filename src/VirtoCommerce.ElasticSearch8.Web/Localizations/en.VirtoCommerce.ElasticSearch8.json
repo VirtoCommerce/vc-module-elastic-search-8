@@ -29,11 +29,11 @@
       },
       "DeleteDuplicateIndexes": {
         "title": "Deleting duplicate active indexes",
-        "description": "Search and delete duplicate active indexes before Delete and build operation"
+        "description": "Search and delete duplicate active indexes before Delete and Build operation"
       },
       "EnableSemanticSearch": {
-        "title": "Semantic search activation",
-        "description": "Enable/ disable semantic search"
+        "title": "Semantic search",
+        "description": "Enable/disable semantic search"
       },
       "SemanticModelId": {
         "title": "Semantic model Id",
@@ -53,7 +53,7 @@
       },
       "SemanticVectorModelDimensions": {
         "title": "Vector model dimensions number",
-        "description": "Specify the number of dimensions of the third party vector model. Typicaly found in the model description"
+        "description": "Specify the number of dimensions of the third party vector model. Typically found in the model description"
       },
       "KeywordBoost": {
         "title": "Boost for keyword search",
