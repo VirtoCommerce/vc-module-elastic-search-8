@@ -533,6 +533,51 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
+        [Obsolete("Use UpdateMappingAsync with documentType parameter", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
+        protected async Task UpdateMappingAsync(string indexName, Properties properties)
+        {
+            Properties newProperties;
+            Properties allProperties;
+
+            var mapping = await LoadMappingAsync(indexName);
+            var existingProperties = new Properties(mapping);
+
+            if (mapping.IsNullOrEmpty())
+            {
+                newProperties = properties;
+                allProperties = properties;
+            }
+            else
+            {
+
+                newProperties = new Properties();
+                allProperties = existingProperties;
+
+                foreach (var (name, value) in properties)
+                {
+                    if (!existingProperties.TryGetProperty(name, out _))
+                    {
+                        newProperties.Add(name, value);
+                        allProperties.Add(name, value);
+                    }
+                }
+            }
+
+            if (newProperties.Any())
+            {
+                var request = new PutMappingRequest(indexName) { Properties = newProperties };
+                var response = await Client.Indices.PutMappingAsync(request);
+
+                if (!response.IsValidResponse)
+                {
+                    ThrowException("Failed to submit mapping. " + response.DebugInformation, response.ApiCallDetails.OriginalException);
+                }
+            }
+
+            AddMappingToCache(indexName, allProperties);
+            await Client.Indices.RefreshAsync(indexName);
+        }
+
         protected virtual async Task UpdateMappingAsync(string documentType, string indexName, Properties properties)
         {
             //!!!DO NOT REMOVE
@@ -576,7 +621,43 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return (newProperties, allProperties);
         }
 
+        [Obsolete("Use IElasticSearchDocumentConverter.ToProviderDocument", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
+        protected virtual SearchDocument ConvertToProviderDocument(IndexDocument document, IDictionary<PropertyName, IProperty> properties)
+        {
+            return _documentConverter.ToProviderDocument(null, document, properties);
+        }
+
         #region CreateIndex (move to index create service)
+
+        [Obsolete("Use CreateIndexAsync with documentType parameter", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
+        protected virtual async Task CreateIndexAsync(string indexName, string alias)
+        {
+            var response = await Client.Indices.CreateAsync(indexName, i => i
+                .Settings(x => ConfigureIndexSettings(x))
+                .Aliases(x => x.Add(alias, new AliasDescriptor())
+                ));
+
+            if (!response.ApiCallDetails.HasSuccessfulStatusCode)
+            {
+                ThrowException($"Failed to create index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
+            }
+        }
+
+        [Obsolete("Use ConfigureIndexSettings with documentType parameter", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
+        protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings)
+        {
+            var fieldsLimit = _settingsManager.GetFieldsLimit();
+            var ngramDiff = _settingsManager.GetMaxGram() - _settingsManager.GetMinGram();
+
+            return settings
+                .MaxNgramDiff(ngramDiff)
+                .Mapping(mappingDescriptor => ConfigureMappingLimit(mappingDescriptor, fieldsLimit))
+                .Analysis(analysisDescriptor => analysisDescriptor
+                    .TokenFilters(ConfigureTokenFilters)
+                    .Analyzers(ConfigureAnalyzers)
+                    .Normalizers(ConfigureNormalizers)
+                );
+        }
 
         protected virtual async Task CreateIndexAsync(string documentType, string indexName, string alias)
         {

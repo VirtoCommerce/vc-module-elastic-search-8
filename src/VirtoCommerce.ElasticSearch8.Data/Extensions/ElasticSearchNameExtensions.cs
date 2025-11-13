@@ -15,7 +15,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
             return originalName is null ? null : $"{originalName.ToElasticFieldName()}_{ModuleConstants.SuggestionFieldName}";
         }
 
-
         public static string ToStringInvariant(this object value)
         {
             return string.Format(CultureInfo.InvariantCulture, "{0}", value);
