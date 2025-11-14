@@ -38,6 +38,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
 
             var responseBuilder = new ElasticSearchResponseBuilder();
             var propertyService = new ElasticSearchPropertyService();
+            var documentConverter = new ElasticSearchDocumentConverter(propertyService);
 
             var providerLogger = loggerFactory.CreateLogger<ElasticSearch8Provider>();
 
@@ -47,9 +48,8 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
                 settingsManager,
                 requestBuilder,
                 responseBuilder,
-                propertyService,
-                providerLogger
-                );
+                documentConverter,
+                providerLogger);
 
             return provider;
         }

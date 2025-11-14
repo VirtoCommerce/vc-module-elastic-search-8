@@ -90,8 +90,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
                 return settingsManager.GetMinScore();
             }
 
-            var score = documentScores?.FirstOrDefault(x => documentType.EqualsInvariant(x.DocumentType));
-            return score == null ? settingsManager.GetMinScore() : score.MinScore;
+            var score = documentScores?.FirstOrDefault(x => documentType.EqualsIgnoreCase(x.DocumentType));
+            return score?.MinScore ?? settingsManager.GetMinScore();
         }
 
         public static double? GetMinScore(this ISettingsManager settingsManager)
