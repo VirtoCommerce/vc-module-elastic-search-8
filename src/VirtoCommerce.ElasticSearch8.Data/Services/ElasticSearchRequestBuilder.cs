@@ -128,6 +128,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     }),
             };
 
+            // Filter contexts to avoid response deserialization issues
+            result.FilterPath = ["-**.options._ignored", "-**.options.contexts"];
+
             return result;
         }
 
