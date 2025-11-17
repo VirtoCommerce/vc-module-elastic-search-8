@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Elastic.Clients.Elasticsearch;
@@ -39,15 +38,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _searchAggregationsBuilder = searchAggregationsBuilder;
             _settingsManager = settingsManager;
             _logger = logger;
-        }
-
-        [Obsolete("Use BuildRequest(VirtoCommerceSearchRequest, string, string, IDictionary<PropertyName, IProperty>)", DiagnosticId = "VC0009", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions")]
-        public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, IDictionary<PropertyName, IProperty> availableFields)
-        {
-            return BuildRequest(request: request,
-                indexName: indexName,
-                documentType: null,
-                availableFields: availableFields);
         }
 
         public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, string documentType, IDictionary<PropertyName, IProperty> availableFields)
@@ -212,8 +202,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual bool IsScoreField(VirtoCommerceSortingField field)
         {
-            return field.FieldName.EqualsInvariant(ModuleConstants.ScoreFieldName) ||
-                            field.FieldName.EqualsInvariant(ModuleConstants.ElasticScoreFieldName);
+            return field.FieldName.EqualsIgnoreCase(ModuleConstants.ScoreFieldName) ||
+                            field.FieldName.EqualsIgnoreCase(ModuleConstants.ElasticScoreFieldName);
         }
 
         protected virtual SourceConfig GetSourceFilters(IList<string> includeFields)

@@ -4,9 +4,9 @@
   <version>3.823.0</version>
   <version-tag />
 
-  <platformVersion>3.853.0</platformVersion>
+  <platformVersion>3.916.0-alpha.13164-vcst-4203-cleanup</platformVersion>
   <dependencies>
-    <dependency id="VirtoCommerce.Search" version="3.816.0" />
+    <dependency id="VirtoCommerce.Search" version="3.820.0-alpha.795-vcst-4203-cleanup" />
   </dependencies>
 
   <title>Elastic Search 8</title>

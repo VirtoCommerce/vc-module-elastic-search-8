@@ -8,6 +8,7 @@ using VirtoCommerce.ElasticSearch8.Core.Services;
 using VirtoCommerce.ElasticSearch8.Data.Extensions;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.SearchModule.Core.Model;
+using Aggregation = Elastic.Clients.Elasticsearch.Aggregations.Aggregation;
 
 namespace VirtoCommerce.ElasticSearch8.Data.Services
 {
@@ -58,7 +59,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             return availableFields
                 .Any(kvp =>
-                    kvp.Key.Name.EqualsInvariant(fieldName) &&
+                    kvp.Key.Name.EqualsIgnoreCase(fieldName) &&
                     kvp.Value is KeywordProperty keywordProperty &&
                     keywordProperty.Fields?.TryGetProperty("raw", out _) == true);
         }

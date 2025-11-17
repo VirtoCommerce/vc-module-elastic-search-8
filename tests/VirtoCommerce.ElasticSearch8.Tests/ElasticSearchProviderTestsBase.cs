@@ -232,7 +232,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests
 
             if (response?.Aggregations?.Count > 0)
             {
-                result = response.Aggregations.SingleOrDefault(a => a.Id.EqualsInvariant(aggregationId));
+                result = response.Aggregations.SingleOrDefault(a => a.Id.EqualsIgnoreCase(aggregationId));
             }
 
             return result;

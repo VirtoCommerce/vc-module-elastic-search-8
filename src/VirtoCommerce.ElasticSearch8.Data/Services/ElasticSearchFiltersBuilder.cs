@@ -85,8 +85,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             var termValues = default(FieldValue[]);
 
-            var property = availableFields.Where(x => x.Key.Name.EqualsInvariant(termFilter.FieldName)).Select(x => x.Value).FirstOrDefault();
-            if (property?.Type?.EqualsInvariant(FieldType.Boolean.ToString()) == true)
+            var property = availableFields.Where(x => x.Key.Name.EqualsIgnoreCase(termFilter.FieldName)).Select(x => x.Value).FirstOrDefault();
+            if (property?.Type?.EqualsIgnoreCase(FieldType.Boolean.ToString()) == true)
             {
                 termValues = termFilter.Values.Select(v => v switch
                 {
@@ -95,7 +95,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     _ => FieldValue.String(v.ToLowerInvariant())
                 }).ToArray();
             }
-            else if (property?.Type?.EqualsInvariant(FieldType.Date.ToString()) == true)
+            else if (property?.Type?.EqualsIgnoreCase(FieldType.Date.ToString()) == true)
             {
                 termValues = termFilter.Values.Select(x => FieldValue.String(x)).ToArray();
             }
@@ -116,9 +116,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             Query result = null;
 
             var fieldName = rangeFilter.FieldName.ToElasticFieldName();
-            var property = availableFields.Where(x => x.Key.Name.EqualsInvariant(rangeFilter.FieldName)).Select(x => x.Value).FirstOrDefault();
+            var property = availableFields.Where(x => x.Key.Name.EqualsIgnoreCase(rangeFilter.FieldName)).Select(x => x.Value).FirstOrDefault();
 
-            if (property?.Type?.EqualsInvariant(FieldType.Date.ToString()) == true)
+            if (property?.Type?.EqualsIgnoreCase(FieldType.Date.ToString()) == true)
             {
                 foreach (var value in rangeFilter.Values)
                 {
