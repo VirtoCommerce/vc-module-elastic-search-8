@@ -15,7 +15,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services;
 
 public class ElasticSearchDocumentConverter(IElasticSearchPropertyService propertyService) : IElasticSearchDocumentConverter
 {
-    private static readonly char[] _tokenSeparators = [' ', '\t', '\n', '\r'];
     private static readonly ObjectPool<StringBuilder> _stringBuilderPool = new DefaultObjectPoolProvider().CreateStringBuilderPool();
 
     public SearchDocument ToProviderDocument(string documentType, IndexDocument indexDocument, IDictionary<PropertyName, IProperty> properties)
@@ -186,18 +185,42 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
             yield break;
         }
 
-        var tokens = text.Split(_tokenSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (tokens.Length == 0)
+        var span = text.AsSpan();
+        var tokens = new List<string>(maxTokens);
+        var tokenStart = 0;
+
+        // Manual tokenization using Span to avoid Split allocation
+        for (var i = 0; i <= span.Length; i++)
+        {
+            if (i == span.Length || IsTokenSeparator(span[i]))
+            {
+                if (i > tokenStart)
+                {
+                    var dirtyToken = span.Slice(tokenStart, i - tokenStart);
+                    var token = TrimPunctuation(dirtyToken);
+
+                    if (!token.IsEmpty && !token.IsWhiteSpace())
+                    {
+                        tokens.Add(new string(token));
+                        if (tokens.Count >= maxTokens)
+                        {
+                            break;
+                        }
+                    }
+                }
+                tokenStart = i + 1;
+            }
+        }
+
+        if (tokens.Count == 0)
         {
             yield break;
         }
 
-        var tokensCount = Math.Min(tokens.Length, maxTokens);
         var sb = _stringBuilderPool.Get();
-
         try
         {
-            for (var token = 0; token < tokensCount; token++)
+            for (var token = 0; token < tokens.Count; token++)
             {
                 if (token > 0)
                 {
@@ -219,6 +242,45 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
         {
             _stringBuilderPool.Return(sb);
         }
+    }
+
+    protected static bool IsTokenSeparator(char c)
+    {
+        return c is ' ' or '\t' or '\n' or '\r';
+    }
+
+    protected static bool IsPreservedSymbol(char c)
+    {
+        // Preserve only meaningful symbols in e-commerce and tech contexts: # % @ &
+        return c is '#' or '%' or '@' or '&';
+    }
+
+    protected static bool ShouldTrimPunctuation(char c)
+    {
+        // Don't trim preserved symbols, trim punctuation characters
+        return !IsPreservedSymbol(c) && char.IsPunctuation(c);
+    }
+
+    protected static ReadOnlySpan<char> TrimPunctuation(ReadOnlySpan<char> token)
+    {
+        if (token.IsEmpty)
+        {
+            return token;
+        }
+
+        var start = 0;
+        while (start < token.Length && ShouldTrimPunctuation(token[start]))
+        {
+            start++;
+        }
+
+        var end = token.Length - 1;
+        while (end >= start && ShouldTrimPunctuation(token[end]))
+        {
+            end--;
+        }
+
+        return start > end ? ReadOnlySpan<char>.Empty : token.Slice(start, end - start + 1);
     }
 
     protected virtual IProperty CreateProperty(string documentType, IndexDocumentField field)

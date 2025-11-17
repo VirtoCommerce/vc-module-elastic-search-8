@@ -44,6 +44,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             return new CompletionProperty
             {
+                Analyzer = "standard",
                 MaxInputLength = ModuleConstants.SuggestionFieldLength,
             };
         }
