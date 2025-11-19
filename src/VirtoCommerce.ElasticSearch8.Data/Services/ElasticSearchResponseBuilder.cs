@@ -137,7 +137,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     {
                         var aggregationValue = new AggregationResponseValue
                         {
-                            Id = bucket.Key.Value?.ToString(), Count = bucket.DocCount,
+                            Id = bucket.Key.Value?.ToString(),
+                            Count = bucket.DocCount,
                         };
                         aggregation.Values.Add(aggregationValue);
                     }
@@ -148,7 +149,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     {
                         var aggregationValue = new AggregationResponseValue
                         {
-                            Id = bucket.KeyAsString ?? bucket.Key.ToStringInvariant(), Count = bucket.DocCount,
+                            Id = bucket.KeyAsString ?? bucket.Key.ToStringInvariant(),
+                            Count = bucket.DocCount,
                         };
                         aggregation.Values.Add(aggregationValue);
                     }
@@ -159,7 +161,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     {
                         var aggregationValue = new AggregationResponseValue
                         {
-                            Id = bucket.KeyAsString ?? bucket.Key.ToStringInvariant(), Count = bucket.DocCount,
+                            Id = bucket.KeyAsString ?? bucket.Key.ToStringInvariant(),
+                            Count = bucket.DocCount,
                         };
                         aggregation.Values.Add(aggregationValue);
                     }
@@ -176,7 +179,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         {
                             var aggregationValue = new AggregationResponseValue
                             {
-                                Id = valueId, Count = bucket.DocCount,
+                                Id = valueId,
+                                Count = bucket.DocCount,
                             };
                             aggregation.Values.Add(aggregationValue);
                         }

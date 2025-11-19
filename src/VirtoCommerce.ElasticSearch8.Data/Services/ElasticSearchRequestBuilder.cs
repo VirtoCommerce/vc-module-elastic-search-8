@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.Mapping;
@@ -16,7 +15,6 @@ using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Model;
 using ElasticSearchRequest = Elastic.Clients.Elasticsearch.SearchRequest;
 using ElasticSearchSortOptions = Elastic.Clients.Elasticsearch.SortOptions;
-using RegexOptions = System.Text.RegularExpressions.RegexOptions;
 using VirtoCommerceSearchRequest = VirtoCommerce.SearchModule.Core.Model.SearchRequest;
 using VirtoCommerceSortingField = VirtoCommerce.SearchModule.Core.Model.SortingField;
 

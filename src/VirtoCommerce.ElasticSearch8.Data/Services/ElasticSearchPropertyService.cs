@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Mapping;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Core.Services;
