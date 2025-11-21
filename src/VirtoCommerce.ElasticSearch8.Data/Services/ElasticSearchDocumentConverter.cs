@@ -235,24 +235,26 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
         // Manual tokenization using Span to avoid Split allocation
         for (var i = 0; i <= span.Length; i++)
         {
-            if (i == span.Length || IsTokenSeparator(span[i]))
+            if (i < span.Length && !IsTokenSeparator(span[i]))
             {
-                if (i > tokenStart)
-                {
-                    var dirtyToken = span.Slice(tokenStart, i - tokenStart);
-                    var token = TrimPunctuation(dirtyToken);
+                continue;
+            }
 
-                    if (!token.IsEmpty && !token.IsWhiteSpace())
+            if (i > tokenStart)
+            {
+                var dirtyToken = span.Slice(tokenStart, i - tokenStart);
+                var token = TrimPunctuation(dirtyToken);
+
+                if (!token.IsEmpty && !token.IsWhiteSpace())
+                {
+                    tokens.Add(new string(token));
+                    if (tokens.Count >= maxTokens)
                     {
-                        tokens.Add(new string(token));
-                        if (tokens.Count >= maxTokens)
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
-                tokenStart = i + 1;
             }
+            tokenStart = i + 1;
         }
     }
 
