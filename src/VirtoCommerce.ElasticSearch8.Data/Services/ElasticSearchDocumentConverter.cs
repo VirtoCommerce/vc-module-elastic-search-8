@@ -16,6 +16,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services;
 public class ElasticSearchDocumentConverter(IElasticSearchPropertyService propertyService) : IElasticSearchDocumentConverter
 {
     private static readonly ObjectPool<StringBuilder> _stringBuilderPool = new DefaultObjectPoolProvider().CreateStringBuilderPool();
+    private static readonly ObjectPool<List<string>> _stringListPool = new DefaultObjectPoolProvider().Create(new ListPooledObjectPolicy<string> { InitialCapacity = ModuleConstants.SuggestionFieldTokens });
 
     public SearchDocument ToProviderDocument(string documentType, IndexDocument indexDocument, IDictionary<PropertyName, IProperty> properties)
     {
@@ -185,43 +186,50 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
             yield break;
         }
 
-        var tokens = SplitText(text, maxTokens);
-        if (tokens.Count == 0)
-        {
-            yield break;
-        }
-
-        var sb = _stringBuilderPool.Get();
+        var tokens = _stringListPool.Get();
         try
         {
-            for (var token = 0; token < tokens.Count; token++)
+            SplitText(text, maxTokens, tokens);
+            if (tokens.Count == 0)
             {
-                if (token > 0)
-                {
-                    sb.Append(' ');
-                }
-                sb.Append(tokens[token]);
+                yield break;
+            }
 
-                if (sb.Length <= maxLength)
+            var sb = _stringBuilderPool.Get();
+            try
+            {
+                for (var token = 0; token < tokens.Count; token++)
                 {
-                    yield return sb.ToString();
+                    if (token > 0)
+                    {
+                        sb.Append(' ');
+                    }
+                    sb.Append(tokens[token]);
+
+                    if (sb.Length <= maxLength)
+                    {
+                        yield return sb.ToString();
+                    }
+                    else
+                    {
+                        yield break;
+                    }
                 }
-                else
-                {
-                    yield break;
-                }
+            }
+            finally
+            {
+                _stringBuilderPool.Return(sb);
             }
         }
         finally
         {
-            _stringBuilderPool.Return(sb);
+            _stringListPool.Return(tokens);
         }
     }
 
-    protected static List<string> SplitText(string text, int maxTokens)
+    private static void SplitText(string text, int maxTokens, List<string> tokens)
     {
         var span = text.AsSpan();
-        var tokens = new List<string>(maxTokens);
         var tokenStart = 0;
 
         // Manual tokenization using Span to avoid Split allocation
@@ -246,8 +254,6 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
                 tokenStart = i + 1;
             }
         }
-
-        return tokens;
     }
 
     protected static bool IsTokenSeparator(char c)
