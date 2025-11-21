@@ -185,33 +185,7 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
             yield break;
         }
 
-        var span = text.AsSpan();
-        var tokens = new List<string>(maxTokens);
-        var tokenStart = 0;
-
-        // Manual tokenization using Span to avoid Split allocation
-        for (var i = 0; i <= span.Length; i++)
-        {
-            if (i == span.Length || IsTokenSeparator(span[i]))
-            {
-                if (i > tokenStart)
-                {
-                    var dirtyToken = span.Slice(tokenStart, i - tokenStart);
-                    var token = TrimPunctuation(dirtyToken);
-
-                    if (!token.IsEmpty && !token.IsWhiteSpace())
-                    {
-                        tokens.Add(new string(token));
-                        if (tokens.Count >= maxTokens)
-                        {
-                            break;
-                        }
-                    }
-                }
-                tokenStart = i + 1;
-            }
-        }
-
+        var tokens = SplitText(text, maxTokens);
         if (tokens.Count == 0)
         {
             yield break;
@@ -242,6 +216,38 @@ public class ElasticSearchDocumentConverter(IElasticSearchPropertyService proper
         {
             _stringBuilderPool.Return(sb);
         }
+    }
+
+    protected static List<string> SplitText(string text, int maxTokens)
+    {
+        var span = text.AsSpan();
+        var tokens = new List<string>(maxTokens);
+        var tokenStart = 0;
+
+        // Manual tokenization using Span to avoid Split allocation
+        for (var i = 0; i <= span.Length; i++)
+        {
+            if (i == span.Length || IsTokenSeparator(span[i]))
+            {
+                if (i > tokenStart)
+                {
+                    var dirtyToken = span.Slice(tokenStart, i - tokenStart);
+                    var token = TrimPunctuation(dirtyToken);
+
+                    if (!token.IsEmpty && !token.IsWhiteSpace())
+                    {
+                        tokens.Add(new string(token));
+                        if (tokens.Count >= maxTokens)
+                        {
+                            break;
+                        }
+                    }
+                }
+                tokenStart = i + 1;
+            }
+        }
+
+        return tokens;
     }
 
     protected static bool IsTokenSeparator(char c)
