@@ -3,6 +3,7 @@ using System.Linq;
 using FluentAssertions;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Data.Services;
+using VirtoCommerce.Platform.Core.Common;
 using Xunit;
 
 namespace VirtoCommerce.ElasticSearch8.Tests.Unit
@@ -309,7 +310,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
 
             // Assert
             result.Should().Equal(expected);
-            result.Should().OnlyContain(x => x == x.ToLowerInvariant());
+            result.Should().OnlyContain(x => x.EqualsIgnoreCase(x));
         }
 
         [Fact]

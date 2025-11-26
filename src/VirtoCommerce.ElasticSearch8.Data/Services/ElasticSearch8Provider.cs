@@ -580,9 +580,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual async Task UpdateMappingAsync(string documentType, string indexName, Properties properties)
         {
-            //!!!DO NOT REMOVE
-            //documentType parameter can be used in derived classes to customize mapping per document type
-
             var mapping = await LoadMappingAsync(indexName);
             var (newProperties, allProperties) = MergeProperties(documentType, new Properties(mapping), properties);
 
@@ -643,6 +640,19 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
+        protected virtual async Task CreateIndexAsync(string documentType, string indexName, string alias)
+        {
+            var response = await Client.Indices.CreateAsync(indexName, descriptor => descriptor
+                .Settings(x => ConfigureIndexSettings(x, documentType))
+                .Aliases(x => ConfigureIndexAliases(x, documentType, indexName, alias)
+            ));
+
+            if (!response.IsValidResponse)
+            {
+                ThrowException($"Failed to create index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
+            }
+        }
+
         [Obsolete("Use ConfigureIndexSettings with documentType parameter", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
         protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings)
         {
@@ -657,22 +667,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     .Analyzers(ConfigureAnalyzers)
                     .Normalizers(ConfigureNormalizers)
                 );
-        }
-
-        protected virtual async Task CreateIndexAsync(string documentType, string indexName, string alias)
-        {
-            //!!!DO NOT REMOVE
-            //documentType parameter can be used in derived classes to customize index settings per document type
-
-            var response = await Client.Indices.CreateAsync(indexName, descriptor => descriptor
-                .Settings(x => ConfigureIndexSettings(x, documentType))
-                .Aliases(x => ConfigureIndexAliases(x, documentType, indexName, alias)
-            ));
-
-            if (!response.IsValidResponse)
-            {
-                ThrowException($"Failed to create index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
-            }
         }
 
         protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings, string documentType)
