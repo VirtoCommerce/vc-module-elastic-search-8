@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "VirtoCommerce.Search.ElasticSearch8": {
+      "IndexTotalFieldsLimit": {
+        "title": "Maksimalt antall felt i en indeks",
+        "description": "Angi det maksimale antallet felt som kan inkluderes i en indeks. Overskridelse av denne grensen kan føre til ytelsesproblemer. For mer informasjon, se Elasticsearch8-dokumentasjonen: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html#mapping-limit-settings"
+      },
+      "TokenFilter": {
+        "title": "Tokenfilter",
+        "description": "Velg tokenfilter som skal brukes ved indeksering av søkbare felt. Dette krever gjenoppbygging av indeksen"
+      },
+      "NGramTokenFilter": {
+        "MinGram": {
+          "title": "Minimum gramlengde",
+          "description": "Angi minimum antall tegn i en gram. Dette krever gjenoppbygging av indeksen"
+        },
+        "MaxGram": {
+          "title": "Maksimal gramlengde",
+          "description": "Angi maksimum antall tegn i en gram. Dette krever gjenoppbygging av indeksen"
+        }
+      },
+      "MinScore": {
+        "title": "Minimum poengsum",
+        "description": "Angi minimum poengsum et dokument må ha for å regnes som en treff. Dokumenter med poengsum under denne terskelen vil ikke inkluderes i resultatene. Sett til 0 for å returnere alle dokumenter. Gjelder når nøkkelord er angitt"
+      },
+      "MinScorePerDocumentType": {
+        "title": "Minimum poengsum for dokumenttype",
+        "description": "Angi minimum poengsum for den spesifikke dokumenttypen. Dokumenter med poengsum under denne terskelen vil ikke inkluderes i resultatene. Sett til 0 for å returnere alle dokumenter. Gjelder når nøkkelord er angitt"
+      },
+      "DeleteDuplicateIndexes": {
+        "title": "Sletting av dupliserte aktive indekser",
+        "description": "Søk og slett dupliserte aktive indekser før Slett og bygg-operasjonen"
+      },
+      "EnableSemanticSearch": {
+        "title": "Aktivering av semantisk søk",
+        "description": "Aktiver/deaktiver semantisk søk"
+      },
+      "SemanticModelId": {
+        "title": "Semantisk modell-ID",
+        "description": "Sørg for at ID-en for den semantiske modellen er angitt korrekt"
+      },
+      "SemanticPipelineName": {
+        "title": "Navn på semantisk pipeline",
+        "description": "Sørg for at navnet på den semantiske modellens pipeline er angitt korrekt. Den produserer embedding generert av dataindekseringsmodellen"
+      },
+      "SemanticFieldName": {
+        "title": "Navn på semantisk felt",
+        "description": "Angi navnet på feltet for den semantiske modellen. Inneholder embedding produsert av den semantiske pipelinen. X.tokens eller X.predicted_value"
+      },
+      "SemanticSearchType": {
+        "title": "Type semantisk modell",
+        "description": "Velg type semantisk modell fra listen"
+      },
+      "SemanticVectorModelDimensions": {
+        "title": "Antall dimensjoner i vektormodell",
+        "description": "Angi antall dimensjoner for tredjeparts vektormodell. Vanligvis funnet i modellbeskrivelsen"
+      },
+      "KeywordBoost": {
+        "title": "Boost for nøkkelordsøk",
+        "description": "Angi et flytall for å justere relevanspoengsummen for dokumenter som matcher nøkkelordsøk. Høyere verdier øker betydningen av nøkkelordtreff. Standardverdi er 1.0"
+      },
+      "SemanticBoost": {
+        "title": "Boost for semantisk søk",
+        "description": "Angi et flytall for å justere relevanspoengsummen for dokumenter som matcher semantiske søk. Høyere verdier øker betydningen av semantiske treff. Standardverdi er 1.0"
+      }
+    }
+  }
+}
