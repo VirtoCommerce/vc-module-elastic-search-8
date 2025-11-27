@@ -24,14 +24,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     break;
 
                 case TermFilter termFilter:
-                    if (HasWildcardValue(termFilter))
-                    {
-                        result = CreateWildcardTermFilter(termFilter, availableFields);
-                    }
-                    else
-                    {
-                        result = CreateTermFilter(termFilter, availableFields);
-                    }
+                    result = HasWildcardValue(termFilter)
+                        ? CreateWildcardTermFilter(termFilter, availableFields)
+                        : CreateTermFilter(termFilter, availableFields);
                     break;
 
                 case RangeFilter rangeFilter:
@@ -64,9 +59,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual bool HasWildcardValue(TermFilter termFilter)
         {
-            return termFilter.Values != null &&
-                termFilter.Values.Count == 1 &&
-                termFilter.Values.Any(v => v.Contains('*') || v.Contains('?'));
+            return termFilter.Values is { Count: 1 } &&
+                   termFilter.Values.Any(v => v.Contains('*') || v.Contains('?'));
         }
 
         protected virtual IdsQuery CreateIdsFilter(IdsFilter idsFilter)
@@ -83,21 +77,21 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual TermsQuery CreateTermFilter(TermFilter termFilter, IDictionary<PropertyName, IProperty> availableFields)
         {
-            var termValues = default(FieldValue[]);
+            FieldValue[] termValues;
 
             var property = availableFields.Where(x => x.Key.Name.EqualsIgnoreCase(termFilter.FieldName)).Select(x => x.Value).FirstOrDefault();
-            if (property?.Type?.EqualsIgnoreCase(FieldType.Boolean.ToString()) == true)
+            if (property?.Type.EqualsIgnoreCase(nameof(FieldType.Boolean)) == true)
             {
                 termValues = termFilter.Values.Select(v => v switch
                 {
                     "1" => "true",
                     "0" => "false",
-                    _ => FieldValue.String(v.ToLowerInvariant())
+                    _ => FieldValue.String(v.ToLowerInvariant()),
                 }).ToArray();
             }
-            else if (property?.Type?.EqualsIgnoreCase(FieldType.Date.ToString()) == true)
+            else if (property?.Type.EqualsIgnoreCase(nameof(FieldType.Date)) == true)
             {
-                termValues = termFilter.Values.Select(x => FieldValue.String(x)).ToArray();
+                termValues = termFilter.Values.Select(FieldValue.String).ToArray();
             }
             else
             {
@@ -118,7 +112,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             var fieldName = rangeFilter.FieldName.ToElasticFieldName();
             var property = availableFields.Where(x => x.Key.Name.EqualsIgnoreCase(rangeFilter.FieldName)).Select(x => x.Value).FirstOrDefault();
 
-            if (property?.Type?.EqualsIgnoreCase(FieldType.Date.ToString()) == true)
+            if (property?.Type.EqualsIgnoreCase(nameof(FieldType.Date)) == true)
             {
                 foreach (var value in rangeFilter.Values)
                 {
@@ -227,7 +221,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             var wildcardTermFilter = new WildCardTermFilter
             {
                 FieldName = termFilter.FieldName,
-                Value = wildcardValues
+                Value = wildcardValues,
             };
 
             return CreateWildcardTermFilter(wildcardTermFilter);
@@ -237,7 +231,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             return new WildcardQuery(wildcardTermFilter.FieldName.ToElasticFieldName())
             {
-                Value = wildcardTermFilter.Value
+                Value = wildcardTermFilter.Value,
             };
         }
 

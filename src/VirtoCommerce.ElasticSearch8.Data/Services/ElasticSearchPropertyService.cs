@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Mapping;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Core.Services;
@@ -32,6 +31,20 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 IndexDocumentFieldValueType.Boolean => new BooleanProperty(),
                 IndexDocumentFieldValueType.GeoPoint => new GeoPointProperty(),
                 _ => throw new ArgumentException($"Field '{field.Name}' has unsupported type '{field.ValueType}'", nameof(field))
+            };
+        }
+
+        public virtual IProperty CreateSuggestionProperty(IndexDocumentField field)
+        {
+            if (!field.IsSuggestable)
+            {
+                return null;
+            }
+
+            return new CompletionProperty
+            {
+                Analyzer = "standard",
+                MaxInputLength = ModuleConstants.SuggestionFieldLength,
             };
         }
 
@@ -121,9 +134,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         private static bool IsComplexType(Type type)
         {
-            return
-                type.IsAssignableTo(typeof(IEntity)) ||
-                type.IsAssignableTo(typeof(IEnumerable<IEntity>));
+            return type.IsAssignableTo(typeof(IEntity)) || type.IsAssignableTo(typeof(IEnumerable<IEntity>));
         }
 
         protected virtual KeywordProperty ConfigureKeywordProperty(KeywordProperty keywordProperty, IndexDocumentField field)
@@ -137,14 +148,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 { "raw", new KeywordProperty() },
             };
 
-            if (field.IsSuggestable)
-            {
-                keywordProperty.Fields.Add(new PropertyName(ModuleConstants.CompletionSubFieldName), new CompletionProperty()
-                {
-                    MaxInputLength = ModuleConstants.SuggestionFieldLength,
-                });
-            }
-
             return keywordProperty;
         }
 
@@ -153,15 +156,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             textProperty.Store = field.IsRetrievable;
             textProperty.Index = field.IsSearchable;
             textProperty.Analyzer = field.IsSearchable ? ModuleConstants.SearchableFieldAnalyzerName : null;
-
-            if (field.IsSuggestable)
-            {
-                textProperty.Fields ??= new Properties();
-                textProperty.Fields.Add(new PropertyName(ModuleConstants.CompletionSubFieldName), new CompletionProperty()
-                {
-                    MaxInputLength = ModuleConstants.SuggestionFieldLength,
-                });
-            }
 
             return textProperty;
         }

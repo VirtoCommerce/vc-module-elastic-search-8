@@ -80,7 +80,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (!string.IsNullOrEmpty(field))
             {
-                termsAggregation = new TermsAggregation()
+                termsAggregation = new TermsAggregation
                 {
                     Field = field,
                     Size = facetSize,
@@ -101,9 +101,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
             else
             {
-                var filterAggregation = new FiltersAggregation()
+                var filterAggregation = new FiltersAggregation
                 {
-                    Filters = new Buckets<Query>(new[] { query })
+                    Filters = new Buckets<Query>([query]),
                 };
 
                 if (termsAggregation != null)
@@ -113,8 +113,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         Filters = filterAggregation,
                         Aggregations = new Dictionary<string, Aggregation>
                         {
-                            { aggregationId, new Aggregation { Terms = termsAggregation } }
-                        }
+                            { aggregationId, new Aggregation { Terms = termsAggregation } },
+                        },
                     };
 
                     container.Add(aggregationId, filters);
@@ -144,18 +144,18 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var rangeFilter = new RangeFilter
                 {
                     FieldName = fieldName,
-                    Values = new[] { new RangeFilterValue { Lower = value.Lower, Upper = value.Upper, IncludeLower = value.IncludeLower, IncludeUpper = value.IncludeUpper } },
+                    Values = [new RangeFilterValue { Lower = value.Lower, Upper = value.Upper, IncludeLower = value.IncludeLower, IncludeUpper = value.IncludeUpper }],
                 };
                 var query = _searchFiltersBuilder.GetFilterQuery(rangeFilter, availableFields);
 
                 var mustQuery = new BoolQuery
                 {
-                    Must = new List<Query> { filter, query }
+                    Must = new List<Query> { filter, query },
                 };
 
                 var buckets = new List<Query> { mustQuery }.ToArray();
 
-                var filtersAggregation = new FiltersAggregation()
+                var filtersAggregation = new FiltersAggregation
                 {
                     Filters = new Buckets<Query>(buckets),
                 };
@@ -166,12 +166,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             // Add stats aggregation for the field
             var aggregationQuery = new BoolQuery
             {
-                Must = new List<Query> { filter }
+                Must = new List<Query> { filter },
             };
 
             var filterAggregation = new Aggregation
             {
-                Filter = aggregationQuery
+                Filter = aggregationQuery,
             };
 
             var statsAggregation = new StatsAggregation
@@ -181,7 +181,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             filterAggregation.Aggregations = new Dictionary<string, Aggregation>
             {
-                { "stats", statsAggregation }
+                { "stats", statsAggregation },
             };
 
             container.Add($"{aggregationId}-stats", filterAggregation);

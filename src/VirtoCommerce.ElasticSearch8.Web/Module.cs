@@ -31,6 +31,7 @@ public class Module : IModule, IHasConfiguration
             serviceCollection.AddSingleton<IElasticSearchResponseBuilder, ElasticSearchResponseBuilder>();
 
             serviceCollection.AddSingleton<IElasticSearchPropertyService, ElasticSearchPropertyService>();
+            serviceCollection.AddSingleton<IElasticSearchDocumentConverter, ElasticSearchDocumentConverter>();
         }
     }
 
@@ -43,7 +44,7 @@ public class Module : IModule, IHasConfiguration
         {
             appBuilder.UseSearchProvider<ElasticSearch8Provider>(ModuleConstants.ProviderName, (provider, documentTypes) =>
             {
-                provider.AddActiveAlias(documentTypes);
+                _ = provider.AddActiveAlias(documentTypes);
             });
         }
     }
