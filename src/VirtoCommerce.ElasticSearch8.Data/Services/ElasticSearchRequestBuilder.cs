@@ -41,15 +41,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _logger = logger;
         }
 
-        [Obsolete("Use BuildRequest(VirtoCommerceSearchRequest, string, string, IDictionary<PropertyName, IProperty>)", DiagnosticId = "VC0009", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions")]
-        public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, IDictionary<PropertyName, IProperty> availableFields)
-        {
-            return BuildRequest(request: request,
-                indexName: indexName,
-                documentType: null,
-                availableFields: availableFields);
-        }
-
         public virtual ElasticSearchRequest BuildRequest(VirtoCommerceSearchRequest request, string indexName, string documentType, IDictionary<PropertyName, IProperty> availableFields)
         {
             var result = new ElasticSearchRequest(indexName)

@@ -8,6 +8,7 @@ using VirtoCommerce.ElasticSearch8.Core.Services;
 using VirtoCommerce.ElasticSearch8.Data.Extensions;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.SearchModule.Core.Model;
+using Aggregation = Elastic.Clients.Elasticsearch.Aggregations.Aggregation;
 
 namespace VirtoCommerce.ElasticSearch8.Data.Services
 {
