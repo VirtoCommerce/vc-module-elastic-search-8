@@ -60,7 +60,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             // use knn search and rank feature
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel
-                && (!string.IsNullOrEmpty(request?.SearchKeywords) || (request?.DenseVector?.Any() == true && request?.SearchFields?.Any() == true)))
+                && (!string.IsNullOrEmpty(request?.SearchKeywords) || (request?.DenseVector?.Any() == true && request.SearchFields?.Any() == true)))
             {
                 var numCandidates = request.Take * 2;
                 numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
