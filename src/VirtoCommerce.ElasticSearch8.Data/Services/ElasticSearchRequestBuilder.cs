@@ -72,12 +72,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     Field = ModuleConstants.VectorPropertyName,
                 };
 
-                if (request.DenseVector.Any())
-                {
-                    knn.Field = request.SearchFields.First();
-                    knn.QueryVector = request.DenseVector;
-                }
-                else
+                if (request.DenseVector.IsNullOrEmpty() || request.SearchFields.IsNullOrEmpty())
                 {
                     knn.QueryVectorBuilder = new QueryVectorBuilder
                     {
@@ -87,6 +82,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                             ModelText = request.SearchKeywords,
                         },
                     };
+                }
+                else
+                {
+                    knn.Field = request.SearchFields.First();
+                    knn.QueryVector = request.DenseVector;
                 }
 
                 result.Knn = new List<KnnSearch> { knn };
