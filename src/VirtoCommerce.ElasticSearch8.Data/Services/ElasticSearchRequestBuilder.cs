@@ -60,7 +60,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             // use knn search and rank feature
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel
-                && !string.IsNullOrEmpty(request?.SearchKeywords))
+                && (!string.IsNullOrEmpty(request?.SearchKeywords) || (request?.DenseVector?.Any() == true && request?.SearchFields?.Any() == true)))
             {
                 var numCandidates = request.Take * 2;
                 numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
@@ -70,15 +70,24 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     K = request.Take,
                     NumCandidates = numCandidates,
                     Field = ModuleConstants.VectorPropertyName,
-                    QueryVectorBuilder = new QueryVectorBuilder
+                };
+
+                if (request.DenseVector.Any())
+                {
+                    knn.Field = request.SearchFields.First();
+                    knn.QueryVector = request.DenseVector;
+                }
+                else
+                {
+                    knn.QueryVectorBuilder = new QueryVectorBuilder
                     {
                         TextEmbedding = new TextEmbedding
                         {
                             ModelId = _settingsManager.GetModelId(),
                             ModelText = request.SearchKeywords,
                         },
-                    },
-                };
+                    };
+                }
 
                 result.Knn = new List<KnnSearch> { knn };
             }
@@ -180,7 +189,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             // basic search query
             var multiMatchQuery = GetMultimatchKeywordSearchQuery(request);
 
-            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
+            // combine keyword search with sparse vector search for ELSER model
+            // we musn't combine it if we already have a dense vector in the request
+            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel && request.DenseVector.IsNullOrEmpty())
             {
                 var sparceVectorQuery = GetSparseVectorQuery(request);
 

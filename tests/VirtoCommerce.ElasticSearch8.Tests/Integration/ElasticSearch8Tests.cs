@@ -37,7 +37,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             var requestBuilder = new ElasticSearchRequestBuilder(filtersBuilder, aggregationsBuilder, settingsManager, builderLogger);
 
             var responseBuilder = new ElasticSearchResponseBuilder();
-            var propertyService = new ElasticSearchPropertyService();
+            var propertyService = new ElasticSearchPropertyService(settingsManager);
             var documentConverter = new ElasticSearchDocumentConverter(propertyService);
 
             var providerLogger = loggerFactory.CreateLogger<ElasticSearch8Provider>();
