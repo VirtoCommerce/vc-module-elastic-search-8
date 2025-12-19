@@ -169,7 +169,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual DenseVectorProperty ConfigureDenseVectorProperty(DenseVectorProperty denseVectorProperty, IndexDocumentField field)
         {
-            denseVectorProperty.Index = true;//field.IsSearchable;
+            denseVectorProperty.Index = true;
             denseVectorProperty.Dims = settingsManager.GetVectorModelDimensionsCount();
             denseVectorProperty.Similarity = DenseVectorSimilarity.Cosine;
 
