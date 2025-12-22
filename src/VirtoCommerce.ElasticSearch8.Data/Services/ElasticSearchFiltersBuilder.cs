@@ -89,7 +89,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 {
                     "1" => "true",
                     "0" => "false",
-                    _ => FieldValue.String(v.ToLowerInvariant()),
+                    _ => FieldValue.String(v?.ToLowerInvariant()),
                 }).ToArray();
             }
             else if (property?.Type.EqualsIgnoreCase(nameof(FieldType.Date)) == true)
