@@ -60,7 +60,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             // use knn search and rank feature
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel
-                && (!string.IsNullOrEmpty(request?.SearchKeywords) || (request?.DenseVector?.Any() == true && request.SearchFields?.Any() == true)))
+                && (!string.IsNullOrEmpty(request?.SearchKeywords) || request?.DenseVector?.Any() == true))
             {
                 var numCandidates = request.Take * 2;
                 numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
@@ -72,7 +72,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     Field = ModuleConstants.VectorPropertyName,
                 };
 
-                if (request.DenseVector.IsNullOrEmpty() || request.SearchFields.IsNullOrEmpty())
+                if (request.DenseVector.IsNullOrEmpty())
                 {
                     knn.QueryVectorBuilder = new QueryVectorBuilder
                     {
@@ -85,7 +85,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 }
                 else
                 {
-                    knn.Field = request.SearchFields.First();
+                    knn.Field = ModuleConstants.DenseVectorFieldName;
                     knn.QueryVector = request.DenseVector;
                 }
 

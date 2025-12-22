@@ -29,6 +29,7 @@ public static class ModuleConstants
     public const string ModelPropertyName = "__ml";
     public const string TokensFieldName = "tokens";
     public const string VectorFieldName = "predicted_value";
+    public const string DenseVectorFieldName = "embedding";
 
     public const string TokensPropertyName = $"{ModelPropertyName}.{TokensFieldName}";
     public const string VectorPropertyName = $"{ModelPropertyName}.{VectorFieldName}";
