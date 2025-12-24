@@ -191,7 +191,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             // combine keyword search with sparse vector search for ELSER model
             // we musn't combine it if we already have a dense vector in the request
-            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel && request.DenseVector.IsNullOrEmpty())
+            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
             {
                 var sparceVectorQuery = GetSparseVectorQuery(request);
 

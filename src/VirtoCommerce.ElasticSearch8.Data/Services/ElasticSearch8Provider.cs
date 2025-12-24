@@ -368,6 +368,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             var pipelines = new List<string>();
 
+            // Check if semantic search is enabled and vector field is not exist
             if (_settingsManager.GetSemanticSearchEnabled() && !documents.IsNullOrEmpty() && documents.First().Fields.All(x => x.ValueType != IndexDocumentFieldValueType.DenseVector))
             {
                 // Check if ML field is created
