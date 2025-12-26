@@ -188,8 +188,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             // basic search query
             var multiMatchQuery = GetMultimatchKeywordSearchQuery(request);
 
-            // combine keyword search with sparse vector search for ELSER model
-            // we musn't combine it if we already have a dense vector in the request
             if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
             {
                 var sparceVectorQuery = GetSparseVectorQuery(request);
