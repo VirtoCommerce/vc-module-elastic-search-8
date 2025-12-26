@@ -85,7 +85,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 }
                 else
                 {
-                    knn.Field = ModuleConstants.DenseVectorFieldName;
                     knn.QueryVector = request.DenseVector;
                 }
 
