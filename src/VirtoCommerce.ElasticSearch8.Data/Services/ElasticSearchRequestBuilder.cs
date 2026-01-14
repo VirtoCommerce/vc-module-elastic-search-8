@@ -69,7 +69,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 {
                     K = request.Take,
                     NumCandidates = numCandidates,
-                    Field = ModuleConstants.VectorPropertyName,
+                    Field = request.DenseVector.IsNullOrEmpty()
+                        ? ModuleConstants.VectorPropertyName
+                        : ModuleConstants.VectorFieldName,
                 };
 
                 if (request.DenseVector.IsNullOrEmpty())
