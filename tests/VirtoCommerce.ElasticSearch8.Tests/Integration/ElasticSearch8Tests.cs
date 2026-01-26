@@ -49,7 +49,9 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
                 requestBuilder,
                 responseBuilder,
                 documentConverter,
-                providerLogger);
+                providerLogger,
+                propertyService
+                );
 
             return provider;
         }

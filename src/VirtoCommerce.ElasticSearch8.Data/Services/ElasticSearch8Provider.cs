@@ -34,6 +34,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly IElasticSearchResponseBuilder _searchResponseBuilder;
         private readonly IElasticSearchDocumentConverter _documentConverter;
         private readonly ILogger<ElasticSearch8Provider> _logger;
+        private readonly IElasticSearchPropertyService _propertyService;
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
         private const int SuffixLength = 10;
@@ -55,7 +56,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             IElasticSearchRequestBuilder searchRequestBuilder,
             IElasticSearchResponseBuilder searchResponseBuilder,
             IElasticSearchDocumentConverter documentConverter,
-            ILogger<ElasticSearch8Provider> logger)
+            ILogger<ElasticSearch8Provider> logger,
+            IElasticSearchPropertyService propertyService)
         {
             _searchOptions = searchOptions.Value;
             _settingsManager = settingsManager;
@@ -63,6 +65,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _searchResponseBuilder = searchResponseBuilder;
             _documentConverter = documentConverter;
             _logger = logger;
+            _propertyService = propertyService;
 
             if (!string.IsNullOrEmpty(elasticOptions.Value.Server))
             {
@@ -436,26 +439,27 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             if (!indexMappings.ContainsKey(ModuleConstants.ModelPropertyName))
             {
                 var semanticSearchModelType = _settingsManager.GetSemanticSearchType();
-                var properties = semanticSearchModelType switch
+                Properties properties = null;
+                switch (semanticSearchModelType)
                 {
-                    ModuleConstants.ElserModel => new Properties
-                    {
-                        { ModuleConstants.TokensFieldName, new SparseVectorProperty() },
-                    },
-                    ModuleConstants.ThirdPartyModel => new Properties
-                    {
+                    case ModuleConstants.ElserModel:
+                        properties = new Properties
                         {
-                            ModuleConstants.VectorFieldName,
-                            new DenseVectorProperty
+                            { ModuleConstants.TokensFieldName, new SparseVectorProperty() },
+                        };
+                        break;
+                    case ModuleConstants.ThirdPartyModel:
+                        var vectorProperty = new DenseVectorProperty();
+                        _propertyService.ConfigureDenseVectorProperty(vectorProperty);
+                        properties = new Properties
+                        {
                             {
-                                Index = true,
-                                Dims = _settingsManager.GetVectorModelDimensionsCount(),
-                                Similarity = DenseVectorSimilarity.Cosine,
-                            }
-                        },
-                    },
-                    _ => null,
-                };
+                                ModuleConstants.VectorFieldName,
+                                vectorProperty
+                            },
+                        };
+                        break;
+                }
 
                 if (properties is null)
                 {
