@@ -51,9 +51,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             };
         }
 
-        public virtual void ConfigureProperty(IProperty property, IndexDocumentField field)
+        public virtual void ConfigureProperty(IProperty property, IndexDocumentField field = null)
         {
-            if (property == null)
+            if (property == null || (field == null && property is not DenseVectorProperty))
             {
                 return;
             }
@@ -97,13 +97,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     ConfigureDenseVectorProperty(denseVectorProperty);
                     break;
             }
-        }
-
-        public virtual void ConfigureDenseVectorProperty(DenseVectorProperty property)
-        {
-            property.Index = true;
-            property.Dims = settingsManager.GetVectorModelDimensionsCount();
-            property.Similarity = DenseVectorSimilarity.Cosine;
         }
 
         protected virtual IProperty CreateProviderFieldByValue(IndexDocumentField field)
@@ -172,6 +165,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             textProperty.Analyzer = field.IsSearchable ? ModuleConstants.SearchableFieldAnalyzerName : null;
 
             return textProperty;
+        }
+
+        protected virtual void ConfigureDenseVectorProperty(DenseVectorProperty property)
+        {
+            property.Index = true;
+            property.Dims = settingsManager.GetVectorModelDimensionsCount();
+            property.Similarity = DenseVectorSimilarity.Cosine;
         }
     }
 }

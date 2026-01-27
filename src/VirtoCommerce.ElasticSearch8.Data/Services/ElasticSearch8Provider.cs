@@ -450,7 +450,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         break;
                     case ModuleConstants.ThirdPartyModel:
                         var vectorProperty = new DenseVectorProperty();
-                        _propertyService.ConfigureDenseVectorProperty(vectorProperty);
+                        _propertyService.ConfigureProperty(vectorProperty);
                         properties = new Properties
                         {
                             {
