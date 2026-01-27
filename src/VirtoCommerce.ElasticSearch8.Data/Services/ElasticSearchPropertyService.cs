@@ -53,9 +53,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         public virtual void ConfigureProperty(IProperty property, IndexDocumentField field = null)
         {
-            if (property == null || (field == null && property is not DenseVectorProperty))
+            if (property == null)
             {
                 return;
+            }
+
+            if (field == null && property is not DenseVectorProperty)
+            {
+                throw new ArgumentException($"Parameter 'field' can be null only for a property of '{nameof(DenseVectorProperty)}' type");
             }
 
             switch (property)
