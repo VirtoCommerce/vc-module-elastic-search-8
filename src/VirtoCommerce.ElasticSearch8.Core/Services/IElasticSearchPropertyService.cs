@@ -7,6 +7,7 @@ namespace VirtoCommerce.ElasticSearch8.Core.Services
     {
         IProperty CreateProperty(IndexDocumentField field);
         IProperty CreateSuggestionProperty(IndexDocumentField field);
-        void ConfigureProperty(IProperty property, IndexDocumentField field = null);
+        void ConfigureProperty(IProperty property, IndexDocumentField field);
+        void ConfigureDenseVectorProperty(DenseVectorProperty property);
     }
 }
