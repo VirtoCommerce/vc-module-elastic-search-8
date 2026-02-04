@@ -80,7 +80,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         TextEmbedding = new TextEmbedding
                         {
                             ModelId = _settingsManager.GetModelId(),
-                            ModelText = request.SearchKeywords!,
+                            ModelText = request.SearchKeywords!
                         },
                     };
                 }
