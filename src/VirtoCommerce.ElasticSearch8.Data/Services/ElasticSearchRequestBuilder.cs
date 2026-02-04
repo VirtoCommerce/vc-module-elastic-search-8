@@ -59,8 +59,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             };
 
             // use knn search and rank feature
-            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel
-                && (!string.IsNullOrEmpty(request?.SearchKeywords) || request?.DenseVector?.Any() == true))
+            if ((_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel && !string.IsNullOrEmpty(request?.SearchKeywords)) || request?.DenseVector?.Any() == true)
             {
                 var numCandidates = request.Take * 2;
                 numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
@@ -81,7 +80,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                         TextEmbedding = new TextEmbedding
                         {
                             ModelId = _settingsManager.GetModelId(),
-                            ModelText = request.SearchKeywords,
+                            ModelText = request.SearchKeywords!,
                         },
                     };
                 }
@@ -190,7 +189,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             // basic search query
             var multiMatchQuery = GetMultimatchKeywordSearchQuery(request);
 
-            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
+            // if request contains DenseVector we should skip the global SemanticSearchType setting
+            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel && request.DenseVector?.Any() != true)
             {
                 var sparceVectorQuery = GetSparseVectorQuery(request);
 
