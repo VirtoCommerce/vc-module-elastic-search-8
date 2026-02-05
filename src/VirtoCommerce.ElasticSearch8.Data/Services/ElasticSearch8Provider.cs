@@ -365,6 +365,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
+        protected virtual bool IsDenseVectorMode(IList<IndexDocument> documents)
+        {
+            return !documents.IsNullOrEmpty() &&
+                documents.First().Fields.Any(x => x.ValueType == IndexDocumentFieldValueType.DenseVector);
+        }
+
         protected virtual async Task<IndexingResult> InternalIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
         {
             var createIndexResult = await InternalCreateIndexAsync(documentType, documents, parameters);
@@ -372,7 +378,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             var pipelines = new List<string>();
 
             // Check if semantic search is enabled and vector field is not exist
-            if (_settingsManager.GetSemanticSearchEnabled() && !documents.IsNullOrEmpty() && documents.First().Fields.All(x => x.ValueType != IndexDocumentFieldValueType.DenseVector))
+            if (_settingsManager.GetSemanticSearchEnabled() && !IsDenseVectorMode(documents))
             {
                 // Check if ML field is created
                 await CreateMLField(createIndexResult.IndexName);
