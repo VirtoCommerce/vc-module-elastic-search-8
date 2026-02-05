@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using Elastic.Clients.Elasticsearch.Mapping;
 using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.ElasticSearch8.Core.Services;
+using VirtoCommerce.ElasticSearch8.Data.Extensions;
 using VirtoCommerce.Platform.Core.Common;
+using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Model;
 
 namespace VirtoCommerce.ElasticSearch8.Data.Services
 {
-    public class ElasticSearchPropertyService : IElasticSearchPropertyService
+    public class ElasticSearchPropertyService(ISettingsManager settingsManager) : IElasticSearchPropertyService
     {
         public virtual IProperty CreateProperty(IndexDocumentField field)
         {
@@ -30,6 +32,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 IndexDocumentFieldValueType.DateTime => new DateProperty(),
                 IndexDocumentFieldValueType.Boolean => new BooleanProperty(),
                 IndexDocumentFieldValueType.GeoPoint => new GeoPointProperty(),
+                IndexDocumentFieldValueType.DenseVector => new DenseVectorProperty(),
                 _ => throw new ArgumentException($"Field '{field.Name}' has unsupported type '{field.ValueType}'", nameof(field))
             };
         }
@@ -90,7 +93,17 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 case KeywordProperty keywordProperty:
                     ConfigureKeywordProperty(keywordProperty, field);
                     break;
+                case DenseVectorProperty denseVectorProperty:
+                    ConfigureDenseVectorProperty(denseVectorProperty);
+                    break;
             }
+        }
+
+        public virtual void ConfigureDenseVectorProperty(DenseVectorProperty property)
+        {
+            property.Index = true;
+            property.Dims = settingsManager.GetVectorModelDimensionsCount();
+            property.Similarity = DenseVectorSimilarity.Cosine;
         }
 
         protected virtual IProperty CreateProviderFieldByValue(IndexDocumentField field)
@@ -128,6 +141,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 "Char" => new KeywordProperty(),
                 "Guid" => new KeywordProperty(),
                 "GeoPoint" => new GeoPointProperty(),
+                "DenseVector" => new DenseVectorProperty(),
                 _ => throw new ArgumentException($"Field '{field.Name}' has unsupported type '{fieldType}'", nameof(field))
             };
         }

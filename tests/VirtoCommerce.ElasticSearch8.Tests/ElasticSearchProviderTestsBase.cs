@@ -253,7 +253,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests
             return result ?? 0;
         }
 
-        protected virtual ISettingsManager GetSettingsManager()
+        public static ISettingsManager GetSettingsManager()
         {
             var mock = new Mock<ITestSettingsManager>();
 

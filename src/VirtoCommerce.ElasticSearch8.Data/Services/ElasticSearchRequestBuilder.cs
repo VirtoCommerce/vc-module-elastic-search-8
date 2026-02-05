@@ -59,8 +59,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             };
 
             // use knn search and rank feature
-            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel
-                && !string.IsNullOrEmpty(request?.SearchKeywords))
+            if ((_settingsManager.GetSemanticSearchType() == ModuleConstants.ThirdPartyModel && !string.IsNullOrEmpty(request?.SearchKeywords)) || request?.DenseVector?.Any() == true)
             {
                 var numCandidates = request.Take * 2;
                 numCandidates = numCandidates <= NearestNeighborMaxCandidates ? numCandidates : NearestNeighborMaxCandidates;
@@ -69,16 +68,26 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 {
                     K = request.Take,
                     NumCandidates = numCandidates,
-                    Field = ModuleConstants.VectorPropertyName,
-                    QueryVectorBuilder = new QueryVectorBuilder
+                    Field = request.DenseVector.IsNullOrEmpty()
+                        ? ModuleConstants.VectorPropertyName
+                        : ModuleConstants.VectorFieldName,
+                };
+
+                if (request.DenseVector.IsNullOrEmpty())
+                {
+                    knn.QueryVectorBuilder = new QueryVectorBuilder
                     {
                         TextEmbedding = new TextEmbedding
                         {
                             ModelId = _settingsManager.GetModelId(),
-                            ModelText = request.SearchKeywords,
+                            ModelText = request.SearchKeywords!
                         },
-                    },
-                };
+                    };
+                }
+                else
+                {
+                    knn.QueryVector = request.DenseVector;
+                }
 
                 result.Knn = new List<KnnSearch> { knn };
             }
@@ -180,7 +189,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             // basic search query
             var multiMatchQuery = GetMultimatchKeywordSearchQuery(request);
 
-            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel)
+            // if request contains DenseVector we should skip the global SemanticSearchType setting
+            if (_settingsManager.GetSemanticSearchType() == ModuleConstants.ElserModel && request.DenseVector?.Any() != true)
             {
                 var sparceVectorQuery = GetSparseVectorQuery(request);
 
