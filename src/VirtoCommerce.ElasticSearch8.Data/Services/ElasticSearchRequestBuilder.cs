@@ -127,7 +127,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             };
 
             // Filter contexts to avoid response deserialization issues
+#pragma warning disable ESCEXP0001 // FilterPath is intentionally used to exclude fields that break deserialization
             result.FilterPath = ["-**.options._ignored", "-**.options.contexts"];
+#pragma warning restore ESCEXP0001
 
             return result;
         }
