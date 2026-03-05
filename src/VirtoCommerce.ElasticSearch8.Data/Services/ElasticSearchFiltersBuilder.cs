@@ -57,6 +57,19 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
+        protected virtual bool CanGetFilterQuery(IFilter filter)
+        {
+            return filter switch
+            {
+                IdsFilter idsFilter => CanCreateIdsFilter(idsFilter),
+                TermFilter termFilter => CanCreateTermFilter(termFilter),
+                RangeFilter rangeFilter => CanCreateRangeFilter(rangeFilter),
+                GeoDistanceFilter geoDistanceFilter => CanCreateGeoDistanceFilter(geoDistanceFilter),
+                WildCardTermFilter wildCardTermFilter => CanCreateWildcardTermFilter(wildCardTermFilter),
+                _ => true,
+            };
+        }
+
         protected virtual bool HasWildcardValue(TermFilter termFilter)
         {
             return termFilter.Values is { Count: 1 } &&
@@ -239,7 +252,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             Query result = null;
 
-            if (notFilter?.ChildFilter != null)
+            if (notFilter?.ChildFilter != null && CanGetFilterQuery(notFilter.ChildFilter))
             {
                 result = !GetFilterQuery(notFilter.ChildFilter, availableFields);
             }
@@ -255,7 +268,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 foreach (var childQuery in andFilter.ChildFilters)
                 {
-                    result &= GetFilterQuery(childQuery, availableFields);
+                    if (CanGetFilterQuery(childQuery))
+                    {
+                        result &= GetFilterQuery(childQuery, availableFields);
+                    }
                 }
             }
 
@@ -270,11 +286,39 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 foreach (var childQuery in orFilter.ChildFilters)
                 {
-                    result |= GetFilterQuery(childQuery, availableFields);
+                    if (CanGetFilterQuery(childQuery))
+                    {
+                        result |= GetFilterQuery(childQuery, availableFields);
+                    }
                 }
             }
 
             return result;
+        }
+
+        private bool CanCreateIdsFilter(IdsFilter idsFilter)
+        {
+            return (idsFilter?.Values?.Count) != 0;
+        }
+
+        private bool CanCreateTermFilter(TermFilter termFilter)
+        {
+            return (termFilter?.Values?.Count) != 0;
+        }
+
+        private bool CanCreateRangeFilter(RangeFilter rangeFilter)
+        {
+            return (rangeFilter?.Values?.Count) != 0;
+        }
+
+        private bool CanCreateGeoDistanceFilter(GeoDistanceFilter geoDistanceFilter)
+        {
+            return geoDistanceFilter.Location != null;
+        }
+
+        private bool CanCreateWildcardTermFilter(WildCardTermFilter wildcardTermFilter)
+        {
+            return wildcardTermFilter.Value != null;
         }
     }
 }
