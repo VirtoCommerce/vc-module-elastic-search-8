@@ -20,25 +20,45 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             switch (filter)
             {
                 case IdsFilter idsFilter:
-                    result = CreateIdsFilter(idsFilter);
+                    if (CanCreateIdsFilter(idsFilter))
+                    {
+                        result = CreateIdsFilter(idsFilter);
+                    }
+
                     break;
 
                 case TermFilter termFilter:
-                    result = HasWildcardValue(termFilter)
-                        ? CreateWildcardTermFilter(termFilter, availableFields)
-                        : CreateTermFilter(termFilter, availableFields);
+                    if (CanCreateTermFilter(termFilter))
+                    {
+                        result = HasWildcardValue(termFilter)
+                            ? CreateWildcardTermFilter(termFilter, availableFields)
+                            : CreateTermFilter(termFilter, availableFields);
+                    }
+
                     break;
 
                 case RangeFilter rangeFilter:
-                    result = CreateRangeFilter(rangeFilter, availableFields);
+                    if (CanCreateRangeFilter(rangeFilter))
+                    {
+                        result = CreateRangeFilter(rangeFilter, availableFields);
+                    }
+
                     break;
 
                 case GeoDistanceFilter geoDistanceFilter:
-                    result = CreateGeoDistanceFilter(geoDistanceFilter);
+                    if (CanCreateGeoDistanceFilter(geoDistanceFilter))
+                    {
+                        result = CreateGeoDistanceFilter(geoDistanceFilter);
+                    }
+
                     break;
 
                 case WildCardTermFilter wildcardTermFilter:
-                    result = CreateWildcardTermFilter(wildcardTermFilter);
+                    if (CanCreateWildcardTermFilter(wildcardTermFilter))
+                    {
+                        result = CreateWildcardTermFilter(wildcardTermFilter);
+                    }
+
                     break;
 
                 case NotFilter notFilter:
@@ -55,19 +75,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
 
             return result;
-        }
-
-        protected virtual bool CanGetFilterQuery(IFilter filter)
-        {
-            return filter switch
-            {
-                IdsFilter idsFilter => CanCreateIdsFilter(idsFilter),
-                TermFilter termFilter => CanCreateTermFilter(termFilter),
-                RangeFilter rangeFilter => CanCreateRangeFilter(rangeFilter),
-                GeoDistanceFilter geoDistanceFilter => CanCreateGeoDistanceFilter(geoDistanceFilter),
-                WildCardTermFilter wildCardTermFilter => CanCreateWildcardTermFilter(wildCardTermFilter),
-                _ => true,
-            };
         }
 
         protected virtual bool HasWildcardValue(TermFilter termFilter)
@@ -252,7 +259,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             Query result = null;
 
-            if (notFilter?.ChildFilter != null && CanGetFilterQuery(notFilter.ChildFilter))
+            if (notFilter?.ChildFilter != null)
             {
                 result = !GetFilterQuery(notFilter.ChildFilter, availableFields);
             }
@@ -268,9 +275,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 foreach (var childQuery in andFilter.ChildFilters)
                 {
-                    if (CanGetFilterQuery(childQuery))
+                    var query = GetFilterQuery(childQuery, availableFields);
+                    if (query != null)
                     {
-                        result &= GetFilterQuery(childQuery, availableFields);
+                        result &= query;
                     }
                 }
             }
@@ -286,9 +294,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 foreach (var childQuery in orFilter.ChildFilters)
                 {
-                    if (CanGetFilterQuery(childQuery))
+                    var query = GetFilterQuery(childQuery, availableFields);
+                    if (query != null)
                     {
-                        result |= GetFilterQuery(childQuery, availableFields);
+                        result |= query;
                     }
                 }
             }
