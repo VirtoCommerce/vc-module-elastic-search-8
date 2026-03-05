@@ -296,29 +296,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return result;
         }
 
-        private bool CanCreateIdsFilter(IdsFilter idsFilter)
-        {
-            return (idsFilter?.Values?.Count) > 0;
-        }
+        private static bool CanCreateIdsFilter(IdsFilter idsFilter) => idsFilter?.Values?.Count > 0;
 
-        private bool CanCreateTermFilter(TermFilter termFilter)
-        {
-            return (termFilter?.Values?.Count) > 0;
-        }
+        private static bool CanCreateTermFilter(TermFilter termFilter) => termFilter?.Values?.Count > 0;
 
-        private bool CanCreateRangeFilter(RangeFilter rangeFilter)
-        {
-            return (rangeFilter?.Values?.Count) > 0;
-        }
+        private static bool CanCreateRangeFilter(RangeFilter rangeFilter) => rangeFilter?.Values?.Count > 0;
 
-        private bool CanCreateGeoDistanceFilter(GeoDistanceFilter geoDistanceFilter)
-        {
-            return geoDistanceFilter.Location != null;
-        }
+        private static bool CanCreateGeoDistanceFilter(GeoDistanceFilter geoDistanceFilter) => geoDistanceFilter.Location != null;
 
-        private bool CanCreateWildcardTermFilter(WildCardTermFilter wildcardTermFilter)
-        {
-            return wildcardTermFilter.Value != null;
-        }
+        private static bool CanCreateWildcardTermFilter(WildCardTermFilter wildcardTermFilter) => wildcardTermFilter.Value != null;
     }
 }
