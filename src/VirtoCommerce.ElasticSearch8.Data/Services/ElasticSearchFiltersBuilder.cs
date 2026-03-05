@@ -298,17 +298,17 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         private bool CanCreateIdsFilter(IdsFilter idsFilter)
         {
-            return (idsFilter?.Values?.Count) != 0;
+            return (idsFilter?.Values?.Count) > 0;
         }
 
         private bool CanCreateTermFilter(TermFilter termFilter)
         {
-            return (termFilter?.Values?.Count) != 0;
+            return (termFilter?.Values?.Count) > 0;
         }
 
         private bool CanCreateRangeFilter(RangeFilter rangeFilter)
         {
-            return (rangeFilter?.Values?.Count) != 0;
+            return (rangeFilter?.Values?.Count) > 0;
         }
 
         private bool CanCreateGeoDistanceFilter(GeoDistanceFilter geoDistanceFilter)
