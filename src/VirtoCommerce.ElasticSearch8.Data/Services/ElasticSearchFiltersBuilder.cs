@@ -261,7 +261,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (notFilter?.ChildFilter != null)
             {
-                var query = GetFilterQuery(notFilter?.ChildFilter, availableFields);
+                var query = GetFilterQuery(notFilter.ChildFilter, availableFields);
                 if (query != null)
                 {
                     result = !query;
