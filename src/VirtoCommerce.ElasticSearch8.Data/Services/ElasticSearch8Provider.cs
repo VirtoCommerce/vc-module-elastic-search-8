@@ -116,7 +116,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var providerRequest = _searchRequestBuilder.BuildRequest(request, indexName, documentType, availableFields);
                 var providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
 
-                if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                //Special handling for ML service model not found case
+                if (!providerResponse.IsValidResponse && (providerResponse.ElasticsearchServerError?.Error?.Reason?.Contains("is not an inference service model or a deployed ml model") ?? false))
+                {
+                    ThrowException($"Search failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
+                }
+                else if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
                 {
                     ThrowException($"Search failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
                 }
