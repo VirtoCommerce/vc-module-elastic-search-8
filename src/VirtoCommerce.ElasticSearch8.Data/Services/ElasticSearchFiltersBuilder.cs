@@ -20,25 +20,45 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             switch (filter)
             {
                 case IdsFilter idsFilter:
-                    result = CreateIdsFilter(idsFilter);
+                    if (CanCreateIdsFilter(idsFilter))
+                    {
+                        result = CreateIdsFilter(idsFilter);
+                    }
+
                     break;
 
                 case TermFilter termFilter:
-                    result = HasWildcardValue(termFilter)
-                        ? CreateWildcardTermFilter(termFilter, availableFields)
-                        : CreateTermFilter(termFilter, availableFields);
+                    if (CanCreateTermFilter(termFilter))
+                    {
+                        result = HasWildcardValue(termFilter)
+                            ? CreateWildcardTermFilter(termFilter, availableFields)
+                            : CreateTermFilter(termFilter, availableFields);
+                    }
+
                     break;
 
                 case RangeFilter rangeFilter:
-                    result = CreateRangeFilter(rangeFilter, availableFields);
+                    if (CanCreateRangeFilter(rangeFilter))
+                    {
+                        result = CreateRangeFilter(rangeFilter, availableFields);
+                    }
+
                     break;
 
                 case GeoDistanceFilter geoDistanceFilter:
-                    result = CreateGeoDistanceFilter(geoDistanceFilter);
+                    if (CanCreateGeoDistanceFilter(geoDistanceFilter))
+                    {
+                        result = CreateGeoDistanceFilter(geoDistanceFilter);
+                    }
+
                     break;
 
                 case WildCardTermFilter wildcardTermFilter:
-                    result = CreateWildcardTermFilter(wildcardTermFilter);
+                    if (CanCreateWildcardTermFilter(wildcardTermFilter))
+                    {
+                        result = CreateWildcardTermFilter(wildcardTermFilter);
+                    }
+
                     break;
 
                 case NotFilter notFilter:
@@ -241,7 +261,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (notFilter?.ChildFilter != null)
             {
-                result = !GetFilterQuery(notFilter.ChildFilter, availableFields);
+                var query = GetFilterQuery(notFilter.ChildFilter, availableFields);
+                if (query != null)
+                {
+                    result = !query;
+                }
             }
 
             return result;
@@ -255,7 +279,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 foreach (var childQuery in andFilter.ChildFilters)
                 {
-                    result &= GetFilterQuery(childQuery, availableFields);
+                    var query = GetFilterQuery(childQuery, availableFields);
+                    if (query != null)
+                    {
+                        result &= query;
+                    }
                 }
             }
 
@@ -270,11 +298,25 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 foreach (var childQuery in orFilter.ChildFilters)
                 {
-                    result |= GetFilterQuery(childQuery, availableFields);
+                    var query = GetFilterQuery(childQuery, availableFields);
+                    if (query != null)
+                    {
+                        result |= query;
+                    }
                 }
             }
 
             return result;
         }
+
+        private static bool CanCreateIdsFilter(IdsFilter idsFilter) => idsFilter?.Values?.Count > 0;
+
+        private static bool CanCreateTermFilter(TermFilter termFilter) => termFilter?.Values?.Count > 0;
+
+        private static bool CanCreateRangeFilter(RangeFilter rangeFilter) => rangeFilter?.Values?.Count > 0;
+
+        private static bool CanCreateGeoDistanceFilter(GeoDistanceFilter geoDistanceFilter) => geoDistanceFilter.Location != null;
+
+        private static bool CanCreateWildcardTermFilter(WildCardTermFilter wildcardTermFilter) => wildcardTermFilter.Value != null;
     }
 }
