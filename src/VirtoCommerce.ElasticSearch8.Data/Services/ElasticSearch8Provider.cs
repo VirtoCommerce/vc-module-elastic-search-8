@@ -116,7 +116,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var providerRequest = _searchRequestBuilder.BuildRequest(request, indexName, documentType, availableFields);
                 var providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
 
-                if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                if (!providerResponse.IsValidResponse)
                 {
                     ThrowException($"Search failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
                 }
@@ -345,7 +345,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 }
 
                 var providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
-                if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                if (!providerResponse.IsValidResponse)
                 {
                     ThrowException($"Get suggestions failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
                 }
