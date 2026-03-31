@@ -122,7 +122,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     if (IsIndexNotFoundError(providerResponse))
                     {
                         // Suppress index not found error, because it can be normal in case when index was not created yet or was deleted. In this case return empty search result.
-                        _logger.LogWarning($"Index {indexName} not found while trying to search. Returning empty result. Possible cause - index was not created yet or was deleted.");
+                        _logger.LogWarning("Index {indexName} not found while trying to search. Returning empty result. Possible cause - index was not created yet or was deleted.", indexName);
                         return AbstractTypeFactory<SearchResponse>.TryCreateInstance();
                     }
 
@@ -358,7 +358,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     if (IsIndexNotFoundError(providerResponse))
                     {
                         // Suppress index not found error, because it can be normal in case when index was not created yet or was deleted. In this case return empty suggestions result.
-                        _logger.LogWarning($"Index {indexName} not found while trying to get suggestions.");
+                        _logger.LogWarning("Index {indexName} not found while trying to get suggestions.", indexName);
                         return AbstractTypeFactory<SuggestionResponse>.TryCreateInstance();
                     }
                     else
