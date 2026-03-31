@@ -386,7 +386,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             return !response.IsValidResponse &&
                 response.ApiCallDetails?.HttpStatusCode == (int)HttpStatusCode.NotFound &&
-                response?.ElasticsearchServerError?.Error?.Type == "index_not_found_exception";
+                response.ElasticsearchServerError?.Error?.Type == "index_not_found_exception";
         }
 
         protected virtual bool IsDenseVectorMode(IList<IndexDocument> documents)
@@ -566,7 +566,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     // Suppress index not found error, because it can be normal in case when index was not created yet or was deleted. In this case just log information and return.
                     if (IsIndexNotFoundError(response))
                     {
-                        _logger.LogInformation($"Index {indexName} not found while trying to delete it. It may be already deleted.");
+                        _logger.LogInformation("Index {indexName} not found while trying to delete it. It may be already deleted.", indexName);
                         return;
                     }
 
