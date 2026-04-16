@@ -1,5 +1,10 @@
+using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using ElasticsearchClient = Elastic.Clients.Elasticsearch.ElasticsearchClient;
+using Elastic.Clients.Elasticsearch.IndexManagement;
+using VirtoCommerce.ElasticSearch8.Core;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerce.SearchModule.Core.Services;
 using Xunit;
@@ -79,6 +84,95 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
         }
 
         [Fact]
+        public virtual async Task ConcurrentFirstIndexCreation_ShouldKeepSingleActiveIndex()
+        {
+            var provider = GetSearchProvider();
+            var documentType = $"item-{Guid.NewGuid():N}";
+            var primaryDocuments = GetPrimaryDocuments();
+
+            var results = await Task.WhenAll(Enumerable.Range(0, 4)
+                .Select(_ => provider.IndexAsync(documentType, primaryDocuments)));
+
+            Assert.All(results, response =>
+            {
+                Assert.NotNull(response);
+                Assert.NotNull(response.Items);
+                Assert.Equal(primaryDocuments.Count, response.Items.Count);
+                Assert.All(response.Items, item => Assert.True(item.Succeeded, item.ErrorMessage));
+            });
+
+            var client = GetElasticsearchClient(provider);
+            var aliasResponse = await client.Indices.GetAsync($"test-core-{documentType}-active");
+
+            Assert.True(aliasResponse.IsValidResponse, aliasResponse.DebugInformation);
+            Assert.Single(aliasResponse.Indices);
+        }
+
+        [Fact]
+        public virtual async Task DuplicateActiveAliasWithoutOtherAliases_ShouldDeleteDetachedDuplicateIndex()
+        {
+            var provider = GetSearchProvider();
+            var client = GetElasticsearchClient(provider);
+            var documentType = $"item-{Guid.NewGuid():N}";
+            var activeAlias = $"test-core-{documentType}-active";
+            var duplicateIndexName = $"test-core-{documentType}-duplicate";
+            var writeIndexName = $"test-core-{documentType}-write";
+
+            await CreateIndexAsync(client, duplicateIndexName);
+            await CreateIndexAsync(client, writeIndexName);
+            await SetAliasesAsync(client,
+                new AddAction { Index = duplicateIndexName, Alias = activeAlias },
+                new AddAction { Index = writeIndexName, Alias = activeAlias, IsWriteIndex = true });
+
+            var response = await provider.IndexAsync(documentType, GetPrimaryDocuments().Take(1).ToList());
+
+            Assert.NotNull(response);
+            Assert.All(response.Items, item => Assert.True(item.Succeeded, item.ErrorMessage));
+
+            var aliasResponse = await client.Indices.GetAsync(activeAlias);
+            Assert.True(aliasResponse.IsValidResponse, aliasResponse.DebugInformation);
+            Assert.Single(aliasResponse.Indices);
+            Assert.True(aliasResponse.Indices.ContainsKey(writeIndexName));
+
+            var duplicateIndexExists = await client.Indices.ExistsAsync(duplicateIndexName);
+            Assert.False(duplicateIndexExists.Exists);
+        }
+
+        [Fact]
+        public virtual async Task DuplicateActiveAliasWithOtherAliases_ShouldKeepWriteIndexAndPreserveSecondaryAlias()
+        {
+            var provider = GetSearchProvider();
+            var client = GetElasticsearchClient(provider);
+            var documentType = $"item-{Guid.NewGuid():N}";
+            var activeAlias = $"test-core-{documentType}-active";
+            var backupAlias = $"test-core-{documentType}-backup";
+            var duplicateIndexName = $"test-core-{documentType}-duplicate";
+            var writeIndexName = $"test-core-{documentType}-write";
+
+            await CreateIndexAsync(client, duplicateIndexName);
+            await CreateIndexAsync(client, writeIndexName);
+            await SetAliasesAsync(client,
+                new AddAction { Index = duplicateIndexName, Alias = backupAlias, IsWriteIndex = true },
+                new AddAction { Index = duplicateIndexName, Alias = activeAlias },
+                new AddAction { Index = writeIndexName, Alias = activeAlias, IsWriteIndex = true });
+
+            var response = await provider.IndexAsync(documentType, GetPrimaryDocuments().Take(1).ToList());
+
+            Assert.NotNull(response);
+            Assert.All(response.Items, item => Assert.True(item.Succeeded, item.ErrorMessage));
+
+            var activeAliasResponse = await client.Indices.GetAsync(activeAlias);
+            Assert.True(activeAliasResponse.IsValidResponse, activeAliasResponse.DebugInformation);
+            Assert.Single(activeAliasResponse.Indices);
+            Assert.True(activeAliasResponse.Indices.ContainsKey(writeIndexName));
+
+            var duplicateIndexResponse = await client.Indices.GetAsync(duplicateIndexName);
+            Assert.True(duplicateIndexResponse.IsValidResponse, duplicateIndexResponse.DebugInformation);
+            Assert.True(duplicateIndexResponse.Indices[duplicateIndexName].Aliases.ContainsKey(backupAlias));
+            Assert.False(duplicateIndexResponse.Indices[duplicateIndexName].Aliases.ContainsKey(activeAlias));
+        }
+
+        [Fact]
         public virtual async Task CanLimitResults()
         {
             var provider = GetSearchProvider();
@@ -93,6 +187,42 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
 
             Assert.Equal(2, response.DocumentsCount);
             Assert.Equal(6, response.TotalCount);
+        }
+
+        protected virtual ElasticsearchClient GetElasticsearchClient(ISearchProvider provider)
+        {
+            var clientProperty = provider.GetType().GetProperty("Client", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(clientProperty);
+
+            var client = clientProperty.GetValue(provider) as ElasticsearchClient;
+            Assert.NotNull(client);
+
+            return client;
+        }
+
+        protected virtual async Task CreateIndexAsync(ElasticsearchClient client, string indexName)
+        {
+            var createResponse = await client.Indices.CreateAsync(indexName, descriptor => descriptor
+                .Settings(settings => settings
+                    .MaxNgramDiff(49)
+                    .Mapping(mapping => mapping.TotalFields(new MappingLimitSettingsTotalFields { Limit = 1000 }))
+                    .Analysis(analysis => analysis
+                        .TokenFilters(tokenFilters => tokenFilters
+                            .NGram(ModuleConstants.NGramFilterName, nGram => nGram.MinGram(1).MaxGram(50))
+                            .EdgeNGram(ModuleConstants.EdgeNGramFilterName, edgeNGram => edgeNGram.MinGram(1).MaxGram(50)))
+                        .Analyzers(analyzers => analyzers
+                            .Custom(ModuleConstants.SearchableFieldAnalyzerName,
+                                analyzer => analyzer.Tokenizer("standard").Filter("lowercase", ModuleConstants.EdgeNGramFilterName)))
+                        .Normalizers(normalizers => normalizers.Custom("lowercase", normalizer => normalizer.Filter("lowercase"))))));
+
+            Assert.True(createResponse.IsValidResponse, createResponse.DebugInformation);
+        }
+
+        protected virtual async Task SetAliasesAsync(ElasticsearchClient client, params IndexUpdateAliasesAction[] actions)
+        {
+            var aliasResponse = await client.Indices.UpdateAliasesAsync(descriptor => descriptor.Actions(actions));
+
+            Assert.True(aliasResponse.IsValidResponse, aliasResponse.DebugInformation);
         }
 
         [Fact]

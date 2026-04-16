@@ -44,7 +44,7 @@ public class Module : IModule, IHasConfiguration
         {
             appBuilder.UseSearchProvider<ElasticSearch8Provider>(ModuleConstants.ProviderName, (provider, documentTypes) =>
             {
-                _ = provider.AddActiveAlias(documentTypes);
+                provider.AddActiveAlias(documentTypes).GetAwaiter().GetResult();
             });
         }
     }
