@@ -39,7 +39,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
         private const int SuffixLength = 10;
-        private const string InitialBackupIndexSuffix = "backup-index";
 
         protected ElasticsearchClient Client { get; }
         protected Uri ServerUrl { get; }
@@ -228,9 +227,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             try
             {
+                // get active index and alias
                 var activeIndexAlias = GetIndexAlias(ActiveIndexAlias, documentType);
-                await EnsureWritableAliasAsync(activeIndexAlias);
+                await EnsureAliasHasWriteIndexAsync(activeIndexAlias);
 
+                // if no active index found - check that default (active) index, if not create, if does assign the alias to it
                 var indexExists = await IndexExistsAsync(activeIndexAlias);
                 if (!indexExists)
                 {
@@ -238,14 +239,17 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     var indexExits = await IndexExistsAsync(indexName);
                     if (!indexExits)
                     {
+                        // create new index with alias
                         await CreateIndexAsync(documentType, indexName, activeIndexAlias);
                     }
                     else
                     {
+                        // attach alias to default index
                         await Client.Indices.PutAliasAsync(indexName, activeIndexAlias, r => r.IsWriteIndex(true));
                     }
                 }
 
+                // swap start
                 var activeIndexName = await GetIndexNameAsync(activeIndexAlias);
                 if (activeIndexName == null)
                 {
@@ -254,11 +258,11 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
                 var bulkAliasDescriptorActions = new List<IndexUpdateAliasesAction>
                 {
-                    new RemoveAction { Index = activeIndexName, Alias = activeIndexAlias },
+                    new RemoveAction { Index = activeIndexName, Alias = activeIndexAlias }
                 };
 
                 var backupIndexAlias = GetIndexAlias(BackupIndexAlias, documentType);
-                await EnsureWritableAliasAsync(backupIndexAlias);
+                await EnsureAliasHasWriteIndexAsync(backupIndexAlias);
                 var backupIndexName = await GetIndexNameAsync(backupIndexAlias);
 
                 if (backupIndexName != null)
@@ -302,7 +306,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     var indexAlias = GetIndexAlias(ActiveIndexAlias, documentType);
                     if (await IndexExistsAsync(indexAlias))
                     {
-                        await EnsureWritableAliasAsync(indexAlias);
+                        await EnsureAliasHasWriteIndexAsync(indexAlias);
                         continue;
                     }
 
@@ -525,7 +529,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected virtual async Task<CreateIndexResult> InternalCreateIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
         {
             var indexName = GetIndexName(parameters.Reindex, documentType);
-            await EnsureWritableAliasAsync(indexName);
+            await EnsureAliasHasWriteIndexAsync(indexName);
 
             var mapping = await GetMappingAsync(indexName);
             var providerFields = new Properties(mapping);
@@ -539,7 +543,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             if (!indexExists)
             {
-                await EnsureInitialIndexAsync(documentType, indexName, parameters.Reindex);
+                var newIndexName = GetIndexName(documentType, GetRandomIndexSuffix());
+                await CreateIndexAsync(documentType, newIndexName, alias: indexName);
             }
 
             if (!indexExists || updateMapping)
@@ -659,7 +664,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return (newProperties, allProperties);
         }
 
-        protected virtual async Task EnsureWritableAliasAsync(string indexAlias)
+        protected virtual async Task EnsureAliasHasWriteIndexAsync(string indexAlias)
         {
             var aliasResponse = await Client.Indices.GetAsync(indexAlias);
             if (!aliasResponse.IsValidResponse)
@@ -669,12 +674,12 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                     return;
                 }
 
-                ThrowException($"Failed to normalize alias {indexAlias}. {aliasResponse.DebugInformation}", aliasResponse.ApiCallDetails.OriginalException);
+                ThrowException($"Failed to get alias {indexAlias}. {aliasResponse.DebugInformation}", aliasResponse.ApiCallDetails.OriginalException);
             }
 
             var aliasName = indexAlias.ToString();
             var indexStates = aliasResponse.Indices?
-                .Where(x => HasAlias(x.Value, aliasName))
+                .Where(x => x.Value?.Aliases?.ContainsKey(aliasName) == true)
                 .OrderBy(x => x.Key.ToString(), StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
@@ -684,55 +689,36 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
 
             var writeIndices = indexStates
-                .Where(x => IsWriteIndex(x.Value, aliasName))
-                .Select(x => x.Key.ToString())
+                .Where(x =>
+                    x.Value.Aliases.TryGetValue(aliasName, out var alias) &&
+                    alias?.IsWriteIndex == true)
                 .ToList();
 
-            var writeIndexName = writeIndices.Count == 1
-                ? writeIndices[0]
-                : indexStates[0].Key.ToString();
-
-            if (indexStates.Count == 1 && writeIndices.Count == 1)
+            if (writeIndices.Count == 1)
             {
                 return;
             }
 
+            if (writeIndices.Count > 1)
+            {
+                ThrowException($"Alias {indexAlias} has multiple write indices: {string.Join(", ", writeIndices.Select(x => x.Key.ToString()))}.");
+            }
+
+            var writeIndexName = indexStates[0].Key.ToString();
+
             if (indexStates.Count > 1)
             {
-                _logger.LogWarning("Alias {Alias} points to {Count} indices. Keeping {WriteIndex} attached and detaching {DetachedCount} duplicates.",
-                    indexAlias, indexStates.Count, writeIndexName, indexStates.Count - 1);
+                _logger.LogWarning(
+                    "Alias {Alias} points to {Count} indices without a write index. Setting {WriteIndex} as write index.",
+                    indexAlias,
+                    indexStates.Count,
+                    writeIndexName);
             }
 
-            var duplicateIndices = indexStates
-                .Where(x => !x.Key.ToString().EqualsIgnoreCase(writeIndexName))
-                .ToList();
-
-            var actions = new List<IndexUpdateAliasesAction>
+            var aliasUpdateResponse = await Client.Indices.PutAliasAsync(writeIndexName, indexAlias, r => r.IsWriteIndex(true));
+            if (!aliasUpdateResponse.IsValidResponse)
             {
-                new AddAction
-                {
-                    Index = writeIndexName,
-                    Alias = indexAlias,
-                    IsWriteIndex = true,
-                },
-            };
-
-            actions.AddRange(duplicateIndices.Select(x => (IndexUpdateAliasesAction)new RemoveAction
-            {
-                Index = x.Key,
-                Alias = indexAlias,
-            }));
-
-            var updateAliasesResponse = await Client.Indices.UpdateAliasesAsync(descriptor => descriptor.Actions(actions));
-
-            if (!updateAliasesResponse.IsValidResponse)
-            {
-                ThrowException($"Failed to update write index for alias {indexAlias}. {updateAliasesResponse.DebugInformation}", updateAliasesResponse.ApiCallDetails.OriginalException);
-            }
-
-            if (_settingsManager.GetDeleteDuplicateIndexes())
-            {
-                await DeleteDetachedDuplicateIndicesAsync(aliasName, duplicateIndices);
+                ThrowException($"Failed to set write index for alias {indexAlias}. {aliasUpdateResponse.DebugInformation}", aliasUpdateResponse.ApiCallDetails.OriginalException);
             }
         }
 
@@ -749,7 +735,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             var response = await Client.Indices.CreateAsync(indexName, i => i
                 .Settings(x => ConfigureIndexSettings(x))
-                .Aliases(x => x.Add(alias, new AliasDescriptor())
+                .Aliases(x => x.Add(alias, new AliasDescriptor().IsWriteIndex(true))
                 ));
 
             if (!response.ApiCallDetails.HasSuccessfulStatusCode)
@@ -931,7 +917,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             var aliasName = indexAlias.ToString();
             var indexStates = activeIndexResponse.Indices?
-                .Where(x => HasAlias(x.Value, aliasName))
+                .Where(x => x.Value?.Aliases?.ContainsKey(aliasName) == true)
                 .OrderBy(x => x.Key.ToString(), StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
@@ -940,103 +926,14 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 return null;
             }
 
-            if (indexStates.Count > 1)
-            {
-                var writeIndexName = indexStates
-                    .Where(x => IsWriteIndex(x.Value, aliasName))
-                    .Select(x => x.Key.ToString())
-                    .FirstOrDefault();
+            var writeIndexName = indexStates
+                .Where(x =>
+                    x.Value.Aliases.TryGetValue(aliasName, out var alias) &&
+                    alias?.IsWriteIndex == true)
+                .Select(x => x.Key.ToString())
+                .FirstOrDefault();
 
-                _logger.LogWarning("Alias {Alias} unexpectedly points to {Count} indices: {Indices}. Using write index {WriteIndex}.",
-                    indexAlias, indexStates.Count, string.Join(", ", indexStates.Select(x => x.Key)), writeIndexName ?? indexStates[0].Key.ToString());
-
-                if (!string.IsNullOrEmpty(writeIndexName))
-                {
-                    return writeIndexName;
-                }
-            }
-
-            return indexStates[0].Key.ToString();
-        }
-
-        protected virtual bool HasAlias(Elastic.Clients.Elasticsearch.IndexManagement.IndexState indexState, string aliasName)
-        {
-            return indexState?.Aliases?.ContainsKey(aliasName) == true;
-        }
-
-        protected virtual bool IsWriteIndex(Elastic.Clients.Elasticsearch.IndexManagement.IndexState indexState, string aliasName)
-        {
-            if (indexState?.Aliases == null)
-            {
-                return false;
-            }
-
-            return indexState.Aliases.TryGetValue(aliasName, out var alias) &&
-                alias?.IsWriteIndex == true;
-        }
-
-        protected virtual async Task EnsureInitialIndexAsync(string documentType, string indexAlias, bool reindex)
-        {
-            var initialIndexName = GetInitialIndexName(documentType, reindex);
-
-            if (!await IndexExistsAsync(initialIndexName))
-            {
-                var response = await Client.Indices.CreateAsync(initialIndexName, descriptor => descriptor
-                    .Settings(x => ConfigureIndexSettings(x, documentType))
-                    .Aliases(x => ConfigureIndexAliases(x, documentType, initialIndexName, indexAlias)
-                ));
-
-                if (!response.IsValidResponse && !IsResourceAlreadyExistsError(response))
-                {
-                    ThrowException($"Failed to create index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(indexAlias) && !indexAlias.EqualsIgnoreCase(initialIndexName))
-            {
-                var aliasResponse = await Client.Indices.PutAliasAsync(initialIndexName, indexAlias, r => r.IsWriteIndex(true));
-                if (!aliasResponse.IsValidResponse)
-                {
-                    ThrowException($"Failed to set alias for index. {aliasResponse.DebugInformation}", aliasResponse.ApiCallDetails.OriginalException);
-                }
-            }
-        }
-
-        protected virtual async Task DeleteDetachedDuplicateIndicesAsync(string aliasName, IList<KeyValuePair<string, Elastic.Clients.Elasticsearch.IndexManagement.IndexState>> duplicateIndices)
-        {
-            foreach (var duplicateIndex in duplicateIndices)
-            {
-                var duplicateIndexName = duplicateIndex.Key.ToString();
-
-                if (duplicateIndex.Value?.Aliases?.Keys.Any(x => !x.EqualsIgnoreCase(aliasName)) == true)
-                {
-                    _logger.LogWarning("Detached duplicate index {Index} for alias {Alias} was preserved because it is still referenced by other aliases: {OtherAliases}.",
-                        duplicateIndexName,
-                        aliasName,
-                        string.Join(", ", duplicateIndex.Value.Aliases.Keys.Where(x => !x.EqualsIgnoreCase(aliasName))));
-                    continue;
-                }
-
-                var deleteResponse = await Client.Indices.DeleteAsync(duplicateIndexName);
-                if (!deleteResponse.IsValidResponse && !IsIndexNotFoundError(deleteResponse))
-                {
-                    ThrowException($"Failed to delete duplicate index {duplicateIndexName}. {deleteResponse.DebugInformation}", deleteResponse.ApiCallDetails.OriginalException);
-                }
-
-                RemoveMappingFromCache(duplicateIndexName);
-            }
-        }
-
-        protected virtual string GetInitialIndexName(string documentType, bool reindex)
-        {
-            return reindex
-                ? GetIndexName(documentType, InitialBackupIndexSuffix)
-                : GetIndexName(documentType);
-        }
-
-        protected virtual bool IsResourceAlreadyExistsError(ElasticsearchResponse response)
-        {
-            return response.ElasticsearchServerError?.Error?.Type == "resource_already_exists_exception";
+            return writeIndexName ?? indexStates[0].Key.ToString();
         }
 
         protected virtual string GetIndexName(string documentType)

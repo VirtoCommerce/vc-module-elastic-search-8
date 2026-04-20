@@ -84,45 +84,16 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
         }
 
         [Fact]
-        public virtual async Task ConcurrentFirstIndexCreation_ShouldKeepSingleActiveIndex()
-        {
-            var provider = GetSearchProvider();
-            var documentType = $"item-{Guid.NewGuid():N}";
-            var primaryDocuments = GetPrimaryDocuments();
-
-            var results = await Task.WhenAll(Enumerable.Range(0, 4)
-                .Select(_ => provider.IndexAsync(documentType, primaryDocuments)));
-
-            Assert.All(results, response =>
-            {
-                Assert.NotNull(response);
-                Assert.NotNull(response.Items);
-                Assert.Equal(primaryDocuments.Count, response.Items.Count);
-                Assert.All(response.Items, item => Assert.True(item.Succeeded, item.ErrorMessage));
-            });
-
-            var client = GetElasticsearchClient(provider);
-            var aliasResponse = await client.Indices.GetAsync($"test-core-{documentType}-active");
-
-            Assert.True(aliasResponse.IsValidResponse, aliasResponse.DebugInformation);
-            Assert.Single(aliasResponse.Indices);
-        }
-
-        [Fact]
-        public virtual async Task DuplicateActiveAliasWithoutOtherAliases_ShouldDeleteDetachedDuplicateIndex()
+        public virtual async Task ActiveAliasWithSingleNonWriteIndex_ShouldSetWriteIndex()
         {
             var provider = GetSearchProvider();
             var client = GetElasticsearchClient(provider);
             var documentType = $"item-{Guid.NewGuid():N}";
             var activeAlias = $"test-core-{documentType}-active";
-            var duplicateIndexName = $"test-core-{documentType}-duplicate";
-            var writeIndexName = $"test-core-{documentType}-write";
+            var indexName = $"test-core-{documentType}-index";
 
-            await CreateIndexAsync(client, duplicateIndexName);
-            await CreateIndexAsync(client, writeIndexName);
-            await SetAliasesAsync(client,
-                new AddAction { Index = duplicateIndexName, Alias = activeAlias },
-                new AddAction { Index = writeIndexName, Alias = activeAlias, IsWriteIndex = true });
+            await CreateIndexAsync(client, indexName);
+            await SetAliasesAsync(client, new AddAction { Index = indexName, Alias = activeAlias, IsWriteIndex = false });
 
             var response = await provider.IndexAsync(documentType, GetPrimaryDocuments().Take(1).ToList());
 
@@ -132,44 +103,68 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             var aliasResponse = await client.Indices.GetAsync(activeAlias);
             Assert.True(aliasResponse.IsValidResponse, aliasResponse.DebugInformation);
             Assert.Single(aliasResponse.Indices);
-            Assert.True(aliasResponse.Indices.ContainsKey(writeIndexName));
-
-            var duplicateIndexExists = await client.Indices.ExistsAsync(duplicateIndexName);
-            Assert.False(duplicateIndexExists.Exists);
+            Assert.True(aliasResponse.Indices[indexName].Aliases[activeAlias].IsWriteIndex);
         }
 
         [Fact]
-        public virtual async Task DuplicateActiveAliasWithOtherAliases_ShouldKeepWriteIndexAndPreserveSecondaryAlias()
+        public virtual async Task ActiveAliasWithMultipleNonWriteIndices_ShouldSetSingleWriteIndexWithoutDetachingAliases()
         {
             var provider = GetSearchProvider();
             var client = GetElasticsearchClient(provider);
             var documentType = $"item-{Guid.NewGuid():N}";
             var activeAlias = $"test-core-{documentType}-active";
-            var backupAlias = $"test-core-{documentType}-backup";
-            var duplicateIndexName = $"test-core-{documentType}-duplicate";
-            var writeIndexName = $"test-core-{documentType}-write";
+            var firstIndexName = $"test-core-{documentType}-a";
+            var secondIndexName = $"test-core-{documentType}-b";
 
-            await CreateIndexAsync(client, duplicateIndexName);
-            await CreateIndexAsync(client, writeIndexName);
+            await CreateIndexAsync(client, firstIndexName);
+            await CreateIndexAsync(client, secondIndexName);
             await SetAliasesAsync(client,
-                new AddAction { Index = duplicateIndexName, Alias = backupAlias, IsWriteIndex = true },
-                new AddAction { Index = duplicateIndexName, Alias = activeAlias },
-                new AddAction { Index = writeIndexName, Alias = activeAlias, IsWriteIndex = true });
+                new AddAction { Index = firstIndexName, Alias = activeAlias },
+                new AddAction { Index = secondIndexName, Alias = activeAlias });
 
             var response = await provider.IndexAsync(documentType, GetPrimaryDocuments().Take(1).ToList());
 
             Assert.NotNull(response);
             Assert.All(response.Items, item => Assert.True(item.Succeeded, item.ErrorMessage));
 
-            var activeAliasResponse = await client.Indices.GetAsync(activeAlias);
-            Assert.True(activeAliasResponse.IsValidResponse, activeAliasResponse.DebugInformation);
-            Assert.Single(activeAliasResponse.Indices);
-            Assert.True(activeAliasResponse.Indices.ContainsKey(writeIndexName));
+            var aliasResponse = await client.Indices.GetAsync(activeAlias);
+            Assert.True(aliasResponse.IsValidResponse, aliasResponse.DebugInformation);
+            Assert.Equal(2, aliasResponse.Indices.Count);
+            Assert.True(aliasResponse.Indices[firstIndexName].Aliases.ContainsKey(activeAlias));
+            Assert.True(aliasResponse.Indices[secondIndexName].Aliases.ContainsKey(activeAlias));
 
-            var duplicateIndexResponse = await client.Indices.GetAsync(duplicateIndexName);
-            Assert.True(duplicateIndexResponse.IsValidResponse, duplicateIndexResponse.DebugInformation);
-            Assert.True(duplicateIndexResponse.Indices[duplicateIndexName].Aliases.ContainsKey(backupAlias));
-            Assert.False(duplicateIndexResponse.Indices[duplicateIndexName].Aliases.ContainsKey(activeAlias));
+            var writeAliasesCount = aliasResponse.Indices
+                .Count(x => x.Value.Aliases[activeAlias].IsWriteIndex == true);
+
+            Assert.Equal(1, writeAliasesCount);
+        }
+
+        [Fact]
+        public virtual async Task ActiveAliasWithExistingWriteIndex_ShouldKeepAliasMembership()
+        {
+            var provider = GetSearchProvider();
+            var client = GetElasticsearchClient(provider);
+            var documentType = $"item-{Guid.NewGuid():N}";
+            var activeAlias = $"test-core-{documentType}-active";
+            var firstIndexName = $"test-core-{documentType}-a";
+            var secondIndexName = $"test-core-{documentType}-b";
+
+            await CreateIndexAsync(client, firstIndexName);
+            await CreateIndexAsync(client, secondIndexName);
+            await SetAliasesAsync(client,
+                new AddAction { Index = firstIndexName, Alias = activeAlias, IsWriteIndex = true },
+                new AddAction { Index = secondIndexName, Alias = activeAlias });
+
+            var response = await provider.IndexAsync(documentType, GetPrimaryDocuments().Take(1).ToList());
+
+            Assert.NotNull(response);
+            Assert.All(response.Items, item => Assert.True(item.Succeeded, item.ErrorMessage));
+
+            var aliasResponse = await client.Indices.GetAsync(activeAlias);
+            Assert.True(aliasResponse.IsValidResponse, aliasResponse.DebugInformation);
+            Assert.Equal(2, aliasResponse.Indices.Count);
+            Assert.True(aliasResponse.Indices[firstIndexName].Aliases[activeAlias].IsWriteIndex);
+            Assert.True(aliasResponse.Indices[secondIndexName].Aliases.ContainsKey(activeAlias));
         }
 
         [Fact]

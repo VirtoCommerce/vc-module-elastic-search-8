@@ -150,14 +150,6 @@ public static class ModuleConstants
                 DefaultValue = 1.0M,
             };
 
-            public static SettingDescriptor DeleteDuplicateIndexes { get; } = new()
-            {
-                Name = "VirtoCommerce.Search.ElasticSearch8.DeleteDuplicateIndexes",
-                GroupName = "Search|ElasticSearch8|General",
-                ValueType = SettingValueType.Boolean,
-                DefaultValue = true,
-            };
-
             public static IEnumerable<SettingDescriptor> AllGeneralSettings
             {
                 get
@@ -168,7 +160,6 @@ public static class ModuleConstants
                     yield return MaxGram;
                     yield return MinScore;
                     yield return MinScorePerDocumentType;
-                    yield return DeleteDuplicateIndexes;
                     yield return SemanticSearchType;
                     yield return SemanticModelId;
                     yield return SemanticPipelineName;

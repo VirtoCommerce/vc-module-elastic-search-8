@@ -24,8 +24,8 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
         protected override ISearchProvider GetSearchProvider()
         {
             var searchOptions = Options.Create(new SearchOptions { Scope = "test-core", Provider = "ElasticSearch8" });
-            var elasticOptions = Options.Create(_configuration.GetSection("ElasticSearch8").Get<ElasticSearch8Options>() ?? new ElasticSearch8Options());
-            elasticOptions.Value.Server ??= Environment.GetEnvironmentVariable("TestElasticsearchHost") ?? "http://localhost:9200";
+            var elasticOptions = Options.Create(_configuration.GetSection("ElasticSearch8").Get<ElasticSearch8Options>());
+            elasticOptions.Value.Server ??= Environment.GetEnvironmentVariable("TestElasticsearchHost") ?? "localhost:9200";
 
             var settingsManager = GetSettingsManager();
 
