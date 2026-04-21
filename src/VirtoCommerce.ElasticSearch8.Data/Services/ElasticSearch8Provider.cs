@@ -666,23 +666,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual async Task EnsureAliasHasWriteIndexAsync(string indexAlias)
         {
-            var aliasResponse = await Client.Indices.GetAsync(indexAlias);
-            if (!aliasResponse.IsValidResponse)
-            {
-                if (aliasResponse.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
-                {
-                    return;
-                }
-
-                ThrowException($"Failed to get alias {indexAlias}. {aliasResponse.DebugInformation}", aliasResponse.ApiCallDetails.OriginalException);
-            }
-
-            var aliasName = indexAlias.ToString();
-            var indexStates = aliasResponse.Indices?
-                .Where(x => x.Value?.Aliases?.ContainsKey(aliasName) == true)
-                .OrderBy(x => x.Key.ToString(), StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
+            var indexStates = await GetAliasIndexStatesAsync(indexAlias);
             if (indexStates.IsNullOrEmpty())
             {
                 return;
@@ -690,7 +674,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             var writeIndices = indexStates
                 .Where(x =>
-                    x.Value.Aliases.TryGetValue(aliasName, out var alias) &&
+                    x.Value.Aliases.TryGetValue(indexAlias, out var alias) &&
                     alias?.IsWriteIndex == true)
                 .ToList();
 
@@ -704,6 +688,30 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 ThrowException($"Alias {indexAlias} has multiple write indices: {string.Join(", ", writeIndices.Select(x => x.Key.ToString()))}.");
             }
 
+            await AssignWriteIndexAsync(indexAlias, indexStates);
+        }
+
+        private async Task<List<KeyValuePair<string, Elastic.Clients.Elasticsearch.IndexManagement.IndexState>>> GetAliasIndexStatesAsync(string indexAlias)
+        {
+            var aliasResponse = await Client.Indices.GetAsync(indexAlias);
+            if (!aliasResponse.IsValidResponse)
+            {
+                if (aliasResponse.ApiCallDetails.HttpStatusCode == (int)HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+
+                ThrowException($"Failed to get alias {indexAlias}. {aliasResponse.DebugInformation}", aliasResponse.ApiCallDetails.OriginalException);
+            }
+
+            return aliasResponse.Indices?
+                .Where(x => x.Value?.Aliases?.ContainsKey(indexAlias) == true)
+                .OrderBy(x => x.Key.ToString(), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private async Task AssignWriteIndexAsync(string indexAlias, List<KeyValuePair<string, Elastic.Clients.Elasticsearch.IndexManagement.IndexState>> indexStates)
+        {
             var writeIndexName = indexStates[0].Key.ToString();
 
             if (indexStates.Count > 1)
