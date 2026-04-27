@@ -1,9 +1,12 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VirtoCommerce.ElasticSearch8.Core.Models;
 using VirtoCommerce.ElasticSearch8.Data.Services;
+using VirtoCommerce.Platform.Core.DistributedLock;
 using VirtoCommerce.SearchModule.Core.Model;
 using VirtoCommerce.SearchModule.Core.Services;
 using Xunit;
@@ -50,10 +53,24 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
                 responseBuilder,
                 documentConverter,
                 providerLogger,
-                propertyService
+                propertyService,
+                new NoLockService()
                 );
 
             return provider;
+        }
+
+        private sealed class NoLockService : IDistributedLockService
+        {
+            public T Execute<T>(string resourceKey, Func<T> resolver, TimeSpan? lockTimeout = null, TimeSpan? tryLockTimeout = null, TimeSpan? retryInterval = null, CancellationToken? cancellationToken = null)
+            {
+                return resolver();
+            }
+
+            public Task<T> ExecuteAsync<T>(string resourceKey, Func<Task<T>> resolver, TimeSpan? lockTimeout = null, TimeSpan? tryLockTimeout = null, TimeSpan? retryInterval = null, CancellationToken? cancellationToken = null)
+            {
+                return resolver();
+            }
         }
     }
 }
