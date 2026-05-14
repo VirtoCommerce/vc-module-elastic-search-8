@@ -15,6 +15,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
     {
         public virtual Query GetFilterQuery(IFilter filter, IDictionary<PropertyName, IProperty> availableFields)
         {
+            ArgumentNullException.ThrowIfNull(filter);
+            ArgumentNullException.ThrowIfNull(availableFields);
+
             Query result = null;
 
             switch (filter)
@@ -80,7 +83,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected virtual bool HasWildcardValue(TermFilter termFilter)
         {
             return termFilter.Values is { Count: 1 } &&
-                   termFilter.Values.Any(v => v.Contains('*') || v.Contains('?'));
+                termFilter.Values.Where(v => v != null).Any(v => v.Contains('*') || v.Contains('?'));
         }
 
         protected virtual IdsQuery CreateIdsFilter(IdsFilter idsFilter)
@@ -106,7 +109,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 {
                     "1" => "true",
                     "0" => "false",
-                    _ => FieldValue.String(v.ToLowerInvariant()),
+                    _ => FieldValue.String(v?.ToLowerInvariant()),
                 }).ToArray();
             }
             else if (property?.Type.EqualsIgnoreCase(nameof(FieldType.Date)) == true)
@@ -115,7 +118,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
             else
             {
-                termValues = termFilter.Values.Select(x => FieldValue.String(x.ToLowerInvariant())).ToArray();
+                termValues = termFilter.Values.Select(x => FieldValue.String(x?.ToLowerInvariant())).ToArray();
             }
 
             return new TermsQuery
