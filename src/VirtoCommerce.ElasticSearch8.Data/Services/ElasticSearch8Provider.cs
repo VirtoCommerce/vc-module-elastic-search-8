@@ -339,7 +339,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             CheckClientCreated();
 
-            return InternalCreateIndexAsync(documentType, [schema], new IndexingParameters { Reindex = true });
+            return InternalCreateIndexWithLockAsync(documentType, [schema], new IndexingParameters { Reindex = true });
         }
 
         public virtual async Task<SuggestionResponse> GetSuggestionsAsync(string documentType, SuggestionRequest request)
@@ -406,7 +406,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
         protected virtual async Task<IndexingResult> InternalIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
         {
-            var createIndexResult = await InternalCreateIndexAsync(documentType, documents, parameters);
+            var createIndexResult = await InternalCreateIndexWithLockAsync(documentType, documents, parameters);
 
             var pipelines = new List<string>();
 
@@ -532,39 +532,58 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
+        protected virtual async Task<CreateIndexResult> InternalCreateIndexWithLockAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
+        {
+            var semaphore = _createIndexSemaphores.GetOrAdd(documentType, static _ => new SemaphoreSlim(1, 1));
+            var resourceKey = $"{nameof(ElasticSearch8Provider)}:{nameof(InternalCreateIndexWithLockAsync)}:{GetIndexName(documentType)}";
+
+            await semaphore.WaitAsync();
+
+            try
+            {
+                return await _distributedLockService.ExecuteAsync(
+                    resourceKey,
+                    () => InternalCreateIndexAsync(documentType, documents, parameters),
+                    lockTimeout: CreateIndexLockTimeout,
+                    tryLockTimeout: CreateIndexTryLockTimeout,
+                    retryInterval: CreateIndexRetryInterval);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
         protected virtual async Task<CreateIndexResult> InternalCreateIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
         {
-            return await ExecuteWithDocumentTypeLockAsync(documentType, async () =>
+            var indexName = GetIndexName(parameters.Reindex, documentType);
+
+            var mapping = await GetMappingAsync(indexName);
+            var providerFields = new Properties(mapping);
+            var oldFieldsCount = providerFields.Count();
+
+            var providerDocuments = documents.Select(document => _documentConverter.ToProviderDocument(documentType, document, providerFields)).ToList();
+
+            var updateMapping = providerFields.Count() != oldFieldsCount;
+
+            var indexExists = await IndexExistsAsync(indexName);
+
+            if (!indexExists)
             {
-                var indexName = GetIndexName(parameters.Reindex, documentType);
+                var newIndexName = GetIndexName(documentType, GetRandomIndexSuffix());
+                await CreateIndexAsync(documentType, newIndexName, alias: indexName);
+            }
 
-                var mapping = await GetMappingAsync(indexName);
-                var providerFields = new Properties(mapping);
-                var oldFieldsCount = providerFields.Count();
+            if (!indexExists || updateMapping)
+            {
+                await UpdateMappingAsync(documentType, indexName, providerFields);
+            }
 
-                var providerDocuments = documents.Select(document => _documentConverter.ToProviderDocument(documentType, document, providerFields)).ToList();
-
-                var updateMapping = providerFields.Count() != oldFieldsCount;
-
-                var indexExists = await IndexExistsAsync(indexName);
-
-                if (!indexExists)
-                {
-                    var newIndexName = GetIndexName(documentType, GetRandomIndexSuffix());
-                    await CreateIndexAsync(documentType, newIndexName, alias: indexName);
-                }
-
-                if (!indexExists || updateMapping)
-                {
-                    await UpdateMappingAsync(documentType, indexName, providerFields);
-                }
-
-                return new CreateIndexResult
-                {
-                    IndexName = indexName,
-                    ProviderDocuments = providerDocuments,
-                };
-            });
+            return new CreateIndexResult
+            {
+                IndexName = indexName,
+                ProviderDocuments = providerDocuments,
+            };
         }
 
         protected virtual async Task InternalDeleteAsync(string indexAlias)
@@ -893,32 +912,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         protected virtual string GetIndexAlias(string alias, string documentType)
         {
             return $"{GetIndexName(documentType)}-{alias}".ToLowerInvariant();
-        }
-
-        protected virtual async Task<T> ExecuteWithDocumentTypeLockAsync<T>(string documentType, Func<Task<T>> resolver)
-        {
-            var semaphore = _createIndexSemaphores.GetOrAdd(documentType, static _ => new SemaphoreSlim(1, 1));
-
-            await semaphore.WaitAsync();
-
-            try
-            {
-                return await _distributedLockService.ExecuteAsync(
-                    GetCreateIndexLockResourceKey(documentType),
-                    resolver,
-                    lockTimeout: CreateIndexLockTimeout,
-                    tryLockTimeout: CreateIndexTryLockTimeout,
-                    retryInterval: CreateIndexRetryInterval);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        }
-
-        protected virtual string GetCreateIndexLockResourceKey(string documentType)
-        {
-            return $"{nameof(ElasticSearch8Provider)}:CreateIndex:{GetIndexName(documentType)}";
         }
 
         /// <summary>
