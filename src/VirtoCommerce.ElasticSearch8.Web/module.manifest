@@ -18,7 +18,7 @@
     <owner>VirtoCommerce</owner>
   </owners>
   <projectUrl>https://github.com/VirtoCommerce/vc-module-elastic-search-8</projectUrl>
-  <iconUrl>Modules/$(VirtoCommerce.ElasticSearch8)/Content/logo.png</iconUrl>
+  <iconUrl>Modules/$(VirtoCommerce.ElasticSearch8)/Content/logo.svg</iconUrl>
   <requireLicenseAcceptance>false</requireLicenseAcceptance>
   <assemblyFile>VirtoCommerce.ElasticSearch8.Web.dll</assemblyFile>
   <moduleType>VirtoCommerce.ElasticSearch8.Web.Module, VirtoCommerce.ElasticSearch8.Web</moduleType>
