@@ -30,6 +30,11 @@ The Elastic Search provider can be configured using the following keys:
 
 * **Search.ElasticSearch8.EnableDebugMode**: Turns on settings that aid in debugging so that the original request and response JSON can be inspected. It also always asks the server for the full stack trace on errors. [Read more details here](https://github.com/elastic/elasticsearch-net/blob/main/docs/client-concepts/troubleshooting/debug-mode.asciidoc#L17). (Optional: Default value is false.)
 
+* **Search.ElasticSearch8.RequestTimeout**: Timeout for every Elasticsearch request that does not set its own, as a TimeSpan such as "00:00:30". Without it the client waits up to Elastic.Transport's built-in 10 minutes, so a single stalled connection can block its caller for that long. (Optional: Default value is 30 seconds.)
+* **Search.ElasticSearch8.LongRunningRequestTimeout**: Timeout for bulk indexing and deletion, which may run ingest pipelines such as semantic-search inference and can legitimately take minutes. (Optional: Default value is 10 minutes.)
+
+  A provider derived from `ElasticSearch8Provider` inherits `RequestTimeout` on every call it makes. Calls that wait for the server to finish - `wait_for_completion` requests such as reindex or delete-by-query, snapshot create or restore - have to opt into the long-running budget, through the protected `LongRunningRequestTimeout` and the descriptor overload `RequestConfiguration(x => x.RequestTimeout(LongRunningRequestTimeout))`; otherwise they fail after `RequestTimeout`.
+
 
 ## Samples
 Here are some sample configurations for different scenarios:
