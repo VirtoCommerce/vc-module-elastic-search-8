@@ -44,7 +44,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
         }
 
         [Fact]
-        public async Task RemoveAsync_ServerNeverAnswers_GivesUpAfterTheLongRunningTimeout()
+        public async Task RemoveAsync_ServerNeverAnswers_FailsLongBeforeTheClientWideTimeout()
         {
             using var server = new LoopbackElasticServer(_ => Task.CompletedTask);
             var provider = CreateProvider(new ElasticSearch8Options

@@ -17,26 +17,24 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
     public class ElasticSearch8ProviderRequestTimeoutTests
     {
         [Fact]
-        public void Constructor_DefaultOptions_BoundsRequestsByThirtySecondsAndBulkByTenMinutes()
+        public void ElasticSearch8Options_Defaults_AreThirtySecondsAndTenMinutes()
         {
-            var provider = new TestElasticSearch8Provider(new ElasticSearch8Options { Server = "http://localhost:9200" });
+            var options = new ElasticSearch8Options();
 
-            provider.ClientRequestTimeout.Should().Be(TimeSpan.FromSeconds(30));
-            provider.ConfiguredLongRunningRequestTimeout.Should().Be(TimeSpan.FromMinutes(10));
+            options.RequestTimeout.Should().Be(TimeSpan.FromSeconds(30));
+            options.LongRunningRequestTimeout.Should().Be(TimeSpan.FromMinutes(10));
         }
 
         [Fact]
-        public void Constructor_TimeoutsConfigured_UsesTheConfiguredValues()
+        public void Constructor_RequestTimeoutConfigured_BoundsTheClient()
         {
             var provider = new TestElasticSearch8Provider(new ElasticSearch8Options
             {
                 Server = "http://localhost:9200",
                 RequestTimeout = TimeSpan.FromSeconds(5),
-                LongRunningRequestTimeout = TimeSpan.FromMinutes(2),
             });
 
             provider.ClientRequestTimeout.Should().Be(TimeSpan.FromSeconds(5));
-            provider.ConfiguredLongRunningRequestTimeout.Should().Be(TimeSpan.FromMinutes(2));
         }
 
         private sealed class TestElasticSearch8Provider : ElasticSearch8Provider
@@ -56,8 +54,6 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
             }
 
             public TimeSpan? ClientRequestTimeout => Client.ElasticsearchClientSettings.RequestTimeout;
-
-            public TimeSpan ConfiguredLongRunningRequestTimeout => LongRunningRequestTimeout;
         }
     }
 }
