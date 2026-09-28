@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Analysis;
@@ -12,6 +13,7 @@ using Elastic.Clients.Elasticsearch.Fluent;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Transport;
+using Elastic.Transport.Products.Elasticsearch;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VirtoCommerce.ElasticSearch8.Core;
@@ -19,6 +21,7 @@ using VirtoCommerce.ElasticSearch8.Core.Models;
 using VirtoCommerce.ElasticSearch8.Core.Services;
 using VirtoCommerce.ElasticSearch8.Data.Extensions;
 using VirtoCommerce.Platform.Core.Common;
+using VirtoCommerce.Platform.Core.DistributedLock;
 using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Exceptions;
 using VirtoCommerce.SearchModule.Core.Model;
@@ -34,9 +37,15 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly IElasticSearchResponseBuilder _searchResponseBuilder;
         private readonly IElasticSearchDocumentConverter _documentConverter;
         private readonly ILogger<ElasticSearch8Provider> _logger;
+        private readonly IElasticSearchPropertyService _propertyService;
+        private readonly IDistributedLockService _distributedLockService;
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _createIndexSemaphores = new(StringComparer.OrdinalIgnoreCase);
         private const int SuffixLength = 10;
+        private static readonly TimeSpan CreateIndexLockTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan CreateIndexTryLockTimeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan CreateIndexRetryInterval = TimeSpan.FromMilliseconds(200);
 
         protected ElasticsearchClient Client { get; }
         protected Uri ServerUrl { get; }
@@ -55,7 +64,9 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             IElasticSearchRequestBuilder searchRequestBuilder,
             IElasticSearchResponseBuilder searchResponseBuilder,
             IElasticSearchDocumentConverter documentConverter,
-            ILogger<ElasticSearch8Provider> logger)
+            ILogger<ElasticSearch8Provider> logger,
+            IElasticSearchPropertyService propertyService,
+            IDistributedLockService distributedLockService)
         {
             _searchOptions = searchOptions.Value;
             _settingsManager = settingsManager;
@@ -63,6 +74,8 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _searchResponseBuilder = searchResponseBuilder;
             _documentConverter = documentConverter;
             _logger = logger;
+            _propertyService = propertyService;
+            _distributedLockService = distributedLockService;
 
             if (!string.IsNullOrEmpty(elasticOptions.Value.Server))
             {
@@ -113,8 +126,15 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var providerRequest = _searchRequestBuilder.BuildRequest(request, indexName, documentType, availableFields);
                 var providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
 
-                if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                if (!providerResponse.IsValidResponse)
                 {
+                    if (IsIndexNotFoundError(providerResponse))
+                    {
+                        // Suppress index not found error, because it can be normal in case when index was not created yet or was deleted. In this case return empty search result.
+                        _logger.LogWarning("Index {indexName} not found while trying to search. Returning empty result. Possible cause - index was not created yet or was deleted.", indexName);
+                        return AbstractTypeFactory<SearchResponse>.TryCreateInstance();
+                    }
+
                     ThrowException($"Search failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
                 }
 
@@ -319,7 +339,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         {
             CheckClientCreated();
 
-            return InternalCreateIndexAsync(documentType, [schema], new IndexingParameters { Reindex = true });
+            return InternalCreateIndexWithLockAsync(documentType, [schema], new IndexingParameters { Reindex = true });
         }
 
         public virtual async Task<SuggestionResponse> GetSuggestionsAsync(string documentType, SuggestionRequest request)
@@ -329,7 +349,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 if (request.Fields.IsNullOrEmpty())
                 {
-                    return new SuggestionResponse();
+                    return AbstractTypeFactory<SuggestionResponse>.TryCreateInstance();
                 }
 
                 var indexName = GetIndexName(request.UseBackupIndex, documentType);
@@ -338,13 +358,22 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
                 var providerRequest = _searchRequestBuilder.BuildSuggestionRequest(request, indexName, documentType, availableFields);
                 if (providerRequest.Suggest is null)
                 {
-                    return new SuggestionResponse();
+                    return AbstractTypeFactory<SuggestionResponse>.TryCreateInstance();
                 }
 
                 var providerResponse = await Client.SearchAsync<SearchDocument>(providerRequest);
-                if (!providerResponse.IsValidResponse && providerResponse.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                if (!providerResponse.IsValidResponse)
                 {
-                    ThrowException($"Get suggestions failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
+                    if (IsIndexNotFoundError(providerResponse))
+                    {
+                        // Suppress index not found error, because it can be normal in case when index was not created yet or was deleted. In this case return empty suggestions result.
+                        _logger.LogWarning("Index {indexName} not found while trying to get suggestions.", indexName);
+                        return AbstractTypeFactory<SuggestionResponse>.TryCreateInstance();
+                    }
+                    else
+                    {
+                        ThrowException($"Get suggestions failed. {providerResponse.DebugInformation}", providerResponse.ApiCallDetails.OriginalException);
+                    }
                 }
 
                 var result = _searchResponseBuilder.ToSuggestionResponse(providerResponse, request);
@@ -362,13 +391,27 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             }
         }
 
+        protected virtual bool IsIndexNotFoundError(ElasticsearchResponse response)
+        {
+            return !response.IsValidResponse &&
+                response.ApiCallDetails?.HttpStatusCode == (int)HttpStatusCode.NotFound &&
+                response.ElasticsearchServerError?.Error?.Type == "index_not_found_exception";
+        }
+
+        protected virtual bool IsDenseVectorMode(IList<IndexDocument> documents)
+        {
+            return !documents.IsNullOrEmpty() &&
+                documents.First().Fields.Any(x => x.ValueType == IndexDocumentFieldValueType.DenseVector);
+        }
+
         protected virtual async Task<IndexingResult> InternalIndexAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
         {
-            var createIndexResult = await InternalCreateIndexAsync(documentType, documents, parameters);
+            var createIndexResult = await InternalCreateIndexWithLockAsync(documentType, documents, parameters);
 
             var pipelines = new List<string>();
 
-            if (_settingsManager.GetSemanticSearchEnabled())
+            // Check if semantic search is enabled and vector field is not exist
+            if (_settingsManager.GetSemanticSearchEnabled() && !IsDenseVectorMode(documents))
             {
                 // Check if ML field is created
                 await CreateMLField(createIndexResult.IndexName);
@@ -435,26 +478,27 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             if (!indexMappings.ContainsKey(ModuleConstants.ModelPropertyName))
             {
                 var semanticSearchModelType = _settingsManager.GetSemanticSearchType();
-                var properties = semanticSearchModelType switch
+                Properties properties = null;
+                switch (semanticSearchModelType)
                 {
-                    ModuleConstants.ElserModel => new Properties
-                    {
-                        { ModuleConstants.TokensFieldName, new SparseVectorProperty() },
-                    },
-                    ModuleConstants.ThirdPartyModel => new Properties
-                    {
+                    case ModuleConstants.ElserModel:
+                        properties = new Properties
                         {
-                            ModuleConstants.VectorFieldName,
-                            new DenseVectorProperty
+                            { ModuleConstants.TokensFieldName, new SparseVectorProperty() },
+                        };
+                        break;
+                    case ModuleConstants.ThirdPartyModel:
+                        var vectorProperty = new DenseVectorProperty();
+                        _propertyService.ConfigureDenseVectorProperty(vectorProperty);
+                        properties = new Properties
+                        {
                             {
-                                Index = true,
-                                Dims = _settingsManager.GetVectorModelDimensionsCount(),
-                                Similarity = DenseVectorSimilarity.Cosine,
-                            }
-                        },
-                    },
-                    _ => null,
-                };
+                                ModuleConstants.VectorFieldName,
+                                vectorProperty
+                            },
+                        };
+                        break;
+                }
 
                 if (properties is null)
                 {
@@ -485,6 +529,28 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             foreach (var pipeline in pipelines)
             {
                 descriptor.Pipeline(pipeline);
+            }
+        }
+
+        protected virtual async Task<CreateIndexResult> InternalCreateIndexWithLockAsync(string documentType, IList<IndexDocument> documents, IndexingParameters parameters)
+        {
+            var semaphore = _createIndexSemaphores.GetOrAdd(documentType, static _ => new SemaphoreSlim(1, 1));
+            var resourceKey = $"{nameof(ElasticSearch8Provider)}:{nameof(InternalCreateIndexWithLockAsync)}:{GetIndexName(documentType)}";
+
+            await semaphore.WaitAsync();
+
+            try
+            {
+                return await _distributedLockService.ExecuteAsync(
+                    resourceKey,
+                    () => InternalCreateIndexAsync(documentType, documents, parameters),
+                    lockTimeout: CreateIndexLockTimeout,
+                    tryLockTimeout: CreateIndexTryLockTimeout,
+                    retryInterval: CreateIndexRetryInterval);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
@@ -526,56 +592,18 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             if (indexName != null)
             {
                 var response = await Client.Indices.DeleteAsync(indexName);
-                if (!response.IsValidResponse && response.ApiCallDetails.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                if (!response.IsValidResponse)
                 {
+                    // Suppress index not found error, because it can be normal in case when index was not created yet or was deleted. In this case just log information and return.
+                    if (IsIndexNotFoundError(response))
+                    {
+                        _logger.LogInformation("Index {indexName} not found while trying to delete it. It may be already deleted.", indexName);
+                        return;
+                    }
+
                     ThrowException($"Failed to delete index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
                 }
             }
-        }
-
-        [Obsolete("Use UpdateMappingAsync with documentType parameter", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
-        protected async Task UpdateMappingAsync(string indexName, Properties properties)
-        {
-            Properties newProperties;
-            Properties allProperties;
-
-            var mapping = await LoadMappingAsync(indexName);
-            var existingProperties = new Properties(mapping);
-
-            if (mapping.IsNullOrEmpty())
-            {
-                newProperties = properties;
-                allProperties = properties;
-            }
-            else
-            {
-
-                newProperties = new Properties();
-                allProperties = existingProperties;
-
-                foreach (var (name, value) in properties)
-                {
-                    if (!existingProperties.TryGetProperty(name, out _))
-                    {
-                        newProperties.Add(name, value);
-                        allProperties.Add(name, value);
-                    }
-                }
-            }
-
-            if (newProperties.Any())
-            {
-                var request = new PutMappingRequest(indexName) { Properties = newProperties };
-                var response = await Client.Indices.PutMappingAsync(request);
-
-                if (!response.IsValidResponse)
-                {
-                    ThrowException("Failed to submit mapping. " + response.DebugInformation, response.ApiCallDetails.OriginalException);
-                }
-            }
-
-            AddMappingToCache(indexName, allProperties);
-            await Client.Indices.RefreshAsync(indexName);
         }
 
         protected virtual async Task UpdateMappingAsync(string documentType, string indexName, Properties properties)
@@ -618,27 +646,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             return (newProperties, allProperties);
         }
 
-        [Obsolete("Use IElasticSearchDocumentConverter.ToProviderDocument", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
-        protected virtual SearchDocument ConvertToProviderDocument(IndexDocument document, IDictionary<PropertyName, IProperty> properties)
-        {
-            return _documentConverter.ToProviderDocument(null, document, properties);
-        }
-
         #region CreateIndex (move to index create service)
-
-        [Obsolete("Use CreateIndexAsync with documentType parameter", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
-        protected virtual async Task CreateIndexAsync(string indexName, string alias)
-        {
-            var response = await Client.Indices.CreateAsync(indexName, i => i
-                .Settings(x => ConfigureIndexSettings(x))
-                .Aliases(x => x.Add(alias, new AliasDescriptor())
-                ));
-
-            if (!response.ApiCallDetails.HasSuccessfulStatusCode)
-            {
-                ThrowException($"Failed to create index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
-            }
-        }
 
         protected virtual async Task CreateIndexAsync(string documentType, string indexName, string alias)
         {
@@ -651,22 +659,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             {
                 ThrowException($"Failed to create index. {response.DebugInformation}", response.ApiCallDetails.OriginalException);
             }
-        }
-
-        [Obsolete("Use ConfigureIndexSettings with documentType parameter", DiagnosticId = "VC0011", UrlFormat = "https://docs.virtocommerce.org/products/products-virto3-versions/")]
-        protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings)
-        {
-            var fieldsLimit = _settingsManager.GetFieldsLimit();
-            var ngramDiff = _settingsManager.GetMaxGram() - _settingsManager.GetMinGram();
-
-            return settings
-                .MaxNgramDiff(ngramDiff)
-                .Mapping(mappingDescriptor => ConfigureMappingLimit(mappingDescriptor, fieldsLimit))
-                .Analysis(analysisDescriptor => analysisDescriptor
-                    .TokenFilters(ConfigureTokenFilters)
-                    .Analyzers(ConfigureAnalyzers)
-                    .Normalizers(ConfigureNormalizers)
-                );
         }
 
         protected virtual IndexSettingsDescriptor ConfigureIndexSettings(IndexSettingsDescriptor settings, string documentType)

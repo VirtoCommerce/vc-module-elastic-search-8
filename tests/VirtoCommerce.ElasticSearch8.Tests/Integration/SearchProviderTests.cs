@@ -284,6 +284,32 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
         }
 
         [Fact]
+        public virtual async Task IdsFilterWithoutValues_ShouldBeIgnored()
+        {
+            var provider = GetSearchProvider();
+
+            var request1 = new SearchRequest
+            {
+                Take = 10,
+            };
+
+            var request2 = new SearchRequest
+            {
+                Filter = new IdsFilter
+                {
+                    Values = [],
+                },
+                Take = 10,
+            };
+
+            var response1 = await provider.SearchAsync(DocumentType, request1);
+            var response2 = await provider.SearchAsync(DocumentType, request2);
+
+            Assert.True(response1.DocumentsCount > 0);
+            Assert.Equal(response1.DocumentsCount, response2.DocumentsCount);
+        }
+
+        [Fact]
         public virtual async Task CanFilterByTerm()
         {
             var provider = GetSearchProvider();
@@ -382,6 +408,33 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             response = await provider.SearchAsync(DocumentType, request);
 
             Assert.Equal(2, response.DocumentsCount);
+        }
+
+        [Fact]
+        public virtual async Task TermFilterWithoutValues_ShouldBeIgnored()
+        {
+            var provider = GetSearchProvider();
+
+            var request1 = new SearchRequest
+            {
+                Take = 10,
+            };
+
+            var request2 = new SearchRequest
+            {
+                Take = 10,
+                Filter = new TermFilter
+                {
+                    FieldName = "Size",
+                    Values = []
+                },
+            };
+
+            var response1 = await provider.SearchAsync(DocumentType, request1);
+            var response2 = await provider.SearchAsync(DocumentType, request2);
+
+            Assert.True(response1.DocumentsCount > 0);
+            Assert.Equal(response1.DocumentsCount, response2.DocumentsCount);
         }
 
         [Fact]
@@ -488,6 +541,33 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Integration
             response = await provider.SearchAsync(DocumentType, request);
 
             Assert.Equal(2, response.DocumentsCount);
+        }
+
+        [Fact]
+        public virtual async Task RangeFilterWithoutValues_ShouldBeIgnored()
+        {
+            var provider = GetSearchProvider();
+
+            var request1 = new SearchRequest
+            {
+                Take = 10,
+            };
+
+            var request2 = new SearchRequest
+            {
+                Take = 10,
+                Filter = new RangeFilter
+                {
+                    FieldName = "Size",
+                    Values = []
+                },
+            };
+
+            var response1 = await provider.SearchAsync(DocumentType, request1);
+            var response2 = await provider.SearchAsync(DocumentType, request2);
+
+            Assert.True(response1.DocumentsCount > 0);
+            Assert.Equal(response1.DocumentsCount, response2.DocumentsCount);
         }
 
         [Fact]

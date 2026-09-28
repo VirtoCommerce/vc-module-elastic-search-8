@@ -5,6 +5,7 @@ using VirtoCommerce.ElasticSearch8.Data.Services;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.SearchModule.Core.Model;
 using Xunit;
+using static VirtoCommerce.ElasticSearch8.Tests.ElasticSearchProviderTestsBase;
 
 namespace VirtoCommerce.ElasticSearch8.Tests.Unit
 {
@@ -30,7 +31,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
         public void CanConvertEntityToNestedProperty(string name, object value)
         {
             // Arragne
-            var target = new ElasticSearchPropertyService();
+            var target = new ElasticSearchPropertyService(GetSettingsManager());
 
             // Act
             var result = target.CreateProperty(new IndexDocumentField(name, value, IndexDocumentFieldValueType.Complex));

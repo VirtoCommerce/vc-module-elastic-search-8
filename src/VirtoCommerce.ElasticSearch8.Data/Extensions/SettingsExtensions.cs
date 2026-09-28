@@ -58,7 +58,6 @@ namespace VirtoCommerce.ElasticSearch8.Data.Extensions
             return settingsManager.GetValue<string>(ModuleSettings.SemanticModelId);
         }
 
-
         public static int GetVectorModelDimensionsCount(this ISettingsManager settingsManager)
         {
             return settingsManager.GetValue<int>(ModuleSettings.SemanticVectorModelDimensions);
