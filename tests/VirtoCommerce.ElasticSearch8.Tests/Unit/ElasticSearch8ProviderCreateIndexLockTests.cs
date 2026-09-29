@@ -46,12 +46,27 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
             indexStoreWithLock.CreatedIndexCount.Should().Be(1, "the lock should serialize index creation and prevent duplicate indexes");
         }
 
+        [Fact]
+        public async Task InternalCreateIndexWithLockAsync_LocksTheIndexForTenSeconds()
+        {
+            // Arrange
+            var distributedLock = new PassThroughDistributedLock();
+            var provider = new TestElasticSearch8Provider(new IndexStore(), distributedLock);
+
+            // Act
+            await provider.CallInternalCreateIndexWithLockAsync();
+
+            // Assert
+            distributedLock.Requests.Should().ContainSingle().Which.Should().Be(
+                ("ElasticSearch8Provider:InternalCreateIndexWithLockAsync:test-core-product", TimeSpan.FromSeconds(10)));
+        }
+
         private sealed class TestElasticSearch8Provider : ElasticSearch8Provider
         {
             private const string DocumentType = "Product";
             private readonly IndexStore _indexStore;
 
-            public TestElasticSearch8Provider(IndexStore indexStore)
+            public TestElasticSearch8Provider(IndexStore indexStore, IDistributedLock distributedLock = null)
                 : base(
                     Options.Create(new SearchOptions { Scope = "test-core", Provider = "ElasticSearch8" }),
                     Options.Create(new ElasticSearch8Options()),
@@ -61,7 +76,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
                     Mock.Of<IElasticSearchDocumentConverter>(),
                     Mock.Of<ILogger<ElasticSearch8Provider>>(),
                     Mock.Of<IElasticSearchPropertyService>(),
-                    new PassThroughDistributedLockService())
+                    distributedLock ?? new PassThroughDistributedLock())
             {
                 _indexStore = indexStore;
             }
@@ -124,19 +139,6 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
             public void CreateIndex()
             {
                 Interlocked.Increment(ref _createdIndexCount);
-            }
-        }
-
-        private sealed class PassThroughDistributedLockService : IDistributedLockService
-        {
-            public T Execute<T>(string resourceKey, Func<T> resolver, TimeSpan? lockTimeout = null, TimeSpan? tryLockTimeout = null, TimeSpan? retryInterval = null, CancellationToken? cancellationToken = null)
-            {
-                return resolver();
-            }
-
-            public Task<T> ExecuteAsync<T>(string resourceKey, Func<Task<T>> resolver, TimeSpan? lockTimeout = null, TimeSpan? tryLockTimeout = null, TimeSpan? retryInterval = null, CancellationToken? cancellationToken = null)
-            {
-                return resolver();
             }
         }
     }

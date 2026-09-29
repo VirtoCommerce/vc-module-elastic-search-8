@@ -11,7 +11,6 @@ using Moq;
 using VirtoCommerce.ElasticSearch8.Core.Models;
 using VirtoCommerce.ElasticSearch8.Core.Services;
 using VirtoCommerce.ElasticSearch8.Data.Services;
-using VirtoCommerce.Platform.Core.DistributedLock;
 using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.SearchModule.Core.Exceptions;
 using VirtoCommerce.SearchModule.Core.Model;
@@ -72,7 +71,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
                 Mock.Of<IElasticSearchDocumentConverter>(),
                 Mock.Of<ILogger<ElasticSearch8Provider>>(),
                 Mock.Of<IElasticSearchPropertyService>(),
-                Mock.Of<IDistributedLockService>());
+                new PassThroughDistributedLock());
         }
 
         private static async Task RespondAsync(HttpListenerContext context, string json)
