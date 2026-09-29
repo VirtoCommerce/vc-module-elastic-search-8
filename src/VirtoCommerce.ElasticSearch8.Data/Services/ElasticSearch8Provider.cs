@@ -38,14 +38,13 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
         private readonly IElasticSearchDocumentConverter _documentConverter;
         private readonly ILogger<ElasticSearch8Provider> _logger;
         private readonly IElasticSearchPropertyService _propertyService;
-        private readonly IDistributedLockService _distributedLockService;
+        private readonly IDistributedLock _distributedLock;
 
         private readonly ConcurrentDictionary<string, IDictionary<PropertyName, IProperty>> _mappings = new();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _createIndexSemaphores = new(StringComparer.OrdinalIgnoreCase);
         private const int SuffixLength = 10;
-        private static readonly TimeSpan CreateIndexLockTimeout = TimeSpan.FromSeconds(30);
-        private static readonly TimeSpan CreateIndexTryLockTimeout = TimeSpan.FromSeconds(10);
-        private static readonly TimeSpan CreateIndexRetryInterval = TimeSpan.FromMilliseconds(200);
+        // How long index creation waits for another instance that is creating the same index.
+        private static readonly TimeSpan CreateIndexLockWait = TimeSpan.FromSeconds(10);
 
         protected ElasticsearchClient Client { get; }
         protected Uri ServerUrl { get; }
@@ -73,7 +72,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             IElasticSearchDocumentConverter documentConverter,
             ILogger<ElasticSearch8Provider> logger,
             IElasticSearchPropertyService propertyService,
-            IDistributedLockService distributedLockService)
+            IDistributedLock distributedLock)
         {
             _searchOptions = searchOptions.Value;
             _settingsManager = settingsManager;
@@ -82,7 +81,7 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
             _documentConverter = documentConverter;
             _logger = logger;
             _propertyService = propertyService;
-            _distributedLockService = distributedLockService;
+            _distributedLock = distributedLock;
             LongRunningRequestTimeout = elasticOptions.Value.LongRunningRequestTimeout;
 
             if (!string.IsNullOrEmpty(elasticOptions.Value.Server))
@@ -557,12 +556,10 @@ namespace VirtoCommerce.ElasticSearch8.Data.Services
 
             try
             {
-                return await _distributedLockService.ExecuteAsync(
+                return await _distributedLock.ExecuteAsync(
                     resourceKey,
-                    () => InternalCreateIndexAsync(documentType, documents, parameters),
-                    lockTimeout: CreateIndexLockTimeout,
-                    tryLockTimeout: CreateIndexTryLockTimeout,
-                    retryInterval: CreateIndexRetryInterval);
+                    _ => InternalCreateIndexAsync(documentType, documents, parameters),
+                    CreateIndexLockWait);
             }
             finally
             {
