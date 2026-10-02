@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     
-    <PackageReference Include="VirtoCommerce.Platform.Data" Version="3.1073.0" />
+    <PackageReference Include="VirtoCommerce.Platform.Data" Version="3.1076.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VirtoCommerce.ElasticSearch8.Core\VirtoCommerce.ElasticSearch8.Core.csproj" />

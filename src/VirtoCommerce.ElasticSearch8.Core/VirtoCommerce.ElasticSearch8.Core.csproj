@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.19.14" />
     
-    <PackageReference Include="VirtoCommerce.Platform.Core" Version="3.1073.0" />
+    <PackageReference Include="VirtoCommerce.Platform.Core" Version="3.1076.0" />
     <PackageReference Include="VirtoCommerce.SearchModule.Core" Version="3.1004.0" />
   </ItemGroup>
 </Project>
