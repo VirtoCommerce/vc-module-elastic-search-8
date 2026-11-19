@@ -92,7 +92,7 @@ namespace VirtoCommerce.ElasticSearch8.Tests.Unit
 
             public int LoadCount { get; private set; }
 
-            public static IDictionary<PropertyName, IProperty> ModifiedDateMapping()
+            public static Dictionary<PropertyName, IProperty> ModifiedDateMapping()
             {
                 return new Dictionary<PropertyName, IProperty>
                 {
